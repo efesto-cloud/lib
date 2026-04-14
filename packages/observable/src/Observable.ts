@@ -1,9 +1,9 @@
-import { type IPublisher, PublisherImpl } from "@efesto-cloud/publisher";
+import { type IPublisher, Publisher } from "@efesto-cloud/publisher";
 import type IObservable from "./IObservable.js";
 
-export default class ObservableImpl<T> implements IObservable<T> {
+export default class Observable<T> implements IObservable<T> {
     private _value: T;
-    public readonly onchange: IPublisher<[T]> = new PublisherImpl();
+    public readonly onchange: IPublisher<[T]> = new Publisher();
 
     constructor(initialState: T) {
         this._value = initialState;

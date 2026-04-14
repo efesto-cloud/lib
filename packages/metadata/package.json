@@ -1,7 +1,7 @@
 {
-    "name": "@efesto-cloud/entity",
+    "name": "@efesto-cloud/metadata",
     "version": "0.0.1",
-    "description": "Entity type for efesto-cloud",
+    "description": "Metadata type for efesto-cloud",
     "type": "module",
     "module": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -27,11 +27,5 @@
     "license": "MIT",
     "publishConfig": {
         "access": "public"
-    },
-    "dependencies": {
-        "luxon": "^3.7.2"
-    },
-    "devDependencies": {
-        "@types/luxon": "^3.7.1"
     }
 }

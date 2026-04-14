@@ -1,14 +1,14 @@
 import type { IObservable } from "@efesto-cloud/observable";
 import type IPublisher from "@efesto-cloud/publisher/IPublisher";
 import type { Unsubscribe } from "@efesto-cloud/publisher/IPublisher";
-import PublisherImpl from "@efesto-cloud/publisher/PublisherImpl";
-import type IComputedObservable from "./IComputedObservable.js";
+import Publisher from "@efesto-cloud/publisher/Publisher";
+import type IComputed from "./IComputed.js";
 
-export default class ComputedObservableImpl<T, DEPS extends unknown[]>
-    implements IComputedObservable<T>
+export default class Computed<T, DEPS extends unknown[]>
+    implements IComputed<T>
 {
     private _value: T;
-    private readonly onchange: IPublisher<[T]> = new PublisherImpl();
+    private readonly onchange: IPublisher<[T]> = new Publisher();
     private readonly unsubscribers: Array<Unsubscribe> = [];
     private readonly dependencies: { [K in keyof DEPS]: IObservable<DEPS[K]> };
     private readonly computeFn: (values: DEPS) => T;

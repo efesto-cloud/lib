@@ -1,7 +1,7 @@
 import type IPublisher from "./IPublisher.js";
 import type { Subscriber, Unsubscribe } from "./IPublisher.js";
 
-export default class PublisherImpl<ARGS extends unknown[] = []>
+export default class Publisher<ARGS extends unknown[] = []>
     implements IPublisher<ARGS>
 {
     subscribers: Array<Subscriber<ARGS>>;
