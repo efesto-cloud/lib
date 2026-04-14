@@ -1,7 +1,7 @@
 {
-  "name": "@efesto-cloud/maybe",
+  "name": "@efesto-cloud/outbox",
   "version": "0.0.1",
-  "description": "Maybe type for efesto-cloud",
+  "description": "Outbox type for efesto-cloud",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
