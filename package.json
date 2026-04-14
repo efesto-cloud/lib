@@ -1,20 +1,21 @@
 {
-  "name": "@efesto-cloud/lib",
-  "private": true,
-  "version": "0.0.0",
-  "description": "efesto-cloud library monorepo",
-  "scripts": {
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
-    "lint": "pnpm -r lint",
-    "clean": "pnpm -r clean"
-  },
-  "devDependencies": {
-    "typescript": "^6"
-  },
-  "engines": {
-    "node": ">=22",
-    "pnpm": ">=9"
-  },
-  "packageManager": "pnpm@9.1.4"
+    "name": "@efesto-cloud/lib",
+    "private": true,
+    "version": "0.0.0",
+    "description": "efesto-cloud library monorepo",
+    "scripts": {
+        "build": "pnpm -r build",
+        "test": "pnpm -r test",
+        "lint": "pnpm -r lint",
+        "clean": "pnpm -r clean"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.4.11",
+        "typescript": "^6"
+    },
+    "engines": {
+        "node": ">=22",
+        "pnpm": ">=9"
+    },
+    "packageManager": "pnpm@9.1.4"
 }

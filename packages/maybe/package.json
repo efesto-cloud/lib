@@ -1,21 +1,21 @@
 {
-  "name": "@efesto-cloud/maybe",
-  "version": "0.0.1",
-  "description": "Maybe type for efesto-cloud",
-  "type": "module",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc --project tsconfig.json",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
-  },
-  "dependencies": {
-    "@efesto-cloud/result": "workspace:*"
-  },
-  "keywords": [],
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  }
+    "name": "@efesto-cloud/maybe",
+    "version": "0.0.1",
+    "description": "Maybe type for efesto-cloud",
+    "type": "module",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc --project tsconfig.json",
+        "typecheck": "tsc --noEmit",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "@efesto-cloud/result": "workspace:*"
+    },
+    "keywords": [],
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    }
 }

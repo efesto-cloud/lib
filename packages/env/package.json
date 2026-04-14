@@ -1,23 +1,25 @@
 {
-  "name": "@efesto-cloud/env",
-  "version": "0.0.1",
-  "description": "Env type for efesto-cloud",
-  "type": "module",
-  "exports": {
-    "./*": {
-      "import": "./dist/*.js",
-      "types": "./dist/*.d.ts"
+    "name": "@efesto-cloud/env",
+    "version": "0.0.1",
+    "description": "Env type for efesto-cloud",
+    "type": "module",
+    "exports": {
+        "./*": {
+            "import": "./dist/*.js",
+            "types": "./dist/*.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc --project tsconfig.json",
+        "typecheck": "tsc --noEmit",
+        "clean": "rm -rf dist"
+    },
+    "keywords": [],
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
     }
-  },
-  "files": ["dist"],
-  "scripts": {
-    "build": "tsc --project tsconfig.json",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
-  },
-  "keywords": [],
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  }
 }
