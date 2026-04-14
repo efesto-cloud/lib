@@ -2,12 +2,11 @@
   "name": "@efesto-cloud/population",
   "version": "0.0.1",
   "description": "Population type for efesto-cloud",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
   "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+    "./*": {
+      "import": "./dist/*.js",
+      "types": "./dist/*.d.ts"
     }
   },
   "files": ["dist"],

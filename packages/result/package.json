@@ -2,19 +2,16 @@
   "name": "@efesto-cloud/result",
   "version": "0.0.1",
   "description": "Result type for efesto-cloud",
-  "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "files": ["dist"],
+  "type": "module",
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "zod": "^4"
   },
   "keywords": [],
   "license": "MIT",
