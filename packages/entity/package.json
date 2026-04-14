@@ -1,0 +1,23 @@
+{
+  "name": "@efesto-cloud/entity",
+  "version": "0.0.1",
+  "description": "Entity type for efesto-cloud",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
