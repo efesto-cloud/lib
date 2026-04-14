@@ -79,6 +79,16 @@ importers:
         specifier: ^7
         version: 7.1.1
 
+  packages/mongodb-population:
+    dependencies:
+      '@efesto-cloud/population':
+        specifier: workspace:*
+        version: link:../population
+    devDependencies:
+      mongodb:
+        specifier: ^7.1.1
+        version: 7.1.1
+
   packages/observable:
     dependencies:
       '@efesto-cloud/publisher':
