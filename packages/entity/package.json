@@ -28,10 +28,10 @@
     "publishConfig": {
         "access": "public"
     },
-    "dependencies": {
-        "luxon": "^3.7.2"
+    "peerDependencies": {
+        "luxon": "^3"
     },
     "devDependencies": {
-        "@types/luxon": "^3.7.1"
+        "@types/luxon": "^3"
     }
 }

@@ -10,7 +10,7 @@
         "typecheck": "tsc --noEmit",
         "clean": "rm -rf dist"
     },
-    "peerDependencies": {
+    "devDependencies": {
         "zod": "^4"
     },
     "keywords": [],

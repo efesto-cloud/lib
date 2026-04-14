@@ -12,10 +12,27 @@ importers:
         specifier: 2.4.11
         version: 2.4.11
       typescript:
-        specifier: ^6
+        specifier: ^6.0.2
         version: 6.0.2
 
-  packages/audit: {}
+  packages/audit:
+    dependencies:
+      '@efesto-cloud/metadata':
+        specifier: workspace:*
+        version: link:../metadata
+      '@efesto-cloud/usecase':
+        specifier: workspace:*
+        version: link:../usecase
+      luxon:
+        specifier: ^3
+        version: 3.7.2
+    devDependencies:
+      '@types/luxon':
+        specifier: ^3
+        version: 3.7.1
+      '@types/node':
+        specifier: ^24
+        version: 24.12.2
 
   packages/computed:
     dependencies:
@@ -29,11 +46,11 @@ importers:
   packages/entity:
     dependencies:
       luxon:
-        specifier: ^3.7.2
+        specifier: ^3
         version: 3.7.2
     devDependencies:
       '@types/luxon':
-        specifier: ^3.7.1
+        specifier: ^3
         version: 3.7.1
 
   packages/env: {}
@@ -61,7 +78,7 @@ importers:
   packages/publisher: {}
 
   packages/result:
-    dependencies:
+    devDependencies:
       zod:
         specifier: ^4
         version: 4.3.6
@@ -126,6 +143,9 @@ packages:
   '@types/luxon@3.7.1':
     resolution: {integrity: sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg==}
 
+  '@types/node@24.12.2':
+    resolution: {integrity: sha512-A1sre26ke7HDIuY/M23nd9gfB+nrmhtYyMINbjI1zHJxYteKR6qSMX56FsmjMcDb3SMcjJg5BiRRgOCC/yBD0g==}
+
   luxon@3.7.2:
     resolution: {integrity: sha512-vtEhXh/gNjI9Yg1u4jX/0YVPMvxzHuGgCm6tC5kZyb08yjGWGnqAjGJvcXbqQR2P3MyMEFnRbpcdFS6PBcLqew==}
     engines: {node: '>=12'}
@@ -134,6 +154,9 @@ packages:
     resolution: {integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  undici-types@7.16.0:
+    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
   zod@4.3.6:
     resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
@@ -177,8 +200,14 @@ snapshots:
 
   '@types/luxon@3.7.1': {}
 
+  '@types/node@24.12.2':
+    dependencies:
+      undici-types: 7.16.0
+
   luxon@3.7.2: {}
 
   typescript@6.0.2: {}
+
+  undici-types@7.16.0: {}
 
   zod@4.3.6: {}

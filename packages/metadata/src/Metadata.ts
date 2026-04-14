@@ -43,7 +43,9 @@ export default class Metadata<K extends string = string> {
         return new Metadata(obj);
     }
 
-    static create<K extends string = string>(obj: IMetadata<K> = {}): Metadata<K> {
+    static create<K extends string = string>(
+        obj: IMetadata<K> = {},
+    ): Metadata<K> {
         return Metadata.fromEntries(Object.entries(obj) as [K, string][]);
     }
 

@@ -6,12 +6,12 @@
     "scripts": {
         "build": "pnpm -r build",
         "test": "pnpm -r test",
-        "lint": "pnpm -r lint",
+        "biome": "biome check",
         "clean": "pnpm -r clean"
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.11",
-        "typescript": "^6"
+        "typescript": "^6.0.2"
     },
     "engines": {
         "node": ">=22",
