@@ -1,4 +1,4 @@
-import { Result } from "@efesto-cloud/result";
+import Result from "@efesto-cloud/result";
 
 export type ISome<T extends NonNullable<unknown>> = {
     some: true;
@@ -118,9 +118,9 @@ export class None<T extends NonNullable<unknown> = never> implements INone {
     }
 }
 
-export type Maybe<T extends NonNullable<unknown>> = Some<T> | None<T>;
+type Maybe<T extends NonNullable<unknown>> = Some<T> | None<T>;
 
-export namespace Maybe {
+namespace Maybe {
     export function maybe<T extends NonNullable<unknown>>(
         t?: T | null,
     ): Maybe<T> {
@@ -150,3 +150,5 @@ export namespace Maybe {
             : new None();
     }
 }
+
+export default Maybe;

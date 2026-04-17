@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/suspicious/noGlobalIsNan: Ignore this */
 import fs from "node:fs";
 import process from "node:process";
-import { type Failure, Result } from "@efesto-cloud/result";
+import Result, { type Failure } from "@efesto-cloud/result";
 import ExpectedBigIntEnvVarError from "./errors/ExpectedBigIntEnvVarError.js";
 import ExpectedBooleanEnvVarError from "./errors/ExpectedBooleanEnvVarError.js";
 import ExpectedFileEnvVarError from "./errors/ExpectedFileEnvVarError.js";

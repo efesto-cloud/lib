@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { Metadata } from "@efesto-cloud/metadata";
+import Metadata from "@efesto-cloud/metadata";
 import { DateTime } from "luxon";
 import type { AuditTrace, AuditVerb, IAuditActor } from "./types.js";
 import { AuditTraceValidationError } from "./types.js";

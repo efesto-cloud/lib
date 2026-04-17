@@ -1,4 +1,4 @@
-import type { Result } from "@efesto-cloud/result";
+import type Result from "@efesto-cloud/result";
 import type ExpectedBigIntEnvVarError from "./errors/ExpectedBigIntEnvVarError.js";
 import type ExpectedBooleanEnvVarError from "./errors/ExpectedBooleanEnvVarError.js";
 import type ExpectedFileEnvVarError from "./errors/ExpectedFileEnvVarError.js";

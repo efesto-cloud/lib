@@ -116,9 +116,9 @@ export class Failure<E, T = never> implements IFailure<E> {
     }
 }
 
-export type Result<T, E> = Success<T, E> | Failure<E, T>;
+type Result<T, E> = Success<T, E> | Failure<E, T>;
 
-export namespace Result {
+namespace Result {
     export function ok(): Success<void>;
     export function ok<T>(v: T): Success<T>;
     export function ok<T = void>(v?: T): Success<T> {
@@ -147,3 +147,5 @@ export namespace Result {
         return Result.err(res.error);
     }
 }
+
+export default Result;
