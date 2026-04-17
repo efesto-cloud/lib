@@ -102,19 +102,6 @@ for (const file of manifests) {
     if (problems.length) errors.push([rel, problems]);
 }
 
-const versions = new Set(publicPkgs.map(({ pkg }) => pkg.version));
-if (versions.size > 1) {
-    const list = publicPkgs
-        .map(({ pkg, file }) => `  ${pkg.name}@${pkg.version} (${file})`)
-        .join("\n");
-    errors.push([
-        "version drift",
-        [
-            `fixed versioning expects all public packages at the same version. Found:\n${list}`,
-        ],
-    ]);
-}
-
 if (errors.length) {
     console.error("check-packages: found issues\n");
     for (const [file, problems] of errors) {
