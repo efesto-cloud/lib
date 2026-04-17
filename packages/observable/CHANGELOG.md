@@ -1,5 +1,13 @@
 # @efesto-cloud/observable
 
+## 0.0.3
+
+### Patch Changes
+
+- 5faeeb2: Added Documentation
+- Updated dependencies [5faeeb2]
+  - @efesto-cloud/publisher@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes

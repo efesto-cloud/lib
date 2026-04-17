@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/observable",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Observable type for efesto-cloud",
     "repository": {
         "type": "git",
