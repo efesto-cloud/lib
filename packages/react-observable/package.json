@@ -1,11 +1,11 @@
 {
-    "name": "@efesto-cloud/mongodb-database-context",
+    "name": "@efesto-cloud/react-observable",
     "version": "0.0.1",
-    "description": "Usecase type for efesto-cloud",
+    "description": "React Observable type for efesto-cloud",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/efesto-cloud/lib.git",
-        "directory": "packages/mongodb-database-context"
+        "directory": "packages/react-observable"
     },
     "type": "module",
     "module": "dist/index.js",
@@ -23,21 +23,23 @@
     "files": [
         "dist"
     ],
-    "dependencies": {
-        "@efesto-cloud/database-context": "workspace:*",
-        "@efesto-cloud/usecase": "workspace:*"
-    },
-    "peerDependencies": {
-        "mongodb": "^6 || ^7"
-    },
     "scripts": {
         "build": "tsc --project tsconfig.json",
         "typecheck": "tsc --noEmit",
         "clean": "rm -rf dist"
     },
+    "dependencies": {
+        "@efesto-cloud/observable": "workspace:*"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0"
+    },
     "keywords": [],
     "license": "MIT",
     "publishConfig": {
         "access": "public"
+    },
+    "devDependencies": {
+        "@types/react": "^18.0.0 || ^19.0.0"
     }
 }
