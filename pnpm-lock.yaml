@@ -130,6 +130,19 @@ importers:
         specifier: '24'
         version: 24.12.2
 
+  packages/toast:
+    dependencies:
+      '@efesto-cloud/maybe':
+        specifier: workspace:*
+        version: link:../maybe
+      '@efesto-cloud/result':
+        specifier: workspace:*
+        version: link:../result
+    devDependencies:
+      zod:
+        specifier: ^4
+        version: 4.3.6
+
   packages/usecase: {}
 
 packages:
