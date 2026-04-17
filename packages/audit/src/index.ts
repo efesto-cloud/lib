@@ -8,14 +8,14 @@ import { DateTime } from "luxon";
 import { runWithAuditTrace } from "./AuditStore.js";
 import { AuditTraceBuilder } from "./AuditTraceBuilder.js";
 import { preserveConstructorName } from "./preserveConstructorName.js";
-import type { AuditOptions, IAuditActor } from "./types.js";
+import type { AuditOptions, AuditTrace, IAuditActor } from "./types.js";
 import { AUDIT_METADATA_KEYS } from "./types.js";
 
 /**
  * Default persister that logs traces to console.
  * Used when no custom persister is provided.
  */
-const defaultPersister = async (trace: any) => {
+const defaultPersister = async (trace: AuditTrace) => {
     console.log("[Audit]", JSON.stringify(trace, null, 2));
 };
 
@@ -72,7 +72,12 @@ export function audit<
     const persister = options.persister ?? defaultPersister;
     const captureErrors = options.captureErrors ?? true;
 
-    return <T extends new (...args: any[]) => IUseCase<TRequest, TResponse>>(
+    return <
+        T extends new (
+            // biome-ignore lint/suspicious/noExplicitAny: required TS mixin signature
+            ...args: any[]
+        ) => IUseCase<TRequest, TResponse>,
+    >(
         target: T,
     ) => {
         class Audited extends target implements IUseCase<TRequest, TResponse> {

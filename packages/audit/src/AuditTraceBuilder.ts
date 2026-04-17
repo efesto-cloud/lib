@@ -212,14 +212,21 @@ export class AuditTraceBuilder<TActor extends IAuditActor = IAuditActor> {
      * @returns The complete audit trace ready for persistence
      */
     build(): AuditTrace<TActor> {
+        const { usecase, entity, title, verb } = this;
         const missingFields: string[] = [];
 
-        if (!this.usecase) missingFields.push("usecase");
-        if (!this.entity) missingFields.push("entity");
-        if (!this.title) missingFields.push("title");
-        if (!this.verb) missingFields.push("verb");
+        if (!usecase) missingFields.push("usecase");
+        if (!entity) missingFields.push("entity");
+        if (!title) missingFields.push("title");
+        if (!verb) missingFields.push("verb");
 
-        if (missingFields.length > 0) {
+        if (
+            missingFields.length > 0 ||
+            !usecase ||
+            !entity ||
+            !title ||
+            !verb
+        ) {
             throw new AuditTraceValidationError(missingFields);
         }
 
@@ -233,14 +240,14 @@ export class AuditTraceBuilder<TActor extends IAuditActor = IAuditActor> {
         return {
             _id: this._id,
             actor: this.actor,
-            usecase: this.usecase!,
-            entity: this.entity!,
+            usecase,
+            entity,
             entity_id: this.entity_id,
             timestamp,
             expire_at: this.expire_at?.toISO() ?? null,
             metadata: this.metadata.toDTO(),
-            title: this.title!,
-            verb: this.verb!,
+            title,
+            verb,
         };
     }
 }

@@ -1,4 +1,8 @@
-export type Constructor<T = any> = abstract new (...args: any[]) => T;
+// biome-ignore lint/suspicious/noExplicitAny: required TS mixin signature
+export type Constructor<T = any> = abstract new (
+    // biome-ignore lint/suspicious/noExplicitAny: required TS mixin signature
+    ...args: any[]
+) => T;
 
 /**
  * Helper function to preserve constructor metadata when wrapping

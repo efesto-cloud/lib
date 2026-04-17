@@ -117,7 +117,10 @@ export interface AuditOptions<
 > {
     /** Entity class or string name being acted upon */
     entity:
-        | { new (...args: any[]): { constructor: { name: string } } }
+        | {
+              // biome-ignore lint/suspicious/noExplicitAny: required TS mixin signature
+              new (...args: any[]): { constructor: { name: string } };
+          }
         | string;
 
     /** Human-readable action description */

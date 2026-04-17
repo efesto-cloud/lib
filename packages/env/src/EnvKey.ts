@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noGlobalIsNan: Ignore this */
 import fs from "node:fs";
 import process from "node:process";
 import { type Failure, Result } from "@efesto-cloud/result";
@@ -36,7 +37,8 @@ const cache = new Map<EnvKeyName, string>();
 function stringSafe<K extends EnvKeyName>(
     key: K,
 ): Result<NonNullable<NodeJS.ProcessEnv[K]>, ExpectedValueEnvKeyError> {
-    if (cache.has(key)) return Result.ok(cache.get(key)!);
+    const cached = cache.get(key);
+    if (cached !== undefined) return Result.ok(cached);
     const value = process.env[key];
     if (value === undefined)
         return Result.err(new ExpectedValueEnvKeyError(key));
@@ -53,7 +55,7 @@ function integerSafe(
             ExpectedValueEnvKeyError | ExpectedIntegerEnvVarError
         >;
     const str = strOrError.data;
-    const val = parseInt(str);
+    const val = parseInt(str, 10);
     if (isNaN(val)) return Result.err(new ExpectedIntegerEnvVarError(key, str));
     return Result.ok(val);
 }
