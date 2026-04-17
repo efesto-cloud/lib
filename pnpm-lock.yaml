@@ -15,6 +15,12 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
 
+  example:
+    dependencies:
+      '@efesto-cloud/usecase':
+        specifier: workspace:*
+        version: link:../packages/usecase
+
   packages/audit:
     dependencies:
       '@efesto-cloud/metadata':
@@ -55,7 +61,15 @@ importers:
         specifier: ^3
         version: 3.7.1
 
-  packages/env: {}
+  packages/env:
+    dependencies:
+      '@efesto-cloud/result':
+        specifier: workspace:*
+        version: link:../result
+    devDependencies:
+      '@types/node':
+        specifier: '24'
+        version: 24.12.2
 
   packages/login_session: {}
 
@@ -86,7 +100,7 @@ importers:
         version: link:../population
     devDependencies:
       mongodb:
-        specifier: ^7.1.1
+        specifier: ^7
         version: 7.1.1
 
   packages/observable:
@@ -106,6 +120,12 @@ importers:
       zod:
         specifier: ^4
         version: 4.3.6
+
+  packages/teardown:
+    devDependencies:
+      '@types/node':
+        specifier: '24'
+        version: 24.12.2
 
   packages/usecase: {}
 

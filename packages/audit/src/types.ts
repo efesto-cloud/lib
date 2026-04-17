@@ -1,8 +1,8 @@
 import type { IMetadata } from "@efesto-cloud/metadata";
+import type IUseCase from "@efesto-cloud/usecase";
 import type {
     ExtractUseCaseInput,
     ExtractUseCaseResponse,
-    IUseCase,
 } from "@efesto-cloud/usecase";
 import type { Duration } from "luxon";
 import type { AuditTraceBuilder } from "./AuditTraceBuilder.js";

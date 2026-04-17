@@ -1,9 +1,15 @@
 {
-    "name": "@efesto-cloud/audit",
+    "name": "@efesto-cloud/teardown",
     "version": "0.0.1",
-    "description": "Audit type for efesto-cloud",
+    "description": "Teardown type for efesto-cloud",
     "type": "module",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
     "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
         "./*": {
             "import": "./dist/*.js",
             "types": "./dist/*.d.ts"
@@ -22,16 +28,8 @@
     "publishConfig": {
         "access": "public"
     },
-    "dependencies": {
-        "@efesto-cloud/metadata": "workspace:*",
-        "@efesto-cloud/usecase": "workspace:*"
-    },
-    "peerDependencies": {
-        "luxon": "^3"
-    },
     "devDependencies": {
-        "@types/luxon": "^3",
-        "@types/node": "^24"
+        "@types/node": "24"
     },
     "engines": {
         "node": ">=24"

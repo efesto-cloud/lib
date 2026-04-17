@@ -1,7 +1,8 @@
+import type IUseCase from "@efesto-cloud/usecase";
 import type {
     ExtractUseCaseInput,
     ExtractUseCaseResponse,
-    IUseCase,
+    IExecutionContext,
 } from "@efesto-cloud/usecase";
 import { DateTime } from "luxon";
 import { runWithAuditTrace } from "./AuditStore.js";
@@ -74,10 +75,13 @@ export function audit<
     return <T extends new (...args: any[]) => IUseCase<TRequest, TResponse>>(
         target: T,
     ) => {
-        class Audited extends target {
+        class Audited extends target implements IUseCase<TRequest, TResponse> {
             override name = target.name;
 
-            override async execute(input: TRequest): Promise<TResponse> {
+            override async execute(
+                input: TRequest,
+                ctx: IExecutionContext,
+            ): Promise<TResponse> {
                 const startTime = Date.now();
                 const traceBuilder = new AuditTraceBuilder<TActor>();
 
@@ -118,7 +122,7 @@ export function audit<
                         }
 
                         // Execute original use case
-                        const result = await super.execute(input);
+                        const result = await super.execute(input, ctx);
 
                         // Call onOutput callback if provided
                         if (options.onOutput) {
