@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/mongodb-database-context",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Usecase type for efesto-cloud",
     "repository": {
         "type": "git",

@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/maybe",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Maybe type for efesto-cloud",
     "repository": {
         "type": "git",
