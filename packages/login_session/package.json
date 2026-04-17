@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/login_session",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Login session type for efesto-cloud",
     "repository": {
         "type": "git",

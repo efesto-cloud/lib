@@ -1,5 +1,11 @@
 # @efesto-cloud/outbox
 
+## 0.0.3
+
+### Patch Changes
+
+- 5faeeb2: Added Documentation
+
 ## 0.0.2
 
 ### Patch Changes
