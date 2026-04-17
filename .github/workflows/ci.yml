@@ -26,11 +26,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Lint
+        run: pnpm biome
+
+      - name: Typecheck
+        run: pnpm typecheck
+
       - name: Build
         run: pnpm build
+
+      - name: Check package manifests
+        run: pnpm check-packages

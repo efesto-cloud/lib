@@ -3,7 +3,13 @@
     "version": "0.0.1",
     "description": "Population type for efesto-cloud",
     "type": "module",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
     "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
         "./*": {
             "import": "./dist/*.js",
             "types": "./dist/*.d.ts"

@@ -1,11 +1,12 @@
 {
     "name": "@efesto-cloud/example",
-    "version": "1.0.0",
+    "private": true,
+    "version": "0.0.1",
     "description": "",
     "main": "index.js",
     "keywords": [],
     "author": "",
-    "license": "ISC",
+    "license": "MIT",
     "dependencies": {
         "@efesto-cloud/usecase": "workspace:*"
     },
