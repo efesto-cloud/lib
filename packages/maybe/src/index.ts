@@ -1,4 +1,4 @@
-import { Result } from "@efesto-cloud/result";
+import Result from "@efesto-cloud/result";
 
 export type ISome<T extends NonNullable<unknown>> = {
     some: true;
