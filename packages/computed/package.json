@@ -2,6 +2,11 @@
     "name": "@efesto-cloud/compute",
     "version": "0.0.1",
     "description": "Computed observable type for efesto-cloud",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/efesto-cloud/lib.git",
+        "directory": "packages/computed"
+    },
     "type": "module",
     "module": "dist/index.js",
     "types": "dist/index.d.ts",

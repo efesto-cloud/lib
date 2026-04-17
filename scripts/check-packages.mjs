@@ -80,6 +80,25 @@ for (const file of manifests) {
         problems.push(`license must be "MIT" (got "${pkg.license}")`);
     if (!pkg.scripts?.build) problems.push("missing `scripts.build`");
 
+    const expectedRepoUrl = "git+https://github.com/efesto-cloud/lib.git";
+    const expectedDir = rel.replace(/\/package\.json$/, "");
+    if (!pkg.repository || typeof pkg.repository !== "object") {
+        problems.push(
+            "missing `repository` object (required for npm provenance)",
+        );
+    } else {
+        if (pkg.repository.type !== "git")
+            problems.push('`repository.type` must be "git"');
+        if (pkg.repository.url !== expectedRepoUrl)
+            problems.push(
+                `\`repository.url\` must be "${expectedRepoUrl}" (got "${pkg.repository.url ?? ""}")`,
+            );
+        if (pkg.repository.directory !== expectedDir)
+            problems.push(
+                `\`repository.directory\` must be "${expectedDir}" (got "${pkg.repository.directory ?? ""}")`,
+            );
+    }
+
     if (problems.length) errors.push([rel, problems]);
 }
 
