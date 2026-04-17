@@ -1,0 +1,45 @@
+{
+    "name": "@efesto-cloud/audit",
+    "version": "0.0.1",
+    "description": "Audit type for efesto-cloud",
+    "type": "module",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*.js",
+            "types": "./dist/*.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc --project tsconfig.json",
+        "typecheck": "tsc --noEmit",
+        "clean": "rm -rf dist"
+    },
+    "keywords": [],
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    },
+    "dependencies": {
+        "@efesto-cloud/metadata": "workspace:*",
+        "@efesto-cloud/usecase": "workspace:*"
+    },
+    "peerDependencies": {
+        "luxon": "^3"
+    },
+    "devDependencies": {
+        "@types/luxon": "^3",
+        "@types/node": "^24"
+    },
+    "engines": {
+        "node": ">=24"
+    }
+}

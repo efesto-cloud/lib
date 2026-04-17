@@ -1,0 +1,38 @@
+{
+    "name": "@efesto-cloud/mongodb-database-context",
+    "version": "0.0.1",
+    "description": "Usecase type for efesto-cloud",
+    "type": "module",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*.js",
+            "types": "./dist/*.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "dependencies": {
+        "@efesto-cloud/database-context": "workspace:*",
+        "@efesto-cloud/usecase": "workspace:*"
+    },
+    "peerDependencies": {
+        "mongodb": "^7"
+    },
+    "scripts": {
+        "build": "tsc --project tsconfig.json",
+        "typecheck": "tsc --noEmit",
+        "clean": "rm -rf dist"
+    },
+    "keywords": [],
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    }
+}

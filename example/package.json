@@ -1,0 +1,16 @@
+{
+    "name": "@efesto-cloud/example",
+    "private": true,
+    "version": "0.0.1",
+    "description": "",
+    "main": "index.js",
+    "keywords": [],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@efesto-cloud/usecase": "workspace:*"
+    },
+    "engines": {
+        "node": ">=24"
+    }
+}
