@@ -1,3 +1,5 @@
-export * from "./BasePopulator.js";
-export { default } from "./BasePopulator.js";
-export * from "./QueryBuilder.js";
+export {
+    default as BasePopulator,
+    type LookupOptions,
+} from "./BasePopulator.js";
+export { default as QueryBuilder } from "./QueryBuilder.js";

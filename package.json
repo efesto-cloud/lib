@@ -8,6 +8,7 @@
         "test": "pnpm -r test",
         "typecheck": "pnpm -r typecheck",
         "biome": "biome check",
+        "knip": "knip",
         "clean": "pnpm -r clean",
         "check-packages": "node scripts/check-packages.mjs",
         "changeset": "changeset",
@@ -17,6 +18,7 @@
     "devDependencies": {
         "@biomejs/biome": "2.4.11",
         "@changesets/cli": "^2.30.0",
+        "knip": "^6.4.1",
         "typescript": "^6.0.2"
     },
     "engines": {

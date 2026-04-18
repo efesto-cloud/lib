@@ -35,8 +35,8 @@ jobs:
       - name: Lint
         run: pnpm biome
 
+      - name: Knip
+        run: pnpm knip
+
       - name: Build
         run: pnpm build
-
-      - name: Check package manifests
-        run: pnpm check-packages
