@@ -133,6 +133,12 @@ importers:
         specifier: workspace:*
         version: link:../database-context
 
+  packages/prisma-population:
+    dependencies:
+      '@efesto-cloud/population':
+        specifier: workspace:*
+        version: link:../population
+
   packages/publisher: {}
 
   packages/react-observable:

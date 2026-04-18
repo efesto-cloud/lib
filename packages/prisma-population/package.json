@@ -1,0 +1,39 @@
+{
+    "name": "@efesto-cloud/prisma-population",
+    "version": "0.0.1",
+    "description": "Prisma adapter for @efesto-cloud/population",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/efesto-cloud/lib.git",
+        "directory": "packages/prisma-population"
+    },
+    "type": "module",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*.js",
+            "types": "./dist/*.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "dependencies": {
+        "@efesto-cloud/population": "workspace:*"
+    },
+    "scripts": {
+        "build": "tsc --project tsconfig.json",
+        "typecheck": "tsc --noEmit",
+        "clean": "rm -rf dist"
+    },
+    "keywords": [],
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    }
+}
