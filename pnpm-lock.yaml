@@ -127,6 +127,12 @@ importers:
 
   packages/population: {}
 
+  packages/prisma-database-context:
+    dependencies:
+      '@efesto-cloud/database-context':
+        specifier: workspace:*
+        version: link:../database-context
+
   packages/publisher: {}
 
   packages/react-observable:
