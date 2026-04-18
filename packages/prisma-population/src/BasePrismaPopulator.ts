@@ -1,9 +1,9 @@
 import {
-    normalizePopulate,
     type NormalizedPopulate,
+    normalizePopulate,
     type Populate,
 } from "@efesto-cloud/population";
-import { toPrismaInclude, type PrismaInclude } from "./toPrismaInclude.js";
+import { type PrismaInclude, toPrismaInclude } from "./toPrismaInclude.js";
 
 export default abstract class BasePrismaPopulator<
     TShape extends Record<string, unknown>,
@@ -28,7 +28,10 @@ export default abstract class BasePrismaPopulator<
         const normalized = normalizePopulate(spec, this.shape());
         for (const [k, v] of Object.entries(normalized)) {
             if (v === undefined || v === false) continue;
-            this.field(k as keyof TShape, v as true | NormalizedPopulate<unknown>);
+            this.field(
+                k as keyof TShape,
+                v as true | NormalizedPopulate<unknown>,
+            );
         }
         return Object.keys(this.include).length ? this.include : undefined;
     }
