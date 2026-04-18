@@ -1,5 +1,11 @@
 # @efesto-cloud/population
 
+## 0.0.4
+
+### Patch Changes
+
+- 9e6ed47: Added Knip checks and improved exports/entrypoints of packages
+
 ## 0.0.3
 
 ### Patch Changes

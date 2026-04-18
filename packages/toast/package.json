@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/toast",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Toast type for efesto-cloud",
     "repository": {
         "type": "git",
