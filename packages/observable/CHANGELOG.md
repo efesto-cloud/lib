@@ -1,5 +1,13 @@
 # @efesto-cloud/observable
 
+## 0.0.4
+
+### Patch Changes
+
+- 9e6ed47: Added Knip checks and improved exports/entrypoints of packages
+- Updated dependencies [9e6ed47]
+  - @efesto-cloud/publisher@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes

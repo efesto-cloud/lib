@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/audit",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Audit type for efesto-cloud",
     "repository": {
         "type": "git",
