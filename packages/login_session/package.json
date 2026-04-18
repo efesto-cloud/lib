@@ -32,5 +32,14 @@
     "license": "MIT",
     "publishConfig": {
         "access": "public"
+    },
+    "dependencies": {
+        "luxon": "^3"
+    },
+    "devDependencies": {
+        "@types/luxon": "^3"
+    },
+    "peerDependencies": {
+        "@efesto-cloud/entity": "workspace:*"
     }
 }

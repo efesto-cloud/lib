@@ -28,9 +28,6 @@
         "typecheck": "tsc --noEmit",
         "clean": "rm -rf dist"
     },
-    "devDependencies": {
-        "zod": "^4"
-    },
     "peerDependencies": {
         "@efesto-cloud/maybe": "workspace:*",
         "@efesto-cloud/result": "workspace:*"

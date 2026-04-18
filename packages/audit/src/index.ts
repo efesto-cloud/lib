@@ -61,7 +61,7 @@ const defaultPersister = async (trace: AuditTrace) => {
  * }
  * ```
  */
-export function audit<
+export default function audit<
     U extends IUseCase<unknown, unknown> = IUseCase<unknown, unknown>,
     TActor extends IAuditActor = IAuditActor,
 >(options: AuditOptions<U, TActor>) {
@@ -200,8 +200,6 @@ export function audit<
         return preserveConstructorName(target, Audited);
     };
 }
-
-export default audit;
 
 export { getAuditTrace, runWithAuditTrace } from "./AuditStore.js";
 // Re-export core types and utilities

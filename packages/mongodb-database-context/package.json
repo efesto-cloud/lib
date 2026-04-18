@@ -24,8 +24,7 @@
         "dist"
     ],
     "dependencies": {
-        "@efesto-cloud/database-context": "workspace:*",
-        "@efesto-cloud/usecase": "workspace:*"
+        "@efesto-cloud/database-context": "workspace:*"
     },
     "peerDependencies": {
         "mongodb": "^6 || ^7"
