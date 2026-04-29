@@ -1,0 +1,37 @@
+# {{project_name}}
+
+{{description}}
+
+## Architecture
+
+Hexagonal-architecture monorepo built on `@efesto-cloud/*` libraries.
+
+```text
+{{ns}}/core       →  domain model + use cases (ports)
+{{#if has_mongodb}}{{ns}}/mongodb    →  MongoDB repository implementations (adapter)
+{{/if}}{{#if has_webapp}}{{ns}}/webapp     →  React Router 7 admin application (adapter)
+{{/if}}```
+
+## Getting started
+
+```bash
+pnpm install
+pnpm -r typecheck
+pnpm -r build
+{{#if has_webapp}}cd packages/webapp && pnpm dev
+{{/if}}```
+
+## Next steps
+
+This repo was scaffolded as an empty-but-wired skeleton. Use the specialized skills to add domain content:
+
+- `entity` — create your first domain entity
+- `value-object` — wrap primitives with validated value objects
+- `type-enum-dict` — define finite state sets and their labels
+{{#if has_mongodb}}- `persistence` — wire MongoDB repositories
+{{/if}}- `usecase` — orchestrate business operations
+{{#if has_webapp}}- `webapp-loader-action` — expose operations over HTTP (loader + action)
+- `daisyui` — build UI components
+{{/if}}
+
+See `CLAUDE.md` for agent guidance.

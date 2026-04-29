@@ -1,0 +1,25 @@
+import EnvKey from "@efesto-cloud/env/EnvKey";
+import { MongoClient } from "mongodb";
+import { init } from "./init.js";
+
+export const client = new MongoClient(EnvKey.file("MONGO_DB_URL_PATH"), {
+    ignoreUndefined: true,
+    appName: "{{project_name}}",
+});
+
+export async function setup() {
+    await client.connect();
+    return client;
+}
+
+export async function teardown() {
+    await client.close();
+}
+
+export async function sync() {
+    await setup();
+    await init(client.db());
+    await teardown();
+}
+
+export { default as install } from "./install.js";

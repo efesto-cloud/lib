@@ -1,0 +1,35 @@
+{
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules"],
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "target": "ES2023",
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "moduleDetection": "force",
+        "isolatedModules": true,
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "noImplicitOverride": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "declaration": true,
+        "outDir": "dist",
+        "declarationMap": true,
+        "noUnusedLocals": true,
+        "sourceMap": true,
+        "noEmit": false,
+        "jsx": "react-jsx",
+        "removeComments": true,
+        "lib": ["ES2023"],
+        "types": ["node", "./env.d.ts", "./global.d.ts"],
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "rootDir": "./src/",
+        "paths": {
+            "~/*": ["./src/*"]
+        }
+    }
+}

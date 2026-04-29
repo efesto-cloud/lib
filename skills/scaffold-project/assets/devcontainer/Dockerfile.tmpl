@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/devcontainers/typescript-node:24-trixie
+
+USER node
+
+RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.shrc" SHELL="$(which sh)" sh -
+
+WORKDIR /workspace/

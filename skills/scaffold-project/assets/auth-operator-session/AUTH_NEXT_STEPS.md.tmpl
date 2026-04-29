@@ -1,0 +1,82 @@
+# Auth — finish wiring
+
+The scaffolder generated the webapp-side session plumbing (cookies, `requireOperatorSessId`, `getOperatorSessId`). The domain and use-case side is intentionally **not generated** — it belongs to the specialized skills so the result matches your domain conventions.
+
+## What's still missing
+
+### 1. `Operator` entity (core)
+
+Run the `entity` skill and pass it a spec like:
+
+```text
+Name: Operator
+Fields:
+  - username: string (unique, lowercase)
+  - password_hash: string
+  - name: string
+  - role: OperatorRole  (type-enum-dict skill)
+```
+
+The skill will create `packages/core/src/entity/Operator.ts`, the DTO, the repo port `IOperatorRepo`, and a matching `MongoDB` implementation if the `persistence` skill runs next.
+
+### 2. `OperatorLogin` entity (session store)
+
+A companion entity that stores active sessions. Suggested shape:
+
+```text
+Name: OperatorLogin
+Fields:
+  - data: IOperator   (embedded snapshot of the operator at login time)
+  - expires_at: Date  (MongoDB TTL index will auto-delete)
+  - created_at: Date
+```
+
+Add a TTL index `{ expires_at: 1, expireAfterSeconds: 0 }` when the `persistence` skill scaffolds the MongoDB repo — it auto-cleans expired sessions.
+
+### 3. `LoginOperator` + `LogoutOperator` + `GetOperatorLogin` use cases
+
+Run the `usecase` skill with the `operator_login` domain group:
+
+- `LoginOperator`: input `{ username, password }` → output `{ session_id }`. Verifies credentials against `IOperatorRepo`, creates an `OperatorLogin`, returns its id.
+- `LogoutOperator`: input `{ session_id }`. Deletes the session row.
+- `GetOperatorLogin`: input `{ session_id }` → `Maybe<IOperator>`. Reads the login row, returns the embedded operator DTO.
+
+### 4. Route `app/routes/_index.tsx`
+
+Replace the scaffolded hello-world with a login form that posts to an action invoking `LoginOperator` and sets the `operator_cookie`. The `webapp-loader-action` skill handles this — tell it:
+
+```text
+Route: _index
+Action: LoginOperator use case from core
+On success: redirect to /admin with operator_cookie set
+```
+
+### 5. Protecting admin routes
+
+Wrap the `admin.*` route group's `loader`/`action` with `requireOperatorSessId(request)`. Example:
+
+```ts
+export async function loader({ request }: LoaderFunctionArgs) {
+    const session_id = await requireOperatorSessId(request);
+    const getOperatorLogin = container.get<GetOperatorLogin>(
+        Symbols.UseCase.operator_login.GetOperatorLogin,
+    );
+    const operator = await getOperatorLogin.execute({ session_id });
+    if (operator.isNothing()) throw redirect("/");
+    return { operator: operator.get() };
+}
+```
+
+## Quick reference
+
+| File | Purpose | Status |
+|---|---|---|
+| `packages/webapp/app/cookies.server.ts` | `operator_cookie` definition | ✓ wired |
+| `packages/webapp/app/shared/utils/requireOperatorSessId.ts` | guard for protected routes | ✓ wired |
+| `packages/webapp/app/shared/utils/getOperatorSessId.ts` | optional lookup | ✓ wired |
+| `packages/core/src/entity/Operator.ts` | Operator entity | ✗ run `entity` skill |
+| `packages/core/src/entity/OperatorLogin.ts` | session row | ✗ run `entity` skill |
+| `packages/core/src/useCase/operator_login/` | login/logout use cases | ✗ run `usecase` skill |
+| `packages/webapp/app/routes/_index.tsx` | login form | ✗ replace via `webapp-loader-action` |
+
+Once these are done, delete this file.

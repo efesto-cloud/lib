@@ -1,0 +1,43 @@
+import { Container } from "inversify";
+import Symbols from "./Symbols.js";
+import logger from "../logger/logger.js";
+
+// The DI container is initially empty. The `usecase` and `persistence` skills
+// register use-case and repository bindings here. Keep the file structure below
+// intact — the skills append imports at the top and `container.bind(...)` calls
+// inside `initContainer()`.
+
+const container = new Container({
+    defaultScope: "Singleton",
+});
+
+let initialized = false;
+
+export async function initContainer(): Promise<Container> {
+    if (initialized) return container;
+
+    const t0 = performance.now();
+
+    // ── Services ────────────────────────────────────────────────────────────
+    // Example (populated by the `usecase` skill when a service port is added):
+    // container.bind(Symbols.Service.MyService).to(MyServiceImpl).inRequestScope();
+
+    // ── Repositories ────────────────────────────────────────────────────────
+    // Repository implementations are registered by the `@{{ns}}/mongodb`
+    // package via `container.load(install())`. See the webapp's `server.mjs`
+    // for the wiring call.
+    // biome-ignore lint/correctness/noUnusedVariables: intentionally referenced for domain skills
+    void Symbols;
+
+    // ── Use cases ───────────────────────────────────────────────────────────
+    // Example (populated by the `usecase` skill):
+    // container.bind(Symbols.UseCase.my_domain.MyUseCase).to(MyUseCase).inRequestScope();
+
+    const elapsed = (performance.now() - t0).toFixed(1);
+    logger.info(`DI container initialized in ${elapsed}ms`);
+
+    initialized = true;
+    return container;
+}
+
+export default container;

@@ -1,0 +1,52 @@
+{
+  "name": "efesto-cloud-lib",
+  "owner": {
+    "name": "Dario Furlan",
+    "email": "dario@dariofurlan.com"
+  },
+  "metadata": {
+    "description": "Efesto Cloud Lib",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "Core",
+      "description": "",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/entity",
+        "./skills/monad-maybe",
+        "./skills/monad-result",
+        "./skills/observer",
+        "./skills/persistence",
+        "./skills/usecase",
+        "./skills/type-enum-dict",
+        "./skills/value-object",
+        "./skills/population",
+        "./skills/publisher",
+        "./skills/scaffold-project"
+      ]
+    },
+    {
+      "name": "MongoDB",
+      "description": "",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/mongodb-persistence",
+        "./skills/mongodb-population"
+      ]
+    },
+    {
+      "name": "Prisma",
+      "description": "",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/prisma-persistence",
+        "./skills/prisma-population"
+      ]
+    }
+  ]
+}
