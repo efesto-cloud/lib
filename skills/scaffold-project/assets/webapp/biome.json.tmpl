@@ -1,0 +1,45 @@
+{
+    "root": false,
+    "extends": "//",
+    "$schema": "https://biomejs.dev/schemas/2.4.0/schema.json",
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "style": {
+                "useComponentExportOnlyModules": {
+                    "options": {
+                        "allowExportNames": [
+                            "loader",
+                            "meta",
+                            "links",
+                            "action"
+                        ]
+                    },
+                    "level": "warn"
+                }
+            }
+        },
+        "domains": {
+            "react": "all"
+        }
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "double",
+            "jsxQuoteStyle": "double",
+            "semicolons": "always",
+            "attributePosition": "multiline"
+        }
+    },
+    "css": {
+        "parser": {
+            "tailwindDirectives": true
+        }
+    },
+    "html": {
+        "formatter": {
+            "attributePosition": "multiline"
+        }
+    }
+}

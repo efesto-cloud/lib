@@ -1,0 +1,48 @@
+ARG v=latest
+
+FROM node:24-alpine AS base
+ARG v
+ARG date
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /app/
+COPY packages/core/ /app/packages/core/
+{{#if has_mongodb}}COPY packages/mongodb/ /app/packages/mongodb/
+{{/if}}COPY packages/webapp/ /app/packages/webapp/
+WORKDIR /app
+
+FROM base AS prod-dependencies
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+
+FROM base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm --filter {{ns}}/core build
+{{#if has_mongodb}}RUN pnpm --filter {{ns}}/mongodb build
+{{/if}}RUN pnpm --filter {{ns}}/webapp build
+
+FROM node:24-alpine
+ARG v
+ARG date
+ENV NODE_ENV=production
+ENV VERSION=$v
+ENV BUILD_DATE=$date
+LABEL org.opencontainers.image.version=$v
+LABEL org.opencontainers.image.created=$date
+LABEL org.opencontainers.image.title="{{project_name}} Webapp"
+
+COPY --from=prod-dependencies /app/node_modules/ /app/node_modules/
+COPY --from=prod-dependencies /app/packages/core/node_modules/ /app/packages/core/node_modules/
+{{#if has_mongodb}}COPY --from=prod-dependencies /app/packages/mongodb/node_modules/ /app/packages/mongodb/node_modules/
+{{/if}}COPY --from=prod-dependencies /app/packages/webapp/node_modules/ /app/packages/webapp/node_modules/
+COPY --from=build /app/packages/core/dist/ /app/packages/core/dist/
+COPY --from=build /app/packages/core/package.json /app/packages/core/package.json
+{{#if has_mongodb}}COPY --from=build /app/packages/mongodb/dist/ /app/packages/mongodb/dist/
+COPY --from=build /app/packages/mongodb/package.json /app/packages/mongodb/package.json
+{{/if}}COPY --from=build /app/packages/webapp/build/ /app/packages/webapp/build/
+COPY --from=build /app/packages/webapp/package.json /app/packages/webapp/package.json
+COPY --from=build /app/packages/webapp/server.mjs /app/packages/webapp/server.mjs
+{{#if has_mongodb}}COPY --from=build /app/packages/webapp/init.mjs /app/packages/webapp/init.mjs
+{{/if}}
+WORKDIR /app/packages/webapp
+CMD ["node", "server.mjs"]

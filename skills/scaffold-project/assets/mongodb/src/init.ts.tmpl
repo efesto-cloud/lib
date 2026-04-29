@@ -1,0 +1,44 @@
+import type { CollationOptions, Db, IndexDescription } from "mongodb";
+
+// The `persistence` skill populates this file with index definitions per
+// collection. For now, `init()` is a no-op — running `pnpm --filter mongodb
+// init` on a fresh database will connect and disconnect without creating any
+// collections.
+//
+// Example shape after the skill has added a "product" collection:
+//   const indexes: { [key: string]: IndexDescription[] } = {
+//       product: [
+//           { key: { slug: 1 }, unique: true },
+//           { key: { deleted_at: 1, _id: -1 } },
+//       ],
+//   };
+
+const indexes: { [key: string]: IndexDescription[] } = {};
+const collations: { [key: string]: CollationOptions } = {};
+
+async function initCollectionsIfNotExists(db: Db) {
+    const existingCollections = (await db.listCollections().toArray()).map(
+        ({ name }) => name,
+    );
+
+    await Promise.all(
+        Object.keys(indexes).map((collectionName) => {
+            if (!existingCollections.some((name) => name === collectionName)) {
+                return db.createCollection(collectionName, {
+                    collation: collations[collectionName],
+                });
+            }
+            return Promise.resolve();
+        }),
+    );
+}
+
+export async function init(db: Db) {
+    await initCollectionsIfNotExists(db);
+
+    await Promise.all(
+        Object.entries(indexes).map(([collectionName, idx]) => {
+            return db.collection(collectionName).createIndexes(idx);
+        }),
+    );
+}

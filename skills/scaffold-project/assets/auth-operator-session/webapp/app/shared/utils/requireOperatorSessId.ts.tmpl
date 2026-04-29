@@ -1,0 +1,13 @@
+import { redirect } from "react-router";
+import { operator_cookie } from "~/cookies.server";
+
+export default async function requireOperatorSessId(
+    request: Request,
+): Promise<string> {
+    const cookieHeader = request.headers.get("Cookie");
+    const session_id = (await operator_cookie.parse(cookieHeader)) as
+        | string
+        | null;
+    if (!session_id) throw redirect("/");
+    return session_id;
+}

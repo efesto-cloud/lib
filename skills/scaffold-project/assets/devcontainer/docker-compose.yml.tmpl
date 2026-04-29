@@ -1,0 +1,34 @@
+version: "3.8"
+
+networks:
+  {{project_name}}-net:
+    name: "{{project_name}}-net"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    ports:
+      - "3000:3000"
+      - "24678:24678"
+      - "5173:5173"
+    command: sleep infinity
+    networks:
+      - {{project_name}}-net
+{{#if has_mongodb}}
+  db:
+    image: mongo:8
+    restart: unless-stopped
+    container_name: {{project_name}}-db
+    hostname: db
+    command: mongod --port 27017 --dbpath /data/db --replSet rs0 --bind_ip 0.0.0.0 --notablescan
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - ./data/mongodb:/data/db
+    networks:
+      - {{project_name}}-net
+{{/if}}

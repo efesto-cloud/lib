@@ -1,0 +1,12 @@
+import Maybe from "@efesto-cloud/maybe";
+import { operator_cookie } from "~/cookies.server";
+
+export default async function getOperatorSessId(
+    request: Request,
+): Promise<Maybe<string>> {
+    const cookieHeader = request.headers.get("Cookie");
+    const session_id = (await operator_cookie.parse(cookieHeader)) as
+        | string
+        | null;
+    return Maybe.maybe(session_id);
+}

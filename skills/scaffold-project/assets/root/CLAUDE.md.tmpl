@@ -1,0 +1,53 @@
+# {{project_name}} — Agent Guidance
+
+This file provides guidance to **Claude Code** and other AI agents working on this repository.
+
+## Quick orientation
+
+This is an hexagonal architecture with a strict package dependency chain:
+
+```text
+@efesto-cloud/* (shared libraries — Entity, Maybe, Result, Population, MongoDBContext, …)
+    ↓
+{{ns}}/core       domain model + use cases (ports)
+    ↓
+{{#if has_mongodb}}{{ns}}/mongodb    MongoDB adapter (repo implementations)
+    ↓
+{{/if}}{{#if has_webapp}}{{ns}}/webapp     React Router 7 admin application
+{{/if}}```
+
+## Where to work
+
+| Task | Navigate to | Specialized skill |
+|---|---|---|
+| Add an entity / DTO / value object / enum / type / error / dict | `packages/core/src/` | `entity`, `value-object`, `type-enum-dict` |
+| Add a use case or service port | `packages/core/src/useCase/`, `packages/core/src/service/` | `usecase` |
+{{#if has_mongodb}}| Add a MongoDB repository or mapper | `packages/mongodb/src/` | `persistence`, `population` |
+{{/if}}{{#if has_webapp}}| Add a React Router route / loader / action | `packages/webapp/app/routes/` | `webapp-loader-action` |
+| Build UI components | `packages/webapp/app/components/` | `daisyui` |
+{{/if}}
+
+## Conventions
+
+- **pnpm** workspaces (not npm/yarn).
+- **Biome** for lint/format (not ESLint/Prettier). 4-space indent, double quotes.
+- **TypeScript** strict mode with `~/*` → `./src/*` alias.
+- **Always use `.js` extension in imports**, even for `.ts` files — `nodenext` + `tsc-alias` require it.
+- **Inversify** for DI. Hierarchical `Symbols` registry.
+- **Result / Maybe** for error handling (never throw).
+- **Soft-delete** via `entity.delete()` + `repo.save()` — never `repo.delete()`.
+- **Locale**: {{locale}}. **Timezone**: {{timezone}}.
+
+## Common commands
+
+```bash
+pnpm install                 # install everything
+pnpm -r build                # build all packages
+pnpm -r typecheck            # type-check all packages
+pnpm biome                   # lint + format
+{{#if has_webapp}}cd packages/webapp && pnpm dev   # start the admin
+{{/if}}```
+
+## Package-level guidance
+
+See `packages/*/CLAUDE.md` (or `README.md`) in each package for package-specific instructions.

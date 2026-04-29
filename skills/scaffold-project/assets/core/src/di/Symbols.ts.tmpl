@@ -1,0 +1,63 @@
+// Hierarchical symbol registry for Inversify bindings.
+//
+// Convention: use the `convert(enumValues, "Namespace.subnamespace")` helper to
+// generate `Symbol.for(...)` maps keyed by use-case name. The `entity` and
+// `usecase` skills extend the `UseCase`, `Repo`, `DomainService`, and `Service`
+// sections below — do not remove the sections, only add to them.
+//
+// Example after running the `usecase` skill for a "Product" domain:
+//   type ProductUC =
+//       | "CreateProduct"
+//       | "GetProduct"
+//       | "SearchProduct"
+//       | "UpdateProduct"
+//       | "DeleteProduct";
+//
+//   const ProductUCEnum: Enum<ProductUC> = {
+//       CreateProduct: "CreateProduct",
+//       GetProduct: "GetProduct",
+//       SearchProduct: "SearchProduct",
+//       UpdateProduct: "UpdateProduct",
+//       DeleteProduct: "DeleteProduct",
+//   };
+//
+//   // ...then add `product: convert(Object.values(ProductUCEnum), "UseCase.product")`
+//   // to the `UseCase` section of Symbols.
+
+function convert<T extends string>(
+    obj: T[],
+    prefix: string,
+): { [key in T]: symbol } {
+    return obj.reduce(
+        (acc, value) => {
+            acc[value] = Symbol.for(`${prefix}.${value}`);
+            return acc;
+        },
+        {} as { [key in T]: symbol },
+    );
+}
+
+// biome-ignore lint/correctness/noUnusedVariables: helper is re-exported for domain skills
+void convert;
+
+const Symbols = {
+    DatabaseContext: Symbol.for("DatabaseContext"),
+
+    UseCase: {
+        // populated by the `usecase` skill
+    },
+
+    Repo: {
+        // populated by the `entity` / `persistence` skills
+    },
+
+    DomainService: {
+        // populated by the `usecase` skill when service ports are added
+    },
+
+    Service: {
+        AuditContext: Symbol.for("AuditContext"),
+    },
+} as const;
+
+export default Symbols;

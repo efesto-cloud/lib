@@ -1,0 +1,15 @@
+import EnvKey from "@efesto-cloud/env";
+import { createCookie } from "react-router";
+
+const url = new URL(EnvKey.string("ROOT_URL"));
+
+export const operator_cookie = createCookie("operator_session_id", {
+    httpOnly: true,
+    secure: url.protocol === "https:",
+    domain:
+        url.hostname !== "localhost" && url.hostname !== "0.0.0.0"
+            ? url.hostname
+            : undefined,
+    maxAge: 8 * 7 * 24 * 60 * 60,
+    sameSite: "lax",
+});

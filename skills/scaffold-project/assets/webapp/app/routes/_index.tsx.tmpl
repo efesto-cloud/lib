@@ -1,0 +1,26 @@
+import type { MetaFunction } from "react-router";
+
+export const meta: MetaFunction = () => [
+    { title: "{{project_name}} — Home" },
+];
+
+export default function Index() {
+    return (
+        <main className="flex flex-col items-center justify-center min-h-screen bg-base-200 p-6">
+            <div className="card bg-base-100 shadow-xl max-w-xl w-full">
+                <div className="card-body text-center">
+                    <h1 className="card-title justify-center text-3xl">
+                        {{project_name}}
+                    </h1>
+                    <p className="opacity-70">{{description}}</p>
+                    <p className="mt-6 text-sm opacity-60">
+                        This is a scaffolded skeleton. Add entities with the{" "}
+                        <code>entity</code> skill, use cases with the{" "}
+                        <code>usecase</code> skill, and routes with the{" "}
+                        <code>webapp-loader-action</code> skill.
+                    </p>
+                </div>
+            </div>
+        </main>
+    );
+}

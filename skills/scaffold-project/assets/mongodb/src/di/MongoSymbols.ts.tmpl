@@ -1,0 +1,10 @@
+// MongoDB-specific DI symbols. The `persistence` skill adds collection names to
+// `Collections` as new entities get a MongoDB repo. Keep the structure intact;
+// only the `Collections` record grows.
+
+const MongoSymbols = {
+    MongoClient: Symbol.for("MongoClient"),
+    Collections: {} as { [key: string]: symbol },
+};
+
+export default MongoSymbols;

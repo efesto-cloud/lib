@@ -1,0 +1,52 @@
+{
+    "name": "{{ns}}/mongodb",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*.js",
+            "types": "./dist/*.d.ts"
+        },
+        "./install": {
+            "import": "./dist/install.js",
+            "types": "./dist/install.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "clean": "rimraf dist/",
+        "prebuild": "pnpm run clean",
+        "build": "tsc --build",
+        "dev": "tsc --build --watch",
+        "typecheck": "tsc --noEmit",
+        "biome": "biome check"
+    },
+    "peerDependencies": {
+        "{{ns}}/core": "workspace:*",
+        "@efesto-cloud/entity": "^0.0.2",
+        "@efesto-cloud/env": "^0.0.2",
+        "@efesto-cloud/maybe": "^0.0.2",
+        "@efesto-cloud/metadata": "^0.0.2",
+        "@efesto-cloud/mongodb-database-context": "^0.0.2",
+        "@efesto-cloud/mongodb-population": "^0.0.2",
+        "@efesto-cloud/population": "^0.0.2",
+        "@efesto-cloud/result": "^0.0.2",
+        "inversify": "^6",
+        "luxon": "^3",
+        "mongodb": "^7",
+        "typeid-js": "^1.2.0"
+    },
+    "devDependencies": {
+        "@types/luxon": "^3",
+        "@types/node": "^24",
+        "typescript": "^6"
+    }
+}

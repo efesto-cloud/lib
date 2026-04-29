@@ -1,0 +1,60 @@
+import "reflect-metadata";
+import "source-map-support/register.js";
+
+import { EnvKey } from "@efesto-cloud/env";
+import { container, logger } from "{{ns}}/core";
+{{#if has_mongodb}}import { install, setup, teardown } from "{{ns}}/mongodb";
+{{/if}}import { createRequestHandler } from "@react-router/express";
+import compression from "compression";
+import express from "express";
+import morgan from "morgan";
+
+{{#if has_mongodb}}container.load(install());
+{{/if}}
+const remixHandler = createRequestHandler({
+    build: await import("./build/server/index.js"),
+});
+
+const app = express();
+
+app.use(compression());
+app.disable("x-powered-by");
+
+app.use(
+    "/assets",
+    express.static("build/client/assets", {
+        immutable: true,
+        maxAge: "1y",
+    }),
+);
+app.use(express.static("build/client", { maxAge: "1h" }));
+
+app.use(
+    morgan(":method :url :status - :response-time ms", {
+        stream: {
+            write: (message) => logger.http(message.trim()),
+        },
+    }),
+);
+
+app.all("/{*any}", remixHandler);
+
+{{#if has_mongodb}}await setup();
+logger.info("[MongoDB] setup complete");
+
+{{/if}}const port = EnvKey.integer("PORT");
+const server = app.listen(port, () =>
+    logger.info(`[Express] server started on http://localhost:${port}`),
+);
+
+const shutdown = async (signal) => {
+    logger.info(`Received ${signal}, terminating server...`);
+    server.close(() => logger.info("[Express] server closed"));
+    {{#if has_mongodb}}await teardown();
+    logger.info("[MongoDB] teardown complete");
+    {{/if}}logger.info("Shutdown complete");
+    process.exit(0);
+};
+
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));

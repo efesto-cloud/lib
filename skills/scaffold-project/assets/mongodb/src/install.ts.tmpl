@@ -1,0 +1,36 @@
+import MongoDBContext from "@efesto-cloud/mongodb-database-context/MongoDBContext";
+import Symbols from "{{ns}}/core/di/Symbols";
+import { ContainerModule } from "inversify";
+import MongoSymbols from "./di/MongoSymbols.js";
+import { client } from "./index.js";
+
+// The persistence skill registers repository implementations here. Keep the
+// `install()` structure intact — the skill appends `bind(...)` calls before the
+// collection loop below. The collection loop auto-wires every entry in
+// `MongoSymbols.Collections`, so adding a new collection name is enough for the
+// DI container to expose it.
+
+export default function install() {
+    return new ContainerModule((bind) => {
+        bind(MongoSymbols.MongoClient).toConstantValue(client);
+
+        bind(Symbols.DatabaseContext).to(MongoDBContext).inRequestScope();
+
+        // ── Repositories (populated by the `persistence` skill) ─────────────
+        // Example:
+        // bind(Symbols.Repo.ProductRepo).to(ProductRepoImpl).inRequestScope();
+
+        // ── Collection dynamic bindings ─────────────────────────────────────
+        // biome-ignore lint/complexity/noForEach: mirrors the Oasis pattern for readability
+        Object.entries(MongoSymbols.Collections).forEach(([coll, sym]) => {
+            bind(sym)
+                .toDynamicValue((ctx) =>
+                    ctx.container
+                        .get<typeof client>(MongoSymbols.MongoClient)
+                        .db()
+                        .collection(coll),
+                )
+                .inSingletonScope();
+        });
+    });
+}

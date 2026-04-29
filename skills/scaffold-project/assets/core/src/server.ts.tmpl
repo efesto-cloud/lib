@@ -1,0 +1,22 @@
+import { Settings } from "luxon";
+import container from "./di/container.js";
+import Symbols from "./di/Symbols.js";
+import logger from "./logger/logger.js";
+
+// Domain barrels — added by the `entity`, `usecase`, and related skills.
+// Example (after running `entity` + `usecase` skills):
+// export * from "./errors/index.js";
+// export * from "./shape/index.js";
+// export * from "./useCase/<domain>/index.js";
+
+const locale = new Intl.Locale("{{locale}}");
+
+Settings.defaultLocale = locale.toString();
+Settings.defaultZone = "{{timezone}}";
+Settings.defaultWeekSettings = {
+    firstDay: 1,
+    minimalDays: 4,
+    weekend: [6, 7],
+};
+
+export { container, logger, Symbols };

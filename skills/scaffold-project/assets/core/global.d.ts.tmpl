@@ -1,0 +1,14 @@
+type WithOptionalAuth<
+    U extends Record<string, unknown> = Record<string, unknown>,
+> = { session_id?: string } & U;
+
+type Enum<T extends string> = { [K in T]: K };
+
+type Desc<T extends string> = { [K in T]: string };
+
+type Overwrite<T, O = unknown> =
+    O extends Record<string, unknown>
+        ? {
+              [K in keyof T]: K extends keyof O ? O[K] : T[K];
+          } & Omit<O, keyof T>
+        : T;

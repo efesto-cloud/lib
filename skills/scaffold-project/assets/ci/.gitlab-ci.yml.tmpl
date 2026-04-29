@@ -1,0 +1,35 @@
+default:
+    image: docker:26
+    services:
+        - docker:26-dind
+    before_script:
+        - base64 -d ${GCP_SVC_ACC} | docker login -u _json_key --password-stdin ${REGISTRY}
+
+stages:
+    - build
+
+variables:
+    # TODO(scaffold): point REGISTRY at your own Artifact Registry / ECR / ghcr.io path.
+    REGISTRY: "europe-docker.pkg.dev/CHANGE-ME/{{project_name}}"
+
+{{#if has_webapp}}build-master webapp:
+    stage: build
+    only:
+        - master
+    variables:
+        LATEST_TAG: "${REGISTRY}/webapp:latest"
+        VERSION_TAG: "${REGISTRY}/webapp:${CI_COMMIT_SHORT_SHA}"
+    script:
+        - docker pull ${LATEST_TAG} || true
+        - >
+            docker build
+            --cache-from=${LATEST_TAG}
+            .
+            -t ${VERSION_TAG}
+            -t ${LATEST_TAG}
+            --build-arg v=${CI_COMMIT_SHORT_SHA}
+            --build-arg date=${CI_PIPELINE_CREATED_AT}
+            -f ./packages/webapp/Dockerfile
+        - docker push ${VERSION_TAG}
+        - docker push ${LATEST_TAG}
+{{/if}}
