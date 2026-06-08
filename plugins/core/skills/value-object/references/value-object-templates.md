@@ -90,18 +90,31 @@ export default class Address implements IAddress {
 
 ## Mapper pattern
 
+Implement the `IValueObjectMapper<E, RAW>` interface from `@efesto-cloud/entity`. It
+declares two instance methods: `from(dto)` and `to(entity, options?)`.
+
 ```ts
 // mapper/AddressMapper.ts
+import type { IValueObjectMapper } from "@efesto-cloud/entity";
 import Address from "../value_object/impl/Address.js";
 import IAddress from "../value_object/IAddress.js";
 
-export default class AddressMapper {
-  public static fromRaw(raw: IAddress): Address {
-    return Address.create(raw);
+export default class AddressMapper implements IValueObjectMapper<Address, IAddress> {
+  from(dto: IAddress): Address {
+    return Address.create(dto);
   }
 
-  public static toRaw(address: Address): IAddress {
-    return address.toRaw();
+  to<P extends keyof IAddress = keyof IAddress>(
+    address: Address,
+    options?: { pick?: P[] },
+  ): Pick<IAddress, P> {
+    const raw = address.toRaw();
+    if (!options?.pick) {
+      return raw as Pick<IAddress, P>;
+    }
+    return Object.fromEntries(
+      options.pick.map((key) => [key, raw[key]]),
+    ) as Pick<IAddress, P>;
   }
 }
 ```
@@ -109,5 +122,5 @@ export default class AddressMapper {
 ## Notes
 
 - Use a separate `mapper/` file only when the request describes persistence, database documents, or transport payloads.
-- If the value object is a simple wrapper around a primitive, a dedicated interface and `toRaw()`/`fromRaw()` are usually enough.
+- If the value object is a simple wrapper around a primitive, a dedicated interface and `toRaw()` are usually enough.
 - Keep the model focused on immutability and clear conversion boundaries.

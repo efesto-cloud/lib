@@ -7,8 +7,8 @@ argument-hint: "Paste code and ask: 'normalize Observable usage'"
 # Observer
 
 **Installation:** If not already installed, add the packages:
-- `pnpm add @efesto-cloud/observable` (provides `Observable`)
-- `pnpm add @efesto-cloud/publisher` (peer dependency for subscription management)
+- `pnpm add @efesto-cloud/observable` (provides `Observable`; depends on `@efesto-cloud/publisher`)
+- `pnpm add @efesto-cloud/publisher` (only if you use `Publisher` directly)
 
 Use this skill when you need reactive state or pub/sub.
 
@@ -19,7 +19,7 @@ Use this skill when you need reactive state or pub/sub.
 ## Procedure
 1. If you need current value + updates, use `Observable`.
 2. If you need fire-and-forget events, use `Publisher`.
-3. Always clean subscriptions (`unsubscribe` or returned cleanup fn).
+3. Always clean subscriptions: call the cleanup fn returned by `subscribe`, or `dispose()` to drop all subscribers at once.
 
 ## Common Mistakes
 - Using `Publisher` as if it stores state.
