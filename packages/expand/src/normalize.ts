@@ -164,6 +164,14 @@ function mergeInto(
     source: Record<string, unknown>,
 ): void {
     for (const [key, value] of Object.entries(source)) {
+        if (
+            key === "__proto__" ||
+            key === "constructor" ||
+            key === "prototype"
+        ) {
+            continue;
+        }
+
         const existing = target[key];
 
         if (existing === undefined) {

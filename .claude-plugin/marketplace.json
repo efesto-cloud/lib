@@ -1,11 +1,11 @@
 {
-    "name": "efesto-cloud-lib",
+    "name": "efesto-cloud",
     "owner": {
         "name": "Dario Furlan",
         "email": "dario@dariofurlan.com"
     },
     "metadata": {
-        "description": "Efesto Cloud Lib",
+        "description": "Efesto Cloud",
         "version": "1.0.0"
     },
     "plugins": [
@@ -25,7 +25,7 @@
                 "./skills/value-object",
                 "./skills/population",
                 "./skills/publisher",
-                "./skills/scaffold-project"
+                "./skills/core"
             ]
         },
         {
