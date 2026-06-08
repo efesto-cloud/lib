@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/env",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "Typed environment-variable access for efesto-cloud",
     "repository": {
         "type": "git",
