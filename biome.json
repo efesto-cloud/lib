@@ -7,7 +7,7 @@
     },
     "files": {
         "ignoreUnknown": false,
-        "includes": ["**", "!skills"]
+        "includes": ["**", "!**/skills"]
     },
     "formatter": {
         "enabled": true,

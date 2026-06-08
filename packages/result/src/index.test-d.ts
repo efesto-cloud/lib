@@ -2,7 +2,8 @@
 // never executed (the `.test-d.ts` extension is excluded from the test runner).
 
 import type Result from "./index.js";
-import type { err, ok } from "./index.js";
+import type { err } from "./index.js";
+import { ok } from "./index.js";
 
 type Equal<X, Y> =
     (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
@@ -35,6 +36,15 @@ type _OkInfersError = Expect<
 type _ErrInfersData = Expect<
     Equal<ReturnType<typeof err<NotFound, User>>, Result<User, NotFound>>
 >;
+
+// ok() with no argument resolves to Result<void, never> via its zero-arg overload.
+const _okVoid = ok();
+type _OkVoidIsVoid = Expect<Equal<typeof _okVoid, Result<void, never>>>;
+
+// Supplying T explicitly while omitting the value is rejected: the zero-arg
+// overload takes no type arguments and the value overload requires the value.
+// @ts-expect-error
+const _okExplicit = ok<User>();
 
 // map() preserves the error type; flatMap() unions error types.
 declare const mapped: ReturnType<typeof r.map<number>>;

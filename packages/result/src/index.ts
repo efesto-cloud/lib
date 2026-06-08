@@ -166,7 +166,12 @@ type Result<T, E> = Success<T, E> | Failure<T, E>;
 // `Result` namespace alias these so there's only one implementation.
 // ---------------------------------------------------------------------------
 
-const _ok = <T, E = never>(value: T): Result<T, E> => new Success<T, E>(value);
+interface OkFn {
+    (): Result<void, never>;
+    <T, E = never>(value: T): Result<T, E>;
+}
+const _ok = (<T, E = never>(value?: T): Result<T, E> =>
+    new Success<T, E>(value as T)) as OkFn;
 const _err = <E, T = never>(error: E): Result<T, E> => new Failure<T, E>(error);
 const _fromThrowable = <Args extends unknown[], T, E>(
     fn: (...args: Args) => T,
