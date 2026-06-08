@@ -1,5 +1,12 @@
 # @efesto-cloud/result-async
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [3a4912e]
+  - @efesto-cloud/result@1.1.0
+
 ## 0.1.0
 
 ### Minor Changes

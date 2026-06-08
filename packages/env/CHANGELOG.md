@@ -1,5 +1,12 @@
 # @efesto-cloud/env
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [3a4912e]
+  - @efesto-cloud/result@1.1.0
+
 ## 0.0.5
 
 ### Patch Changes

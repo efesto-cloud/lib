@@ -1,5 +1,11 @@
 # @efesto-cloud/maybe-async
 
+## 0.1.1
+
+### Patch Changes
+
+- @efesto-cloud/maybe@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes
