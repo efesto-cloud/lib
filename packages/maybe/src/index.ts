@@ -185,7 +185,7 @@ export class None<T extends NonNullable<unknown> = never> implements INone {
     }
 }
 
-export type Maybe<T extends NonNullable<unknown>> = Some<T> | None<T>;
+type Maybe<T extends NonNullable<unknown>> = Some<T> | None<T>;
 
 // ---------------------------------------------------------------------------
 // Single-source factory implementations. Both module-level exports and the
@@ -240,7 +240,7 @@ export const combine = _combine;
 // and `import Maybe from "..."` keep working.
 // ---------------------------------------------------------------------------
 
-export namespace Maybe {
+namespace Maybe {
     export const maybe = _maybe;
     export const some = _some;
     export const none = _none;

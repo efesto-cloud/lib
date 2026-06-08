@@ -13,7 +13,7 @@ import { err, ok, type Result } from "@efesto-cloud/result";
 // directly and receive the underlying `Result<T, E>`.
 // ---------------------------------------------------------------------------
 
-export class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
+class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
     constructor(private readonly _promise: Promise<Result<T, E>>) {}
 
     // biome-ignore lint/suspicious/noThenProperty: intentional — implements PromiseLike so `await ra` resolves to Result<T, E>.

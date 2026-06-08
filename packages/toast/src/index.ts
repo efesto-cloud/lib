@@ -184,7 +184,7 @@ export class ToastFailure<T = never, E = unknown>
     }
 }
 
-export type Toast<T, E> = ToastSuccess<T, E> | ToastFailure<T, E>;
+type Toast<T, E> = ToastSuccess<T, E> | ToastFailure<T, E>;
 
 // ---------------------------------------------------------------------------
 // Single-source factory implementations. Both module-level exports and the
@@ -261,7 +261,7 @@ export const fromResult = _fromResult;
 // `Toast.fromResult(...)` and `import Toast from "..."` keep working.
 // ---------------------------------------------------------------------------
 
-export namespace Toast {
+namespace Toast {
     export const ok = _ok;
     export const err = _err;
     export const fromObject = _fromObject;

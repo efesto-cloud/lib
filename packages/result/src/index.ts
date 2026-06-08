@@ -159,7 +159,7 @@ export class Failure<T = never, E = unknown> {
     }
 }
 
-export type Result<T, E> = Success<T, E> | Failure<T, E>;
+type Result<T, E> = Success<T, E> | Failure<T, E>;
 
 // ---------------------------------------------------------------------------
 // Single-source factory implementations. Both module-level exports and the
@@ -203,7 +203,7 @@ export const fromZod = _fromZod;
 // `Result.fromZod(...)` and `import Result from "..."` keep working.
 // ---------------------------------------------------------------------------
 
-export namespace Result {
+namespace Result {
     export const ok = _ok;
     export const err = _err;
     export const fromThrowable = _fromThrowable;

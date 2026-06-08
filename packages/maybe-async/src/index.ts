@@ -13,7 +13,7 @@ import { type Maybe, maybe, none, some } from "@efesto-cloud/maybe";
 // and receive the underlying `Maybe<T>`.
 // ---------------------------------------------------------------------------
 
-export class MaybeAsync<T extends NonNullable<unknown>>
+class MaybeAsync<T extends NonNullable<unknown>>
     implements PromiseLike<Maybe<T>>
 {
     constructor(private readonly _promise: Promise<Maybe<T>>) {}
