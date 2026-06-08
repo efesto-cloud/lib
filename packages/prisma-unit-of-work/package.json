@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/prisma-unit-of-work",
-    "version": "0.0.2",
+    "version": "1.0.0",
     "description": "Prisma-backed IUnitOfWork for efesto-cloud",
     "repository": {
         "type": "git",

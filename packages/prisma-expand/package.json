@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/prisma-expand",
-    "version": "0.0.2",
+    "version": "1.0.0",
     "description": "Prisma adapter for @efesto-cloud/expand",
     "repository": {
         "type": "git",

@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/unit-of-work",
-    "version": "0.0.4",
+    "version": "1.0.0",
     "description": "Database-agnostic unit-of-work / transaction boundary for efesto-cloud",
     "repository": {
         "type": "git",

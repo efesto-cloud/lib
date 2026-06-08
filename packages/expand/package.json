@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/expand",
-    "version": "0.0.4",
+    "version": "1.0.0",
     "description": "Database-agnostic expand (eager-loading) spec types for efesto-cloud",
     "repository": {
         "type": "git",

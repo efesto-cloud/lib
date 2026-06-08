@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/result-async",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "description": "Async Result type for efesto-cloud — companion to @efesto-cloud/result",
     "repository": {
         "type": "git",
