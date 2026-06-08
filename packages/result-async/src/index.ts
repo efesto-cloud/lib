@@ -1,4 +1,5 @@
-import { err, ok, type Result } from "@efesto-cloud/result";
+import type Result from "@efesto-cloud/result";
+import { err, ok } from "@efesto-cloud/result";
 
 // ---------------------------------------------------------------------------
 // ResultAsync<T, E> — companion to Result<T, E> for asynchronous workflows.

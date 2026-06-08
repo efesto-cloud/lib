@@ -1,4 +1,5 @@
-import { type Maybe, maybe, none, some } from "@efesto-cloud/maybe";
+import type Maybe from "@efesto-cloud/maybe";
+import { maybe, none, some } from "@efesto-cloud/maybe";
 
 // ---------------------------------------------------------------------------
 // MaybeAsync<T> — companion to Maybe<T> for asynchronous workflows.
