@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/suspicious/noGlobalIsNan: Ignore this */
 import fs from "node:fs";
 import process from "node:process";
-import Result, { type Failure } from "@efesto-cloud/result";
+import Result from "@efesto-cloud/result";
 import ExpectedBigIntEnvVarError from "./errors/ExpectedBigIntEnvVarError.js";
 import ExpectedBooleanEnvVarError from "./errors/ExpectedBooleanEnvVarError.js";
 import ExpectedFileEnvVarError from "./errors/ExpectedFileEnvVarError.js";
@@ -49,84 +49,64 @@ function stringSafe<K extends EnvKeyName>(
 function integerSafe(
     key: EnvKeyName,
 ): Result<number, ExpectedValueEnvKeyError | ExpectedIntegerEnvVarError> {
-    const strOrError = stringSafe(key);
-    if (!strOrError.isSuccess())
-        return strOrError as Failure<
-            ExpectedValueEnvKeyError | ExpectedIntegerEnvVarError
-        >;
-    const str = strOrError.data;
-    const val = parseInt(str, 10);
-    if (isNaN(val)) return Result.err(new ExpectedIntegerEnvVarError(key, str));
-    return Result.ok(val);
+    return stringSafe(key).andThen((str) => {
+        const val = parseInt(str, 10);
+        return isNaN(val)
+            ? Result.err(new ExpectedIntegerEnvVarError(key, str))
+            : Result.ok(val);
+    });
 }
 
 function floatSafe(
     key: EnvKeyName,
 ): Result<number, ExpectedValueEnvKeyError | ExpectedFloatEnvVarError> {
-    const strOrError = stringSafe(key);
-    if (!strOrError.isSuccess())
-        return strOrError as Failure<
-            ExpectedValueEnvKeyError | ExpectedIntegerEnvVarError
-        >;
-    const str = strOrError.data;
-    const val = parseFloat(str);
-    if (isNaN(val)) return Result.err(new ExpectedFloatEnvVarError(key, str));
-    return Result.ok(val);
+    return stringSafe(key).andThen((str) => {
+        const val = parseFloat(str);
+        return isNaN(val)
+            ? Result.err(new ExpectedFloatEnvVarError(key, str))
+            : Result.ok(val);
+    });
 }
 
 function bigIntSafe(
     key: EnvKeyName,
 ): Result<bigint, ExpectedValueEnvKeyError | ExpectedBigIntEnvVarError> {
-    const strOrError = stringSafe(key);
-    if (!strOrError.isSuccess())
-        return strOrError as Failure<
-            ExpectedValueEnvKeyError | ExpectedBigIntEnvVarError
-        >;
-    const str = strOrError.data;
-    try {
-        return Result.ok(BigInt(str));
-    } catch (err) {
-        if (err instanceof TypeError)
-            return Result.err(new ExpectedBigIntEnvVarError(key, str));
-        throw err;
-    }
+    return stringSafe(key).andThen((str) => {
+        try {
+            return Result.ok(BigInt(str));
+        } catch (err) {
+            if (err instanceof TypeError)
+                return Result.err(new ExpectedBigIntEnvVarError(key, str));
+            throw err;
+        }
+    });
 }
 
 function booleanSafe(
     key: EnvKeyName,
 ): Result<boolean, ExpectedValueEnvKeyError | ExpectedBooleanEnvVarError> {
-    const strOrError = stringSafe(key);
-    if (!strOrError.isSuccess())
-        return strOrError as Failure<
-            ExpectedValueEnvKeyError | ExpectedBooleanEnvVarError
-        >;
-    const str = strOrError.data;
-    if (TRUTHY_VALUES.has(str)) return Result.ok(true);
-    if (FALSY_VALUES.has(str)) return Result.ok(false);
-    return Result.err(new ExpectedBooleanEnvVarError(key, str));
+    return stringSafe(key).andThen((str) => {
+        if (TRUTHY_VALUES.has(str)) return Result.ok(true);
+        if (FALSY_VALUES.has(str)) return Result.ok(false);
+        return Result.err(new ExpectedBooleanEnvVarError(key, str));
+    });
 }
 
 function somethingSafe<T, E>(
     key: EnvKeyName,
     fn: (str: string) => Result<T, E>,
 ): Result<T, ExpectedValueEnvKeyError | E> {
-    const strOrError = stringSafe(key);
-    if (!strOrError.isSuccess())
-        return strOrError as Failure<ExpectedValueEnvKeyError>;
-    const str = strOrError.data;
-    return fn(str);
+    return stringSafe(key).andThen(fn);
 }
 
 function fileSafe(
     key: EnvKeyName,
 ): Result<string, ExpectedValueEnvKeyError | ExpectedFileEnvVarError> {
-    const strOrError = stringSafe(key);
-    if (!strOrError.isSuccess())
-        return strOrError as Failure<ExpectedValueEnvKeyError>;
-    const path = strOrError.data;
-    if (!fs.existsSync(path))
-        return Result.err(new ExpectedFileEnvVarError(key, path));
-    return Result.ok(fs.readFileSync(path, "utf8").toString().trim());
+    return stringSafe(key).andThen((path) =>
+        fs.existsSync(path)
+            ? Result.ok(fs.readFileSync(path, "utf8").toString().trim())
+            : Result.err(new ExpectedFileEnvVarError(key, path)),
+    );
 }
 
 export default {

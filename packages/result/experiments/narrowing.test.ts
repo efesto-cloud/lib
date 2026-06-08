@@ -3,7 +3,7 @@
 // precedente.
 
 import type { Equal, Expect } from "./assert.js";
-import { type Result, err, ok } from "./proposed.js";
+import { err, ok, type Result } from "./proposed.js";
 
 interface User {
     id: string;

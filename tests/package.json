@@ -1,0 +1,17 @@
+{
+    "name": "@efesto-cloud/integration-tests",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "typecheck:test": "tsc --noEmit -p tsconfig.json",
+        "test": "tsx --test \"src/**/*.test.ts\""
+    },
+    "dependencies": {
+        "@efesto-cloud/maybe": "workspace:*",
+        "@efesto-cloud/result": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/node": "24"
+    }
+}

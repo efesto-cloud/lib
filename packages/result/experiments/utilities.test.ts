@@ -1,9 +1,12 @@
 // Tests for: fromThrowable, unwrapOr, tap/tapError, andThen alias.
 
 import type { Equal, Expect } from "./assert.js";
-import { type Result, err, fromThrowable, ok } from "./proposed.js";
+import { err, fromThrowable, ok, type Result } from "./proposed.js";
 
-declare const log: { info(...a: unknown[]): void; error(...a: unknown[]): void };
+declare const log: {
+    info(...a: unknown[]): void;
+    error(...a: unknown[]): void;
+};
 
 class ParseError {
     readonly _tag = "ParseError";
@@ -35,7 +38,9 @@ function div(a: number, b: number): number {
     if (b === 0) throw new Error("div by zero");
     return a / b;
 }
-const safeDiv = fromThrowable(div, (e) => (e instanceof Error ? e.message : "?"));
+const safeDiv = fromThrowable(div, (e) =>
+    e instanceof Error ? e.message : "?",
+);
 type _DivSig = Expect<
     Equal<typeof safeDiv, (a: number, b: number) => Result<number, string>>
 >;
@@ -83,7 +88,9 @@ const logged = r2
     });
 
 // tap/tapError must preserve the Result type exactly.
-type _TapPreserves = Expect<Equal<typeof logged, Result<number, NotFoundError>>>;
+type _TapPreserves = Expect<
+    Equal<typeof logged, Result<number, NotFoundError>>
+>;
 
 // Composable in a chain — tap returns Result, so .map etc. still work.
 const chained = r2
@@ -105,15 +112,17 @@ class ValidationError {
     constructor(readonly field: string) {}
 }
 
-const a1 = r3.andThen((n): Result<string, ValidationError> =>
-    n > 0 ? ok(String(n)) : err(new ValidationError("n")),
+const a1 = r3.andThen(
+    (n): Result<string, ValidationError> =>
+        n > 0 ? ok(String(n)) : err(new ValidationError("n")),
 );
 type _AndThenMerges = Expect<
     Equal<typeof a1, Result<string, NotFoundError | ValidationError>>
 >;
 
-const a2 = r3.flatMap((n): Result<string, ValidationError> =>
-    n > 0 ? ok(String(n)) : err(new ValidationError("n")),
+const a2 = r3.flatMap(
+    (n): Result<string, ValidationError> =>
+        n > 0 ? ok(String(n)) : err(new ValidationError("n")),
 );
 // andThen and flatMap produce the same type.
 type _AndThenSameAsFlatMap = Expect<Equal<typeof a1, typeof a2>>;

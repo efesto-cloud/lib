@@ -1,7 +1,7 @@
 // Same scenarios as `current.ts`, but against the proposed implementation.
 
 import type { Bidirectional, Equal, Expect } from "./assert.js";
-import { type Result, err, Failure, ok, Success } from "./proposed.js";
+import { err, Failure, ok, type Result, Success } from "./proposed.js";
 
 interface User {
     id: string;
@@ -96,8 +96,9 @@ type _WidenedEqualsDesired = Expect<Equal<InferredWidened, Desired>>;
 // -----------------------------------------------------------------------------
 declare const r1: Result<number, NotFoundError>;
 const r2 = r1.map((n) => n + 1);
-const r3 = r1.flatMap((n): Result<string, ValidationError> =>
-    n > 0 ? ok(String(n)) : err(new ValidationError("n")),
+const r3 = r1.flatMap(
+    (n): Result<string, ValidationError> =>
+        n > 0 ? ok(String(n)) : err(new ValidationError("n")),
 );
 
 type _MapPreservesE = Expect<Equal<typeof r2, Result<number, NotFoundError>>>;
@@ -121,7 +122,9 @@ const r7 = r6.orElse((_e) => ok(0));
 type _OrElseRecovers = Expect<Equal<typeof r7, Result<number, never>>>;
 
 const r8 = r6.orElse((_e) => err(new ValidationError("fallback")));
-type _OrElseChangesE = Expect<Equal<typeof r8, Result<number, ValidationError>>>;
+type _OrElseChangesE = Expect<
+    Equal<typeof r8, Result<number, ValidationError>>
+>;
 
 // -----------------------------------------------------------------------------
 // CASE J: chaining on the INFERRED (un-annotated) result works.

@@ -122,8 +122,9 @@ type _FactoriesInferResult = Expect<Equal<InferredFactories, Desired>>;
 // -----------------------------------------------------------------------------
 declare const r1: Result<number, NotFoundError>;
 const r2 = r1.map((n) => n + 1);
-const r3 = r1.flatMap((n): Result<string, ValidationError> =>
-    n > 0 ? Result.ok(String(n)) : Result.err(new ValidationError("n")),
+const r3 = r1.flatMap(
+    (n): Result<string, ValidationError> =>
+        n > 0 ? Result.ok(String(n)) : Result.err(new ValidationError("n")),
 );
 
 // We expect: Result<number, NotFoundError>

@@ -1,4 +1,4 @@
-# @efesto-cloud/compute
+# @efesto-cloud/computed
 
 ## 0.0.4
 

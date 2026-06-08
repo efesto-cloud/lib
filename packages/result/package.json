@@ -26,9 +26,12 @@
     "scripts": {
         "build": "tsc --project tsconfig.json",
         "typecheck": "tsc --noEmit",
+        "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+        "test": "tsx --test \"src/**/*.test.ts\"",
         "clean": "rm -rf dist"
     },
     "devDependencies": {
+        "@types/node": "24",
         "zod": "^4"
     },
     "keywords": [],
