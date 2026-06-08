@@ -5,48 +5,26 @@
         "email": "dario@dariofurlan.com"
     },
     "metadata": {
-        "description": "Efesto Cloud",
-        "version": "1.0.0"
+        "description": "Efesto Cloud"
     },
     "plugins": [
         {
             "name": "Core",
             "description": "",
-            "source": "./",
-            "strict": false,
-            "skills": [
-                "./skills/entity",
-                "./skills/monad-maybe",
-                "./skills/monad-result",
-                "./skills/observer",
-                "./skills/persistence",
-                "./skills/usecase",
-                "./skills/type-enum-dict",
-                "./skills/value-object",
-                "./skills/population",
-                "./skills/publisher",
-                "./skills/core"
-            ]
+            "source": "./plugins/core",
+            "strict": false
         },
         {
             "name": "MongoDB",
             "description": "",
-            "source": "./",
-            "strict": false,
-            "skills": [
-                "./skills/mongodb-persistence",
-                "./skills/mongodb-population"
-            ]
+            "source": "./plugins/mongodb",
+            "strict": false
         },
         {
             "name": "Prisma",
             "description": "",
-            "source": "./",
-            "strict": false,
-            "skills": [
-                "./skills/prisma-persistence",
-                "./skills/prisma-population"
-            ]
+            "source": "./plugins/prisma",
+            "strict": false
         }
     ]
 }
