@@ -1,7 +1,7 @@
 {
     "name": "@efesto-cloud/audit",
     "version": "0.0.4",
-    "description": "Audit type for efesto-cloud",
+    "description": "Audit logging for TypeScript use cases (decorators + AsyncLocalStorage) for efesto-cloud",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/efesto-cloud/lib.git",

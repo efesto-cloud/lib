@@ -69,4 +69,4 @@ off();
 ## Related
 
 - [`@efesto-cloud/publisher`](../publisher) — pub/sub without state.
-- [`@efesto-cloud/compute`](../computed) — derive a value from one or more observables.
+- [`@efesto-cloud/computed`](../computed) — derive a value from one or more observables.

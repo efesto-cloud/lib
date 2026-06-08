@@ -1,20 +1,18 @@
-# @efesto-cloud/compute
+# @efesto-cloud/computed
 
 A `Computed<T>` observable derived from one or more `Observable` dependencies. Re-evaluates (and notifies) only when the computed value actually changes.
-
-> The package is named `@efesto-cloud/compute` but lives in `packages/computed`.
 
 ## Installation
 
 ```bash
-pnpm add @efesto-cloud/compute @efesto-cloud/observable
+pnpm add @efesto-cloud/computed @efesto-cloud/observable
 ```
 
 ## Quick Start
 
 ```ts
 import { Observable } from "@efesto-cloud/observable";
-import { Computed } from "@efesto-cloud/compute";
+import { Computed } from "@efesto-cloud/computed";
 
 const firstName = new Observable("Ada");
 const lastName  = new Observable("Lovelace");

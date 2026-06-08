@@ -1,5 +1,15 @@
 # @efesto-cloud/env
 
+## 0.0.5
+
+### Patch Changes
+
+- af397cc: Migrate to `Result` v2: the internal `Failure<E>` casts in the env parsers are
+  replaced with `andThen` chaining, which is type-safe under the new homogeneous
+  `Failure<T, E>` generics. No public API or behavior change.
+- Updated dependencies [af397cc]
+  - @efesto-cloud/result@1.0.0
+
 ## 0.0.4
 
 ### Patch Changes

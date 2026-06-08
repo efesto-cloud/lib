@@ -53,19 +53,36 @@ Toast.fromResult(result, "Salvato", "Salvataggio fallito");
 
 ### Instance methods
 
-Same shape as `Result`, with one extra field:
+Same shape as `Result`, with one extra field. The contained `message` is
+preserved across `map` / `mapError` / `tap`; `flatMap`/`andThen` and `orElse`
+adopt the message of the `Toast` they return.
 
 | Method | Purpose |
 | --- | --- |
 | `message` | The user-facing message. |
 | `isSuccess()` / `isFailure()` | Type guards. |
+| `map(fn)` | Transform `data`; error and message pass through. |
+| `mapError(fn)` | Transform `error`; data and message pass through. |
+| `flatMap(fn)` / `andThen(fn)` | Chain another `Toast`. |
+| `orElse(fn)` | Recover from a failure by returning a new `Toast`. |
+| `match(onOk, onErr)` | Collapse to a single value (success-first). |
+| `tap(fn)` | Side-effect on success; passes through. |
+| `tapError(fn)` | Side-effect on failure; passes through. |
+| `unwrapOr(fallback)` | `data`, or `fallback` on failure. |
 | `unwrapOrThrow()` | Return `data` or throw `error`. |
-| `map(fn)` / `flatMap(fn)` | Transform / chain. |
-| `fold(onErr, onOk)` | Collapse to a single value. |
-| `else(() => value)` | Fallback value on failure. |
-| `run(fn)` | Side-effect on success. |
 | `toObject()` | Plain `{ success, message, data, error }`. |
 | `toMaybe()` | `Some(data)` if success, `None` if failure. |
+
+Factories are available both as namespace members (`Toast.ok(...)`) and as named
+imports (`import { ok, err, fromResult } from "@efesto-cloud/toast"`).
+
+#### Compatibility aliases
+
+| Method | Prefer |
+| --- | --- |
+| `fold(onErr, onOk)` | `match(onOk, onErr)` |
+| `run(fn)` | `tap(fn)` |
+| `else(() => value)` | `unwrapOr(value)` when you want the raw value |
 
 ## When to use `Toast` vs `Result`
 
