@@ -1,5 +1,13 @@
 # @efesto-cloud/toast
 
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies [3a4912e]
+  - @efesto-cloud/result@1.1.0
+  - @efesto-cloud/maybe@0.1.1
+
 ## 1.0.0
 
 ### Major Changes
