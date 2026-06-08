@@ -1,6 +1,6 @@
 ---
 name: monad-result
-description: Use when writing or reviewing code that returns Result<T, E> from the @efesto-cloud/result package.
+description: Use when writing or reviewing code that returns Result<T, E> from the @efesto-cloud/result package, or Toast<T, E> from @efesto-cloud/toast.
 argument-hint: "Paste the code snippet or use case and ask: 'normalize Result handling'"
 ---
 
@@ -33,6 +33,23 @@ Both module-level imports (`import { ok, err } from "@efesto-cloud/result"`) and
 
 ## Async
 For asynchronous workflows use the companion `@efesto-cloud/result-async` package: `ResultAsync<T, E>` wraps a `Promise<Result<T, E>>`, is awaitable, and exposes the same fluent surface (`map`, `mapError`, `flatMap`/`andThen`, `orElse`, `match`, `tap`, `tapError`, `unwrapOr`, `unwrapOrThrow`). Create with `okAsync`, `errAsync`, `fromPromise`, `fromSafePromise`, or `fromThrowable`.
+
+## Toast — a Result with a user-facing message
+For results that surface to the UI use the companion `@efesto-cloud/toast` package (`pnpm add @efesto-cloud/toast`). A `Toast<T, E>` is a `ToastSuccess<T, E> | ToastFailure<T, E>` that carries the same `data`/`error` as a `Result` plus a human-readable `message`. It exposes the same fluent surface as `Result` (`map`, `mapError`, `flatMap`/`andThen`, `orElse`, `match`, `tap`, `tapError`, `unwrapOr`, `unwrapOrThrow`, plus `fold`/`else`/`run` compat aliases) and narrows with `isSuccess()` / `isFailure()`.
+- Create with `Toast.ok(message, value?)` and `Toast.err(message, error?)` (both accept the default-export namespace or the module-level `ok`/`err` named exports).
+- Bridge from a `Result` with `Toast.fromResult(result)`, `Toast.fromResult(result, okMessage)`, or `Toast.fromResult(result, okMessage, errMessage)` — when no `errMessage` is given it derives one from a string error or an `error.message`.
+- Reconstruct a plain object with `Toast.fromObject(obj)`; serialize with `toObject()`; convert to a `Maybe<T>` with `toMaybe()`.
+
+```ts
+import Toast from "@efesto-cloud/toast";
+
+const saved = save(input); // Result<User, AppError>
+const toast = Toast.fromResult(saved, "Saved!");
+toast.match(
+	(user) => showSuccess(toast.message, user),
+	(err) => showError(toast.message, err),
+);
+```
 
 ## Common Mistakes To Avoid
 - Do not use `isErr()` — use `isFailure()`.
