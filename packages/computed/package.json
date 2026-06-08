@@ -1,5 +1,5 @@
 {
-    "name": "@efesto-cloud/compute",
+    "name": "@efesto-cloud/computed",
     "version": "0.0.4",
     "description": "Computed observable type for efesto-cloud",
     "repository": {

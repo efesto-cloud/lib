@@ -96,7 +96,7 @@ interface IValueObjectMapper<E extends object, RAW> {
 }
 ```
 
-Implementations live in the persistence layer (see [`@efesto-cloud/mongodb-population`](../mongodb-population) and the project's `src/mapper/` directory).
+Implementations live in the persistence layer (see [`@efesto-cloud/mongodb-expand`](../mongodb-expand) and the project's `src/mapper/` directory).
 
 ## Conventions
 

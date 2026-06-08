@@ -1,7 +1,7 @@
 {
     "name": "@efesto-cloud/metadata",
     "version": "0.0.4",
-    "description": "Metadata type for efesto-cloud",
+    "description": "Typed string key/value metadata store for efesto-cloud",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/efesto-cloud/lib.git",

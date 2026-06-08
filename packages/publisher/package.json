@@ -1,7 +1,7 @@
 {
     "name": "@efesto-cloud/publisher",
     "version": "0.0.4",
-    "description": "Publisher type for efesto-cloud",
+    "description": "Type-safe pub/sub publisher for efesto-cloud",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/efesto-cloud/lib.git",

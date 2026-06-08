@@ -27,20 +27,25 @@ const displayName = Maybe.maybe(user.nickname)
 - Build explicit presence with `Maybe.some(value)`.
 - Build explicit absence with `Maybe.none()`.
 - Check state with `isSome()` / `isNone()`.
-- Provide fallback with `else(() => defaultValue)`.
+- Extract with `unwrapOr(fallback)`; use `unwrapOrThrow()` only when a missing
+  value is a programmer error (throws `NoneError`).
 - Convert to `Result` when the caller expects one: `m.toResult()`.
+
+Factories are available both as namespace members (`Maybe.some(...)`) and as
+named imports (`import { some, none, maybe } from "@efesto-cloud/maybe"`).
 
 ## API
 
 ### Constructors
 
 ```ts
-Maybe.maybe(value);   // Some(value) if non-nullish, otherwise None
-Maybe.some(value);    // always Some
-Maybe.none();         // always None
+maybe(value);   // Some(value) if non-nullish, otherwise None
+some(value);    // always Some
+none();         // always None
 
-Maybe.fromObject({ some: true, data });
-Maybe.combine(m1, m2); // Some<[T1, T2]> only if both present
+fromObject({ some: true, data });
+fromThrowable(fn);   // (...args) => Maybe<T>; None if fn throws or returns nullish
+combine(m1, m2);     // Some<[T1, T2]> only if both present
 ```
 
 ### Instance methods
@@ -49,13 +54,23 @@ Maybe.combine(m1, m2); // Some<[T1, T2]> only if both present
 | --- | --- |
 | `isSome()` / `isNone()` | Type guards. |
 | `map(fn)` | Transform the contained value. |
-| `flatMap(fn)` | Chain another `Maybe`-returning call. |
+| `flatMap(fn)` / `andThen(fn)` | Chain another `Maybe`-returning call. |
 | `filter(predicate)` | Drop to `None` if predicate fails. |
-| `fold(onNone, onSome)` | Collapse to a single value. |
-| `else(() => value)` | Provide a fallback value. |
-| `run(fn)` | Side-effect if `Some`. |
+| `match(onSome, onNone)` | Collapse to a single value (some-first). |
+| `tap(fn)` | Side-effect if `Some`; passes through. |
+| `tapNone(fn)` | Side-effect if `None`; passes through. |
+| `unwrapOr(fallback)` | Contained value, or `fallback` if `None`. |
+| `unwrapOrThrow()` | Contained value, or throws `NoneError`. |
 | `toObject()` | Plain `{ some, data }` shape. |
 | `toResult()` | Convert to `Result<T, NoneError>`. |
+
+#### Compatibility aliases
+
+| Method | Prefer |
+| --- | --- |
+| `fold(onNone, onSome)` | `match(onSome, onNone)` |
+| `run(fn)` | `tap(fn)` |
+| `else(() => value)` | `unwrapOr(value)` when you want the raw value |
 
 ## Common Mistakes To Avoid
 

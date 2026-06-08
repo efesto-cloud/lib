@@ -1,0 +1,39 @@
+{
+    "name": "@efesto-cloud/maybe-async",
+    "version": "0.0.0",
+    "description": "Async Maybe type for efesto-cloud — companion to @efesto-cloud/maybe",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/efesto-cloud/lib.git",
+        "directory": "packages/maybe-async"
+    },
+    "type": "module",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*.js",
+            "types": "./dist/*.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc --project tsconfig.json",
+        "typecheck": "tsc --noEmit",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "@efesto-cloud/maybe": "workspace:*"
+    },
+    "keywords": [],
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    }
+}
