@@ -1,8 +1,9 @@
 // Type-level tests for Maybe<T>. Validated by `tsc` via tsconfig.test.json;
 // never executed (the `.test-d.ts` extension is excluded from the test runner).
 
-import type { Result } from "@efesto-cloud/result";
-import type { Maybe, maybe, NoneError, some } from "./index.js";
+import type Result from "@efesto-cloud/result";
+import type Maybe from "./index.js";
+import type { maybe, NoneError, some } from "./index.js";
 
 type Equal<X, Y> =
     (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2

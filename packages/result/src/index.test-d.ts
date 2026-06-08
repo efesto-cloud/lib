@@ -1,7 +1,8 @@
 // Type-level tests for Result<T, E>. Validated by `tsc` via tsconfig.test.json;
 // never executed (the `.test-d.ts` extension is excluded from the test runner).
 
-import type { err, ok, Result } from "./index.js";
+import type Result from "./index.js";
+import type { err, ok } from "./index.js";
 
 type Equal<X, Y> =
     (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
