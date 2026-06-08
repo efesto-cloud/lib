@@ -64,8 +64,9 @@ The four rules embedded above:
    factory. External code cannot bypass validation.
 2. **`static create(raw): Result<T, Error>`** — the validated entry
    point. Returns `Result.err(...)` on invalid input, never throws.
-3. **`toRaw()`** — the inverse of `create`. Returns the stored
-   primitive so callers can serialise.
+3. **`toRaw()`** — returns the stored primitive so callers can
+   serialise. Its inverse is `create()` (and, at the persistence
+   boundary, the mapper's `from()`) — there is no VO `fromRaw()`.
 4. **`readonly value`** — immutable.
 
 ## Validation patterns
@@ -230,22 +231,42 @@ toDTO(): FooDto {
 
 ## Cross-layer: VO inside the mapper
 
-The mapper's `from()` rebuilds the VO from the DB row. Because the DB
-row should already contain valid data, `from()` may throw if the VO's
-`create()` fails — that's a "corrupted state" signal, not a domain
-error:
+At the persistence boundary the entity mapper rebuilds the VO from the
+DB row. There is **no** value-object `fromRaw()` — the inverse of
+`toRaw()` is the VO's own `create()` factory, which the mapper's
+`from()` calls. Because the DB row should already contain valid data,
+`from()` may throw if `create()` fails — that's a "corrupted state"
+signal, not a domain error.
+
+The mapper contract lives in `@efesto-cloud/entity`. Both interfaces
+are type-only default exports re-exported as named types, with the same
+**instance** methods `from(dto)` / `to(entity, options?)`:
+
+- `IEntityMapper<E extends IEntity, RAW>` — entity ⇄ stored record.
+  Lives in the persistence adapter package; see
+  [persistence-adapter.md](persistence-adapter.md).
+- `IValueObjectMapper<E extends object, RAW>` — for a standalone VO
+  mapper when a VO needs its own raw conversion outside an entity.
 
 ```ts
-const FooMapper: IEntityMapper<Foo, FooRow> = {
-    from: (row) => {
+import type { IEntityMapper } from "@efesto-cloud/entity";
+
+class FooMapper implements IEntityMapper<Foo, FooRow> {
+    from(row: FooRow): Foo {
         const name = FooName.create(row.name);
         if (name.isFailure()) {
             throw new Error(`Invalid name in DB for Foo ${row.id}: ${row.name}`);
         }
         return new Foo({ name: name.data, /* ... */ }, row.id);
-    },
-    to: (foo) => ({ id: foo._id, name: foo.name.toRaw(), /* ... */ }),
-};
+    }
+
+    to<P extends keyof FooRow = keyof FooRow>(
+        foo: Foo,
+        _options?: { pick?: P[] },
+    ): Pick<FooRow, P> {
+        return { id: foo._id, name: foo.name.toRaw(), /* ... */ } as Pick<FooRow, P>;
+    }
+}
 ```
 
 `to()` doesn't need a Result — the entity is already valid by
@@ -256,7 +277,8 @@ construction, so `.toRaw()` always succeeds.
 - [ ] File at `core/src/value_object/<Name>.ts`.
 - [ ] `private constructor(...)`.
 - [ ] `static create(raw): Result<T, Error>` validates and normalises.
-- [ ] `toRaw(): primitive` (or raw-interface) inverse of create.
+- [ ] `toRaw(): primitive` (or raw-interface); inverse is `create()`
+      (no `fromRaw()`).
 - [ ] `equals(other)` if the VO appears in comparisons.
 - [ ] Error class for invalid input declared in `core/src/errors/`.
 - [ ] Re-exported from `core/src/value_object/index.ts`.

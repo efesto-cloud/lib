@@ -16,7 +16,7 @@ description: >
 # Prisma Persistence Skill
 
 **Installation:** Add the required packages:
-- `pnpm add @efesto-cloud/prisma-database-context` (for `IPrismaContext` and transaction support)
+- `pnpm add @efesto-cloud/prisma-unit-of-work` (for `IPrismaUnitOfWork` and transaction support)
 - `pnpm add @efesto-cloud/entity` (for `IEntityMapper` interface)
 - `pnpm add @efesto-cloud/maybe` (for nullable results)
 
@@ -27,7 +27,7 @@ hexagonal architecture TypeScript/Prisma project following the ports-and-adapter
 The `persistence` skill covers the interface and mapper contract; this skill covers the Prisma
 implementation.
 
-**Does not cover:** Population (eager-loading of related entities). See the `prisma-population` skill.
+**Does not cover:** Population / eager-loading of related entities. See the `prisma-population` skill.
 
 ---
 
@@ -40,13 +40,13 @@ implementation.
 
 ---
 
-## Key Concept: `IPrismaContext<TClient>`
+## Key Concept: `IPrismaUnitOfWork<TClient>`
 
-`IPrismaContext<TClient>` extends `IDatabaseContext` and provides `this.db.client`, which is
+`IPrismaUnitOfWork<TClient>` extends `IUnitOfWork` and provides `this.db.client`, which is
 either the root Prisma client or a transaction-scoped client:
 
 ```typescript
-import type { IPrismaContext } from "@efesto-cloud/prisma-database-context";
+import type { IPrismaUnitOfWork } from "@efesto-cloud/prisma-unit-of-work";
 // this.db.client: TClient | PrismaTxOf<TClient>
 ```
 
@@ -77,7 +77,7 @@ type FooRow = Prisma.FooGetPayload<{ include: { bar: true } }>;
 ```typescript
 // src/repo/impl/FooRepoImpl.ts
 import Maybe from "@efesto-cloud/maybe";
-import type { IPrismaContext } from "@efesto-cloud/prisma-database-context";
+import type { IPrismaUnitOfWork } from "@efesto-cloud/prisma-unit-of-work";
 import { inject, injectable } from "inversify";
 import type { PrismaClient } from "@prisma/client";
 import Symbols from "~/di/Symbols.js";
@@ -90,7 +90,7 @@ import type { SearchFoo } from "../IFooRepo.js";
 export default class FooRepoImpl implements IFooRepo {
     constructor(
         @inject(Symbols.DatabaseContext)
-        private readonly db: IPrismaContext<PrismaClient>,
+        private readonly db: IPrismaUnitOfWork<PrismaClient>,
     ) {}
 
     async search(query: SearchFoo): Promise<Foo[]> {
@@ -199,13 +199,13 @@ import type IFooRepo from "~/repo/IFooRepo.js";
 container.bind<IFooRepo>(Symbols.Repo.FooRepo).to(FooRepoImpl).inRequestScope();
 ```
 
-The Prisma client itself is injected as `IPrismaContext<PrismaClient>` via
-`Symbols.DatabaseContext`. Ensure `PrismaContext` is bound in the container:
+The Prisma client itself is injected as `IPrismaUnitOfWork<PrismaClient>` via
+`Symbols.DatabaseContext`. Ensure `PrismaUnitOfWork` is bound in the container:
 
 ```typescript
-import PrismaContext from "@efesto-cloud/prisma-database-context";
+import PrismaUnitOfWork from "@efesto-cloud/prisma-unit-of-work";
 // Typically done once at app bootstrap — check container.ts for existing binding.
-container.bind(Symbols.DatabaseContext).to(PrismaContext).inSingletonScope();
+container.bind(Symbols.DatabaseContext).to(PrismaUnitOfWork).inSingletonScope();
 ```
 
 ---

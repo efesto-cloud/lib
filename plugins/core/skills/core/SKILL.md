@@ -1,6 +1,6 @@
 ---
 name: core
-description: Self-contained skill for designing and maintaining the `@*/core` package in a hexagonal-architecture TypeScript monorepo built on the `@efesto-cloud/*` libraries (Entity, Result, Maybe, Population, Publisher, Observable, Usecase), Inversify, pnpm workspaces, and Biome. Use this skill on any task that touches the core package or its adapter packages — adding or changing an entity, value object, type/enum/dict, DTO, domain error, repository port, service port, use case, DI binding, module assembly, the composition root, the Prisma persistence adapter, soft-delete behaviour, population/eager-loading, the `Result`/`Maybe` error-handling pattern, or any question about how the layers fit together. Also use whenever the user asks where a new file should live, how DI/Inversify/Symbols work in this project, what `InternalSymbols` vs `UseCaseSymbols` are for, how `resolveUseCase("…")` gets its types, what an installer/`ContainerModule` is, how the webapp wires everything at boot, how mappers reconstruct value objects, or how soft-delete is enforced. Triggers even when the user does not say "core" — phrases like "add a new feature", "wire up X", "where do I put", "how do I bind", "how does this codebase work" all qualify if the project uses this stack.
+description: Self-contained skill for designing and maintaining the `@*/core` package in a hexagonal-architecture TypeScript monorepo built on the `@efesto-cloud/*` libraries (Entity, Result, Maybe, Expand, UnitOfWork, Publisher, Observable, Usecase), Inversify, pnpm workspaces, and Biome. Use this skill on any task that touches the core package or its adapter packages — adding or changing an entity, value object, type/enum/dict, DTO, domain error, repository port, service port, use case, DI binding, module assembly, the composition root, the persistence adapter (the separate package implementing storage against whatever database the project chose — Prisma, MongoDB, Drizzle, …), soft-delete behaviour, population/eager-loading, the `Result`/`Maybe` error-handling pattern, or any question about how the layers fit together. Also use whenever the user asks where a new file should live, how DI/Inversify/Symbols work in this project, what `InternalSymbols` vs `UseCaseSymbols` are for, how `resolveUseCase("…")` gets its types, what an installer/`ContainerModule` is, how the webapp wires everything at boot, how mappers reconstruct value objects, or how soft-delete is enforced. Triggers even when the user does not say "core" — phrases like "add a new feature", "wire up X", "where do I put", "how do I bind", "how does this codebase work" all qualify if the project uses this stack.
 ---
 
 # Core Skill
@@ -15,6 +15,13 @@ value object, type/enum/dict, DTO, error, repository port, service port,
 use case, DI binding, persistence adapter, population — is documented in
 `references/`. Open the relevant reference when you start working on that
 layer.
+
+The persistence adapter is described **database-agnostically**: core
+owns the repository *ports*, and a **separate adapter package**
+implements them against whatever database the project chose (Prisma,
+MongoDB, Drizzle, …). For concrete driver code, this skill points to the
+matching dedicated skill (`prisma-persistence`, `mongodb-persistence`,
+…).
 
 ---
 
@@ -38,12 +45,16 @@ implicates the core package or its surrounding adapters fits.
 
 ---
 
-## The three-package picture
+## The package picture
+
+The persistence adapter is shown generically as `@*/persistence-adapter`. The
+real package name reflects the chosen database (`@*/prisma-adapter`, `@*/mongodb-adapter`,
+`@*/drizzle-adapter`, …) — but core never knows which.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  @efesto-cloud/*  ── Entity · Result · Maybe · Population   │
-│                     PrismaContext · Publisher · Observable  │
+│  @efesto-cloud/*  ── Entity · Result · Maybe · Expand       │
+│                     UnitOfWork · Publisher · Observable     │
 │                     Usecase                                 │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -60,31 +71,34 @@ implicates the core package or its surrounding adapters fits.
                               │
                   ┌───────────┴───────────┐
                   ▼                       ▼
-┌──────────────────────────┐   ┌──────────────────────────┐
-│  @*/prisma               │   │  @*/stub                 │
-│  ── Prisma adapters:     │   │  ── in-memory adapters   │
-│     repo impls, mappers, │   │     for tests / mocks    │
-│     install() module     │   │                          │
-└──────────────────────────┘   └──────────────────────────┘
+┌──────────────────────────────┐   ┌──────────────────────────┐
+│  @*/persistence-adapter      │   │  @*/stub                 │
+│  ── DB adapter (Prisma /     │   │  ── in-memory adapters   │
+│     Mongo / Drizzle):        │   │     for tests / mocks    │
+│     repo impls, mappers,     │   │                          │
+│     install() module         │   │                          │
+└──────────────────────────────┘   └──────────────────────────┘
                   │                       │
                   └───────────┬───────────┘
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  @*/webapp     ── React Router 7 + Cloudflare Workers       │
+│  @*/webapp     ── e.g. React Router 7 + Cloudflare Workers  │
 │                   container.server.ts is the composition    │
-│                   root: initContainer() + installPrisma()   │
-│                   or installStub() + installServices()      │
+│                   root: initContainer() + installServices() │
+│                   + one adapter (installPersistence() or     │
+│                   installStub())                            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 - **`@efesto-cloud/*`** — shared libraries. `Entity` base class, `Result`
-  / `Maybe` monads, `Populate<T>` types, `IPrismaContext`,
-  `Publisher`/`Observable`, `IUseCase`.
+  / `Maybe` monads, `Expand<T>` eager-loading types, `IUnitOfWork`
+  (transaction port), `Publisher`/`Observable`, `IUseCase`.
 - **`@*/core`** — domain + application + ports. Every interface lives
   here. **No knowledge of any DB or framework.**
-- **`@*/prisma`** — Prisma adapter. `XRepoImpl` + `XMapper` files,
-  exports an `install({ DB })` `ContainerModule`. Imports core but core
-  does not import it.
+- **`@*/persistence-adapter`** — the chosen-DB adapter (`@*/prisma-adapter`, `@*/mongodb-adapter`,
+  …). `XRepoImpl` + `XMapper` files, exports an `install({ … })`
+  `ContainerModule`. Imports core but core does not import it. Concrete
+  driver code lives in the database's dedicated skill.
 - **`@*/stub`** — in-memory adapter for mock environments and tests.
   Same shape: `install()` returns a `ContainerModule`.
 - **`@*/webapp`** — composition root. Boots the container,
@@ -93,7 +107,8 @@ implicates the core package or its surrounding adapters fits.
   loaders/actions.
 
 The dependency arrow only points downward. `core` never imports from
-`prisma`, `stub`, or `webapp`. See `references/architecture.md`.
+the persistence adapter, `stub`, or `webapp`. See
+`references/architecture.md`.
 
 ---
 
@@ -118,7 +133,8 @@ Six rules pull their weight everywhere; everything else is detail.
    one transaction into another and hides dependencies.
 5. **Mappers live in the adapter package, not in core.** Core defines
    the repository interface (port) and what an entity looks like;
-   `XMapper.from/to` is Prisma-specific and lives in `@*/prisma/src/mapper/`.
+   `XMapper.from/to` is database-specific and lives in the persistence
+   adapter (`@*/persistence-adapter/src/mapper/`).
 6. **Constructor injection only.** `@inject(InternalSymbols.X) private readonly x: IX`.
    No property injection, no `container.get(...)` inside a use case.
 
@@ -129,8 +145,8 @@ The why for each rule is in `references/conventions.md`.
 ## The 12-step recipe for a new feature
 
 You're adding a `Foo` aggregate with a `CreateFoo` use case backed by
-Prisma. The order matters: each step compiles on its own and feeds the
-next.
+the project's persistence adapter. The order matters: each step compiles
+on its own and feeds the next.
 
 | # | Step | File(s) | Reference |
 |---|------|---------|-----------|
@@ -144,7 +160,7 @@ next.
 | 8 | Use case interface | `useCase/foos/ICreateFooUseCase.ts` | `references/usecase.md` |
 | 9 | Use case impl + binding + registry augmentation | `useCase/foos/impl/CreateFooUseCase.ts` + `useCase/foos/FoosModule.ts` | `references/usecase.md` + `references/di-layer.md` |
 | 10 | DI symbol entries | `di/UseCaseSymbols.ts` (new `foos.CreateFoo` entry); `di/InternalSymbols.ts` (new `Repo.Foo` entry) | `references/di-layer.md` |
-| 11 | Adapter: repo impl + mapper + installer edit | `@*/prisma/src/repository/FooRepoImpl.ts` + `@*/prisma/src/mapper/FooMapper.ts` + edit `@*/prisma/src/install.ts` | `references/prisma-persistence.md` |
+| 11 | Adapter: repo impl + mapper + installer edit | `@*/persistence-adapter/src/repository/FooRepoImpl.ts` + `@*/persistence-adapter/src/mapper/FooMapper.ts` + edit `@*/persistence-adapter/src/install.ts` | `references/persistence-adapter.md` (+ the DB's dedicated skill: `prisma-persistence` / `mongodb-persistence`) |
 | 12 | Route loader / action wiring | `@*/webapp/app/routes/foos/...tsx` calling `context.resolveUseCase("foos.CreateFoo").execute(...)` | `references/composition-root.md` |
 
 A full end-to-end trace with code at every step is in
@@ -162,7 +178,7 @@ A full end-to-end trace with code at every step is in
 | `references/folder-structure.md` | Canonical `src/` layout with one line per folder. |
 | `references/conventions.md` | `.js`, `Result`/`Maybe`, soft-delete, `Europe/Rome`, never-throw, …with the *why* for each. |
 | `references/di-layer.md` | `InternalSymbols`, `UseCaseSymbols`, `<Domain>Module.ts`, `UseCaseRegistry` augmentation, scope decisions. **Largest unique value-add.** |
-| `references/composition-root.md` | How `webapp/container.server.ts` boots the container, switches between Prisma and stub, exposes `resolveUseCase`. |
+| `references/composition-root.md` | How `webapp/container.server.ts` boots the container, switches between the persistence adapter and stub, exposes `resolveUseCase`. |
 | `references/feature-walkthrough.md` | One synthetic `Foo` feature traced through every file the 12-step recipe touches. |
 
 ### Domain layer
@@ -183,13 +199,12 @@ A full end-to-end trace with code at every step is in
 | `references/repository-port.md` | `IFooRepository` interface conventions, return types, the `IEntityMapper<E, R>` contract. |
 | `references/service-port.md` | How to design a non-repo port (clock, hasher, codec, mailer): port location vs impl location, scope decisions. |
 
-### Persistence (Prisma)
+### Persistence (database-agnostic)
 
 | Reference | What it covers |
 |-----------|----------------|
-| `references/prisma-persistence.md` | `FooRepoImpl` + `FooMapper`, `IPrismaContext`, transactions, soft-delete. |
-| `references/population.md` | Generic `Populate<T>` / `Shape` types — DB-agnostic. |
-| `references/prisma-population.md` | `BasePrismaPopulator`, `toPrismaInclude()`, patches to entity/DTO/mapper/repo. |
+| `references/persistence-adapter.md` | Generic adapter shape: `FooRepoImpl` + `FooMapper`, the `IUnitOfWork` transaction port, soft-delete, installer — DB-agnostic, with pointers to the `prisma-persistence` / `mongodb-persistence` skills for concrete driver code. |
+| `references/population.md` | Generic `Expand<T>` / `Shape` eager-loading types — DB-agnostic; links out to the DB's dedicated population skill for the implementation. |
 
 ### Error & null handling
 
@@ -211,7 +226,7 @@ A full end-to-end trace with code at every step is in
 
 Two symbol files split by audience:
 
-- **`di/InternalSymbols.ts`** — repo + service + DB-context tokens.
+- **`di/InternalSymbols.ts`** — repo + service + unit-of-work tokens.
   Consumed by use-case implementations via `@inject(InternalSymbols.Repo.X)`.
   Bound at composition time by the adapter package's `install.ts`.
 - **`di/UseCaseSymbols.ts`** — use-case tokens, organised by domain
@@ -224,8 +239,9 @@ A type-only registry (`di/UseCaseRegistry.ts`) starts empty. Every
 `resolveUseCase("members.GetMember")` its static return type.
 
 The webapp's composition root calls `initContainer()` (loads core's
-modules), then `container.load(installServices(), installPrisma({…}))`
-to bind the adapters, then creates a typed resolver with
+modules), then `container.load(installServices(), installPersistence({…}))`
+— where `installPersistence` is the chosen adapter's installer — to bind
+the adapters, then creates a typed resolver with
 `createUseCaseResolver(container)`.
 
 Full story in `references/di-layer.md` and `references/composition-root.md`.

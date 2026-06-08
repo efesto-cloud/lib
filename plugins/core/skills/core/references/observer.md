@@ -20,7 +20,7 @@ interface IObservable<T> {
 ## Basic usage
 
 ```ts
-import Observable from "@efesto-cloud/observable";
+import { Observable } from "@efesto-cloud/observable";
 
 const count = new Observable(0);
 
@@ -127,10 +127,42 @@ For deeply structured state, prefer a single observable wrapping the
 whole object over many small ones — it's easier to reason about and
 React only re-renders once per update.
 
+## Derived state with `Computed`
+
+For read-only state derived from one or more `Observable`s, use
+`Computed` from `@efesto-cloud/computed`. It recomputes (and notifies
+subscribers) whenever any dependency changes, but only when the new
+value differs (`!==`) from the previous one:
+
+```ts
+import { Observable } from "@efesto-cloud/observable";
+import { Computed } from "@efesto-cloud/computed";
+
+const first = new Observable("Ada");
+const last = new Observable("Lovelace");
+
+// dependencies tuple + a compute fn over their current values
+const full = new Computed([first, last], ([f, l]) => `${f} ${l}`);
+
+full.subscribe((v) => console.log(v));
+first.set("Grace");        // logs "Grace Lovelace"
+full.get();                // "Grace Lovelace"
+
+full.dispose();            // unsubscribes everyone AND detaches from first/last
+```
+
+`IComputed<T>` extends `IObservable<T>` with no extra members, so a
+`Computed` is read anywhere an `Observable` is accepted. Its `set()`
+exists only to satisfy the interface and is a no-op — never call it.
+
 ## Anti-patterns
 
 - **Using `Observable` as if it stores history.** It only stores the
   current value; past values are gone after the next `set`.
+- **Calling `.set()` on a `Computed`.** It's a no-op; the value only
+  changes when a dependency does.
+- **Forgetting to `dispose()` a `Computed`.** It stays subscribed to
+  its dependencies until disposed.
 - **Forgetting to unsubscribe / dispose.** Same leak pattern as
   `Publisher`.
 - **`obs.set(obs.get() + 1)` from two places concurrently.** Read-
