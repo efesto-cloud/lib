@@ -59,6 +59,10 @@ interface IDeleteFooUseCase
     extends IUseCase<DeleteFooInputDto, Result<void, DomainError>> {}
 ```
 
+For a `Result<void, …>`, return success with a bare `Result.ok()` —
+`@efesto-cloud/result`'s `ok()` takes no argument and yields
+`Result<void>`.
+
 Re-export the interface type-only from the domain barrel:
 
 ```ts
@@ -191,11 +195,11 @@ via `delete()`, save.
 async execute(input: DeleteFooInputDto): Promise<Result<void, DomainError>> {
     const target = await this.fooRepo.findById(input.foo_id);
     if (!target) return Result.err(new FooNotFoundError());
-    if (target.isDeleted()) return Result.ok(undefined);     // idempotent
+    if (target.isDeleted()) return Result.ok();              // idempotent
 
     target.delete();
     await this.fooRepo.save(target);
-    return Result.ok(undefined);
+    return Result.ok();
 }
 ```
 
@@ -221,33 +225,56 @@ transactions when one is in play.
 ## Transaction handling
 
 When the use case needs multi-table writes inside a transaction, wrap
-the persistence-bound work in `runWithTransaction`:
+the persistence-bound work in `runWithTransaction`. The use case stays
+database-agnostic: it depends only on the `IUnitOfWork` port from
+`@efesto-cloud/unit-of-work`, never on a concrete database client.
 
 ```ts
-async execute(input): Promise<Result<FooDto, DomainError>> {
-    // ... pre-validation ...
+import type IUnitOfWork from "@efesto-cloud/unit-of-work";
 
-    const outcome = await this.db.runWithTransaction(async () => {
-        await this.fooRepo.save(foo);
-        await this.barRepo.saveMany(foo.bars);
-        return foo;
-    });
+@injectable()
+export default class CreateFooUseCase implements ICreateFooUseCase {
+    readonly name = this.constructor.name;
 
-    return Result.ok(outcome.toDTO());
+    constructor(
+        @inject(InternalSymbols.Repo.Foo)
+        private readonly fooRepo: IFooRepository,
+        @inject(InternalSymbols.Repo.Bar)
+        private readonly barRepo: IBarRepository,
+        @inject(InternalSymbols.UnitOfWork)
+        private readonly uow: IUnitOfWork,
+    ) {}
+
+    async execute(input): Promise<Result<FooDto, DomainError>> {
+        // ... pre-validation ...
+
+        const outcome = await this.uow.runWithTransaction(async () => {
+            await this.fooRepo.save(foo);
+            await this.barRepo.saveMany(foo.bars);
+            return foo;
+        });
+
+        return Result.ok(outcome.toDTO());
+    }
 }
 ```
 
-`IPrismaContext` is what makes `this.db.client` automatically pick the
-transaction client inside the callback. Inject it via
-`@inject(InternalSymbols.DatabaseContext)`.
+`IUnitOfWork` exposes a single
+`runWithTransaction<T>(fn: () => Promise<T>): Promise<T>` method. The
+adapter binds `InternalSymbols.UnitOfWork` to a database-specific
+implementation (`@efesto-cloud/prisma-unit-of-work`,
+`@efesto-cloud/mongodb-unit-of-work`, …) that makes the ambient
+transaction handle available to the repo impls inside the callback —
+so the repos don't take a `session`/`tx` parameter and the use case
+doesn't know which database is underneath. See
+`references/persistence-adapter.md`.
 
 For projects that have moved to attribute-style decorators
 (`@withTransaction`, `@audit`), the use case body wraps with a
 single decorator call instead of the explicit
 `runWithTransaction`. The decorators exist in
-`@efesto-cloud/usecase` but are not yet enabled in `task-planning`;
-this section describes the explicit form, which works without
-decorators.
+`@efesto-cloud/usecase` but are not enabled in every project; this
+section describes the explicit form, which works without decorators.
 
 ## Validating input
 

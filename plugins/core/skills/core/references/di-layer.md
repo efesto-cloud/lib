@@ -8,13 +8,14 @@ related in the core package.
 
 The mental model in one paragraph: there are **two symbol files** in
 `di/` — `InternalSymbols.ts` for infrastructure (repos, services,
-database context), `UseCaseSymbols.ts` for use cases. There is **one
-container**, defined in `di/container.ts`. Core loads its own per-
-domain `<Domain>Module.ts` files into the container at
-`initContainer()` time. The webapp's composition root later loads
+the unit-of-work / transaction token), `UseCaseSymbols.ts` for use
+cases. There is **one container**, defined in `di/container.ts`. Core
+loads its own per-domain `<Domain>Module.ts` files into the container
+at `initContainer()` time. The webapp's composition root later loads
 one more `ContainerModule` for the chosen persistence adapter
-(`installPrisma({...})` or `installStub()`) plus one more for the
-non-pure services (`installServices()`). The static typing for
+(generically `installPersistence({...})`, or `installStub()`) plus one
+more for the non-pure services (`installServices()`). The static
+typing for
 `resolveUseCase("members.GetMember")` comes from a `declare module`
 augmentation on an otherwise-empty `UseCaseRegistry` interface, with
 each `<Domain>Module.ts` contributing its own slice.
@@ -27,7 +28,11 @@ them** and **who consumes them**.
 ```ts
 // di/InternalSymbols.ts
 const InternalSymbols = {
-    DatabaseContext: Symbol.for("DatabaseContext"),
+    // The transaction / unit-of-work token, typed `IUnitOfWork`
+    // (from `@efesto-cloud/unit-of-work`). Some projects name the
+    // symbol `DatabaseContext` — the name is cosmetic; what matters is
+    // that the adapter binds it to a DB-specific `IUnitOfWork` impl.
+    UnitOfWork: Symbol.for("UnitOfWork"),
 
     Repo: {
         Customer: Symbol.for("Repo.Customer"),
@@ -52,10 +57,12 @@ const InternalSymbols = {
 export default InternalSymbols;
 ```
 
-- **Bound by:** the adapter packages (`@*/prisma`, `@*/stub`) for
-  repos; the core itself for pure services (`LuxonClock`,
-  `ExcelJsCodec`); the webapp's `installServices()` call for impure
-  services (`ScryptPasswordHasher` needs Node's `crypto`).
+- **Bound by:** the persistence adapter (`@*/persistence-adapter` —
+  concretely `@*/prisma-adapter` / `@*/mongodb-adapter` / …) and
+  `@*/stub` for repos and the unit-of-work token; the core itself for
+  pure services (`LuxonClock`, `ExcelJsCodec`); the webapp's
+  `installServices()` call for impure services (`ScryptPasswordHasher`
+  needs Node's `crypto`).
 - **Consumed by:** use-case implementations and other services. The
   webapp never reads from `InternalSymbols.Repo.*` directly — those
   are infrastructure plumbing.
@@ -91,7 +98,7 @@ would be a code smell.
 
 Always `Symbol.for(...)` (the global registry), never `Symbol(...)`.
 Why: `Symbol.for("Repo.Member")` returns the same symbol value across
-packages. The adapter package in `@*/prisma` calls
+packages. The persistence adapter (`@*/persistence-adapter`) calls
 `Symbol.for("Repo.Member")` (transitively, via importing the
 `InternalSymbols` object) and gets the identical key the use case in
 `@*/core` is injecting. With unique symbols, the two would be
@@ -101,7 +108,7 @@ The string keys follow a hierarchical convention:
 
 | Symbol | String key |
 |--------|------------|
-| `InternalSymbols.DatabaseContext` | `"DatabaseContext"` |
+| `InternalSymbols.UnitOfWork` (a.k.a. `DatabaseContext`) | `"UnitOfWork"` |
 | `InternalSymbols.Repo.<Entity>` | `"Repo.<Entity>"` |
 | `InternalSymbols.Service.<Name>` | `"Service.<Name>"` |
 | `InternalSymbols.DomainService.<Name>` | `"DomainService.<Name>"` |
@@ -251,7 +258,7 @@ If `resolveUseCase("…")` doesn't autocomplete or the inferred type is
 | Scope | When | Example |
 |-------|------|---------|
 | `.inSingletonScope()` | Pure / stateless services. One instance for the whole process. | `IClock`, `IExcelCodec`, `ICalendarFeedService`. |
-| `.inRequestScope()` | Use cases (new instance per request avoids cross-request state). DB contexts (each request gets its own transactional boundary). | All use cases; `IPrismaContext`; `IMemberAuthenticator`. |
+| `.inRequestScope()` | Use cases (new instance per request avoids cross-request state). The unit-of-work / DB context (each request gets its own transactional boundary). | All use cases; the `IUnitOfWork` impl; `IMemberAuthenticator`. |
 | `.inTransientScope()` | New instance per `container.get(...)` call. Very rare in this codebase. | None at present. |
 
 `new Container({ defaultScope: "Singleton" })` makes Singleton the
@@ -297,7 +304,7 @@ domain events).
 
 ```ts
 const InternalSymbols = {
-    DatabaseContext: Symbol.for("DatabaseContext"),
+    UnitOfWork: Symbol.for("UnitOfWork"),
     Repo: { /* ... */ },
     DomainService: { /* ... */ },
     Service: { /* ... */ },
@@ -312,7 +319,8 @@ const InternalSymbols = {
 
 3. Bind the impl in a fitting module — either in a new
    `EventHandlersModule.ts` loaded from `container.ts`, or in the
-   adapter's `install.ts` if the impl is impure.
+   persistence adapter's `install.ts` (the `installPersistence`
+   installer) if the impl is impure.
 
 4. Consume via constructor injection:
 
@@ -331,10 +339,10 @@ symbol, declare the port, bind the impl in a `ContainerModule`.
   and to tests. Always inject.
 - **Property injection.** Field-level `@inject` works but obscures
   the contract.
-- **Importing adapter types into core.** If a core file ever needs
-  `import { PrismaClient } from "@*/prisma-client"`, you've inverted
-  the dependency. Move the adapter-specific bit into the adapter
-  package.
+- **Importing adapter types into core.** If a core file ever needs a
+  driver type from the persistence adapter (e.g. `import { PrismaClient }`,
+  a Mongo `Collection`, a Drizzle table), you've inverted the
+  dependency. Move the adapter-specific bit into the adapter package.
 - **Branching on environment inside core.** Core never asks "is this
   the mock environment?". The webapp's composition root decides which
   adapter to load; core stays oblivious.
@@ -359,8 +367,9 @@ Concrete examples in `task-planning`:
   `packages/core/src/useCase/members/MembersModule.ts`
 - Use-case impl with `@inject`:
   `packages/core/src/useCase/members/impl/CreateMemberUseCase.ts`
-- Adapter installer:
-  `packages/prisma/src/install.ts`
+- Adapter installer (the `installPersistence` export):
+  `packages/<db>/src/install.ts` (e.g. `packages/prisma-adapter/` or
+  `packages/mongodb-adapter/`)
 - Pure-services module:
   `packages/core/src/service/ServicesModule.ts`
 - Impure-services installer:

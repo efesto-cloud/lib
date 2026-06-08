@@ -2,28 +2,28 @@
 name: mongodb-population
 description: >
   Add MongoDB population (eager-loading of related documents via aggregation $lookup pipelines)
-  to an existing entity in a hexagonal architecture TypeScript project using the @efesto-cloud/mongodb-population
+  to an existing entity in a hexagonal architecture TypeScript project using the @efesto-cloud/mongodb-expand
   package. Use this skill whenever the project uses MongoDB and the user says things like
   "populate Foo with its Bar", "add population support for FooEntity",
-  "wire up the $lookup for Foo", "add the populate option to FooRepo",
-  "create the QueryBuilder and Populator for Foo", "Foo needs to include its related Bar when fetched",
+  "wire up the $lookup for Foo", "add the expand option to FooRepo",
+  "create the QueryBuilder and Expander for Foo", "Foo needs to include its related Bar when fetched",
   or whenever someone needs to add optional relational data loading to an existing MongoDB repository.
   Trigger even if the user just says "add population" without specifying the entity — ask them.
   Do NOT trigger for creating entities, DTOs, or base repositories from scratch (those are handled
   by entity and mongodb-persistence skills).
   For Prisma-based projects use the prisma-population skill instead.
-  For the generic Shape type and Populate<T> concepts, see the population skill.
+  For the generic Shape type and Expand<T> concepts, see the population skill.
 ---
 
 # MongoDB Population Skill
 
 **Installation:** If not already installed, add the required packages:
-- `pnpm add @efesto-cloud/population` (for `Populate` type and `normalizePopulate` helper)
-- `pnpm add @efesto-cloud/mongodb-population` (for `BasePopulator` and `QueryBuilder` classes)
+- `pnpm add @efesto-cloud/expand` (for `Expand` type and `normalizeExpand` helper)
+- `pnpm add @efesto-cloud/mongodb-expand` (for `BaseExpander` and `QueryBuilder` classes)
 
 Adds MongoDB population support — typed eager-loading of related documents via aggregation `$lookup` — to an existing entity. The entity, its DTO, document type, mapper, and repository are assumed to already exist. This skill only patches them where needed and writes the population infrastructure.
 
-**Scope:** Shape type, QueryBuilder, Populator, plus targeted patches to entity, DTO, document, mapper, and repository interface/implementation.
+**Scope:** Shape type, QueryBuilder, Expander, plus targeted patches to entity, DTO, document, mapper, and repository interface/implementation.
 
 **Does not:** create entities or repositories from scratch, write use cases, or manage DI container wiring.
 
@@ -37,7 +37,7 @@ If the user has not specified which entity to populate and/or which fields shoul
 2. Which fields should be populatable, and for each:
    - What is the source collection/entity?
    - Is it a single value (1:1) or an array (1:many)?
-   - Does the related entity itself have a populator already? (nested population)
+   - Does the related entity itself have an expander already? (nested population)
 
 Do not proceed until you have at least the entity name and one field to populate.
 
@@ -48,7 +48,7 @@ Do not proceed until you have at least the entity name and one field to populate
 Before touching any file, orient yourself:
 
 1. **Find the collection enum** — typically `src/db/CollectionNameEnum.ts` or similar. You'll need the collection name constant for `$lookup`.
-2. **Check for existing populators** — browse `src/repo/shape/`, `src/repo/populate/`, `src/repo/query/`. If any exist, read one to match the exact import style.
+2. **Check for existing expanders** — browse `src/repo/shape/`, `src/repo/expand/`, `src/repo/query/`. If any exist, read one to match the exact import style.
 3. **Read the target entity** — `src/entity/FooEntity.ts`
 4. **Read the target DTO** — `src/dto/IFoo.ts`
 5. **Read the target document** — `src/db/Documents/FooDocument.ts`
@@ -56,7 +56,7 @@ Before touching any file, orient yourself:
 7. **Read the repository interface** — `src/repo/IFooRepo.ts`
 8. **Read the repository implementation** — `src/repo/impl/FooRepoImpl.ts`
 
-If `src/repo/shape/` or `src/repo/populate/` directories do not yet exist, create them.
+If `src/repo/shape/` or `src/repo/expand/` directories do not yet exist, create them.
 
 ---
 
@@ -74,7 +74,7 @@ For each populated field `bar` on entity `Foo`:
 - **`create()` static method** — if the populated field has a meaningful default, accept it as an optional param. Typically `bar` is not passed to `create()` (it starts null/empty and is filled by the mapper after aggregation).
 - **`toDTO()`** — if the DTO has an optional `bar?` field, map it: `bar: this.props.bar?.toDTO() ?? null`.
 - **Getter** — add `get bar(): Bar | null` (or `Bar[]`) if missing.
-- **No `populateBar()` mutation method needed** — the mapper sets the field directly after aggregation.
+- **No `expandBar()` mutation method needed** — the mapper sets the field directly after aggregation.
 
 ### 2b. DTO
 
@@ -115,16 +115,16 @@ The `to()` direction (entity → document) should **not** include populated fiel
 ## Phase 3 — Write Population Core Files
 
 Read the reference files before writing:
-- `references/query-builder-example.ts` — QueryBuilder with `populateWith()`
-- `references/populator-example.ts` — flat Populator (no nesting)
-- `references/populator-nested-example.ts` — nested Populator delegating to sub-populator
+- `references/query-builder-example.ts` — QueryBuilder with `expandWith()`
+- `references/populator-example.ts` — flat Expander (no nesting)
+- `references/populator-nested-example.ts` — nested Expander delegating to sub-expander
 - For Shape type examples, see the `population` skill's `references/shape-example.ts`
 
 ### 3a. Shape — `src/repo/shape/FooShape.ts`
 
 ```typescript
 // Leaf fields use `true`; fields whose related entity is also populatable use that entity's Shape type.
-import type { BarShape } from './BarShape.js'; // only if Bar also has a populator
+import type { BarShape } from './BarShape.js'; // only if Bar also has an expander
 
 export type FooShape = {
     bar: true;           // 1:1, leaf — Bar has no further population
@@ -136,44 +136,44 @@ export type FooShape = {
 ### 3b. QueryBuilder — `src/repo/query/FooQueryBuilder.ts`
 
 ```typescript
-import { normalizePopulate, type Populate } from '@efesto-cloud/population';
-import { QueryBuilder } from '@efesto-cloud/mongodb-population';
+import { normalizeExpand, type Expand } from '@efesto-cloud/expand';
+import { QueryBuilder } from '@efesto-cloud/mongodb-expand';
 import FooDocument from '~/db/Documents/FooDocument.js';
-import FooPopulator from '../populate/FooPopulator.js';
+import FooExpander from '../expand/FooExpander.js';
 import type { FooShape } from '../shape/FooShape.js';
 
 export default class FooQueryBuilder extends QueryBuilder<FooDocument> {
-    populateWith(fields: Populate<FooShape> = {}): this {
-        const normalized = normalizePopulate(fields, FooPopulator.SHAPE);
-        const pipeline = FooPopulator.buildPipeline(normalized);
-        this.push_populate_pipeline(pipeline);
+    expandWith(fields: Expand<FooShape> = {}): this {
+        const normalized = normalizeExpand(fields, FooExpander.SHAPE);
+        const pipeline = FooExpander.buildPipeline(normalized);
+        this.push_expand_pipeline(pipeline);
         return this;
     }
 }
 ```
 
-### 3c. Populator — `src/repo/populate/FooPopulator.ts`
+### 3c. Expander — `src/repo/expand/FooExpander.ts`
 
 For each field:
 - **1:1 relationship** (Bar lives in its own collection, Foo stores `bar_id`): use `lookup` + `unwind`.
 - **1:many relationship** (Bar stores `foo_id` as FK, or Foo stores an array of IDs): use `lookup` only, no `unwind`.
-- **Nested population** (Bar itself has a populator): pass a sub-pipeline to the `lookup`. See `references/populator-nested-example.ts`.
+- **Nested population** (Bar itself has an expander): pass a sub-pipeline to the `lookup`. See `references/populator-nested-example.ts`.
 
 ```typescript
-import { BasePopulator } from '@efesto-cloud/mongodb-population';
-import type { NormalizedPopulate } from '@efesto-cloud/population';
+import { BaseExpander } from '@efesto-cloud/mongodb-expand';
+import type { NormalizedExpand } from '@efesto-cloud/expand';
 import CollectionNameEnum from '~/db/CollectionNameEnum.js';
 import type TCollectionName from '~/db/TCollectionName.js';
 import type { FooShape } from '../shape/FooShape.js';
 
-export default class FooPopulator extends BasePopulator<FooShape, TCollectionName> {
+export default class FooExpander extends BaseExpander<FooShape, TCollectionName> {
     static readonly SHAPE: FooShape = {
         bar: true,
         items: true,
     };
 
     private bar(): void {
-        if (!this.markPopulated('bar')) return;
+        if (!this.markExpanded('bar')) return;
         this.addStages(
             this.lookup({
                 from: CollectionNameEnum.bar,   // collection name constant
@@ -186,7 +186,7 @@ export default class FooPopulator extends BasePopulator<FooShape, TCollectionNam
     }
 
     private items(): void {
-        if (!this.markPopulated('items')) return;
+        if (!this.markExpanded('items')) return;
         this.addStages(
             this.lookup({
                 from: CollectionNameEnum.item,
@@ -198,14 +198,14 @@ export default class FooPopulator extends BasePopulator<FooShape, TCollectionNam
         );
     }
 
-    populate(spec: NormalizedPopulate<FooShape>): this {
+    expand(spec: NormalizedExpand<FooShape>): this {
         if (spec.bar) this.bar();
         if (spec.items) this.items();
         return this;
     }
 
-    static buildPipeline(spec: NormalizedPopulate<FooShape>): import('mongodb').Document[] {
-        return new FooPopulator().populate(spec).build();
+    static buildPipeline(spec: NormalizedExpand<FooShape>): import('mongodb').Document[] {
+        return new FooExpander().expand(spec).build();
     }
 }
 ```
@@ -216,10 +216,10 @@ export default class FooPopulator extends BasePopulator<FooShape, TCollectionNam
 
 ### 4a. Repository Interface — `src/repo/IFooRepo.ts`
 
-Add the `Options` namespace with a `populate` field, and add `options?` param to every query method (save/saveMany/delete do not need it):
+Add the `Options` namespace with an `expand` field, and add `options?` param to every query method (save/saveMany/delete do not need it):
 
 ```typescript
-import type { Populate } from '@efesto-cloud/population';
+import type { Expand } from '@efesto-cloud/expand';
 import type { FooShape } from './shape/FooShape.js';
 
 interface IFooRepo {
@@ -232,7 +232,7 @@ interface IFooRepo {
 
 namespace IFooRepo {
     export type Options = {
-        populate?: Populate<FooShape>;
+        expand?: Expand<FooShape>;
     };
 }
 
@@ -241,13 +241,13 @@ export default IFooRepo;
 
 ### 4b. Repository Implementation — `src/repo/impl/FooRepoImpl.ts`
 
-Switch each query method to use `FooQueryBuilder` with `.populateWith(options?.populate)`:
+Switch each query method to use `FooQueryBuilder` with `.expandWith(options?.expand)`:
 
 ```typescript
 async get(id: ObjectId, options?: IFooRepo.Options): Promise<Maybe<Foo>> {
     const pipeline = new FooQueryBuilder()
         .match({ _id: id } as Filter<FooDocument>)
-        .populateWith(options?.populate)
+        .expandWith(options?.expand)
         .limit(1)
         .build();
 
@@ -260,7 +260,7 @@ async get(id: ObjectId, options?: IFooRepo.Options): Promise<Maybe<Foo>> {
 }
 ```
 
-Methods that already use `aggregate()` just need `.populateWith(options?.populate)` inserted into the builder chain. Methods that use `findOne()` or `find()` should be converted to `aggregate()` with the QueryBuilder.
+Methods that already use `aggregate()` just need `.expandWith(options?.expand)` inserted into the builder chain. Methods that use `findOne()` or `find()` should be converted to `aggregate()` with the QueryBuilder.
 
 ---
 
@@ -269,15 +269,15 @@ Methods that already use `aggregate()` just need `.populateWith(options?.populat
 ### Polymorphic entity (discriminated union)
 If `Foo` has a `type` discriminator and different variants have different populatable fields:
 - The Shape can include all fields across variants: `{ fontFile: true; rasterFile: true; vectorFile: true; }`.
-- In the populator, each private method populates only the relevant field — because `$lookup` on a non-existent FK just returns an empty array, which is then dropped by `unwind` or ignored.
+- In the expander, each private method expands only the relevant field — because `$lookup` on a non-existent FK just returns an empty array, which is then dropped by `unwind` or ignored.
 - Alternatively, if the variant shapes are completely disjoint, create separate Shape types with a union.
 
-### Nested population (the related entity also has a populator)
-When `Bar` itself has a `BarPopulator`, you can pass a sub-pipeline into the `$lookup`:
+### Nested population (the related entity also has an expander)
+When `Bar` itself has a `BarExpander`, you can pass a sub-pipeline into the `$lookup`:
 ```typescript
-private bar(nestedSpec: NormalizedPopulate<BarShape>): void {
-    if (!this.markPopulated('bar')) return;
-    const nestedPipeline = BarPopulator.buildPipeline(nestedSpec);
+private bar(nestedSpec: NormalizedExpand<BarShape>): void {
+    if (!this.markExpanded('bar')) return;
+    const nestedPipeline = BarExpander.buildPipeline(nestedSpec);
     this.addStages(
         this.lookup({
             from: CollectionNameEnum.bar,
@@ -290,7 +290,7 @@ private bar(nestedSpec: NormalizedPopulate<BarShape>): void {
     );
 }
 ```
-The Shape field must then be typed as `BarShape` (not `true`), and the `populate()` method receives `spec.bar` as a `NormalizedPopulate<BarShape>`.
+The Shape field must then be typed as `BarShape` (not `true`), and the `expand()` method receives `spec.bar` as a `NormalizedExpand<BarShape>`.
 
 ### `$lookup` with `$in` (Foo stores an array of IDs)
 When `Foo.bar_ids` is an array of ObjectIds pointing to Bar documents:
@@ -325,6 +325,6 @@ Run the typecheck command for the core package then fix any errors before consid
 ## Reference Files
 
 - `references/query-builder-example.ts` — Full QueryBuilder
-- `references/populator-example.ts` — Flat populator (leaf fields only)
-- `references/populator-nested-example.ts` — Populator with nested sub-population
+- `references/populator-example.ts` — Flat expander (leaf fields only)
+- `references/populator-nested-example.ts` — Expander with nested sub-population
 - Shape type examples: see `population` skill's `references/shape-example.ts`

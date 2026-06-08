@@ -28,11 +28,11 @@ static create(props: {...}): Foo {
 
 The exceptions are:
 
-- **Mapper `from` on corrupted DB rows.** If a row violates an
-  invariant the DB should have enforced (e.g. `EmailAddress.create`
+- **Mapper `from` on corrupted persisted rows.** If a record violates
+  an invariant the store should have enforced (e.g. `EmailAddress.create`
   fails on a stored email), it's a programming/operations bug — throw
   so the load-time stack trace points at the bad row. See
-  `prisma-persistence.md`.
+  `persistence-adapter.md`.
 - **`result.unwrapOrThrow()` at the HTTP boundary.** The route
   loader/action runs in `react-router`'s error envelope and turns the
   thrown error into a 500 — appropriate only when the failure means
@@ -112,11 +112,14 @@ for a missing entity method or a domain service.
 ## Mappers live in the adapter package, not in core
 
 Core defines the entity (`Member`) and the repo port
-(`IMemberRepository`). The Prisma model type
-(`Prisma.MemberGetPayload<{}>`) is a Prisma concept that doesn't
-belong in core; therefore the mapper that bridges entity ↔ Prisma row
-also lives in the adapter. The stub adapter doesn't have mappers
-because its in-memory shape is the entity itself.
+(`IMemberRepository`). The store's native record type — whatever the
+chosen database driver returns (a Prisma `*GetPayload`, a MongoDB
+`*Document`, a Drizzle inferred row, …) — is a persistence concept that
+doesn't belong in core; therefore the mapper that bridges
+entity ↔ stored record also lives in the persistence adapter
+(`@*/persistence-adapter/src/mapper/`). The stub adapter doesn't have
+mappers because its in-memory shape is the entity itself. See
+`persistence-adapter.md`.
 
 ## Constructor injection only
 

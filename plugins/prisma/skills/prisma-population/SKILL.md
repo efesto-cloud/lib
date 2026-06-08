@@ -2,31 +2,31 @@
 name: prisma-population
 description: >
   Add Prisma population (eager-loading of related records via Prisma `include`) to an existing
-  entity in a hexagonal architecture TypeScript project using @efesto-cloud/prisma-population.
+  entity in a hexagonal architecture TypeScript project using @efesto-cloud/prisma-expand.
   Use this skill whenever the project uses Prisma and the user says things like
-  "populate Foo with its Bar", "add population support for FooEntity via Prisma",
+  "expand Foo with its Bar", "add population support for FooEntity via Prisma",
   "I need to eager-load related entities in my Prisma repo",
-  "add the populate option to FooRepo", "create the FooPopulator for Prisma",
+  "add the expand option to FooRepo", "create the FooExpander for Prisma",
   "Foo needs to include its related Bar when fetched",
   or whenever someone needs to add optional relational data loading to an existing Prisma repository.
   Trigger even if the user just says "add population" without specifying the entity — ask them.
   Do NOT trigger for creating entities, DTOs, or base repositories from scratch (those are handled
   by entity and prisma-persistence skills).
   For MongoDB-based projects use the mongodb-population skill instead.
-  For the generic Shape type and Populate<T> concepts, see the population skill.
+  For the generic Shape type and Expand<T> concepts, see the population skill.
 ---
 
 # Prisma Population Skill
 
 **Installation:** If not already installed, add the required packages:
-- `pnpm add @efesto-cloud/population` (for `Populate` type and `normalizePopulate` helper)
-- `pnpm add @efesto-cloud/prisma-population` (for `BasePrismaPopulator` and `PrismaInclude`)
+- `pnpm add @efesto-cloud/expand` (for `Expand` type and `normalizeExpand` helper)
+- `pnpm add @efesto-cloud/prisma-expand` (for `BasePrismaExpander` and `PrismaInclude`)
 
 Adds Prisma population support — typed eager-loading of related records via Prisma `include` —
 to an existing entity. The entity, its DTO, and repository are assumed to already exist.
 This skill only patches them where needed and writes the population infrastructure.
 
-**Scope:** Shape type, Populator, plus targeted patches to entity, DTO, mapper, and repository
+**Scope:** Shape type, Expander, plus targeted patches to entity, DTO, mapper, and repository
 interface/implementation.
 
 **Does not:** create entities or repositories from scratch, write use cases, or manage DI
@@ -43,7 +43,7 @@ use `AskUserQuestion` to ask:
 2. Which fields should be populatable, and for each:
    - What is the source table/model?
    - Is it a single value (1:1) or an array (1:many)?
-   - Does the related entity itself have a populator already? (nested population)
+   - Does the related entity itself have an expander already? (nested population)
 
 Do not proceed until you have at least the entity name and one field to populate.
 
@@ -54,14 +54,14 @@ Do not proceed until you have at least the entity name and one field to populate
 Before touching any file, orient yourself:
 
 1. **Check the Prisma schema** — find the model definition for `Foo` and note all relation fields.
-2. **Check for existing populators** — browse `src/repo/shape/`, `src/repo/populate/`. If any exist, read one to match the import style.
+2. **Check for existing expanders** — browse `src/repo/shape/`, `src/repo/expand/`. If any exist, read one to match the import style.
 3. **Read the target entity** — `src/entity/FooEntity.ts`
 4. **Read the target DTO** — `src/dto/IFoo.ts`
 5. **Read the target mapper** — `src/mapper/FooMapper.ts`
 6. **Read the repository interface** — `src/repo/IFooRepo.ts`
 7. **Read the repository implementation** — `src/repo/impl/FooRepoImpl.ts`
 
-If `src/repo/shape/` or `src/repo/populate/` directories do not yet exist, create them.
+If `src/repo/shape/` or `src/repo/expand/` directories do not yet exist, create them.
 
 ---
 
@@ -108,33 +108,33 @@ loaded, not saved, through this path.
 ## Phase 3 — Write Population Core Files
 
 Read the reference file before writing:
-- `references/prisma-populator-example.ts` — complete Populator subclass examples
+- `references/prisma-expander-example.ts` — complete Expander subclass examples
 
 ### 3a. Shape — `src/repo/shape/FooShape.ts`
 
 ```typescript
-import type { BarShape } from "./BarShape.js"; // only if Bar also has a populator
+import type { BarShape } from "./BarShape.js"; // only if Bar also has an expander
 
 export type FooShape = {
     bar: true;       // leaf: Bar has no further population, or we never go deeper
     items: true;     // leaf: 1:many, same rule
-    baz: BazShape;   // nested: Baz has its own populator
+    baz: BazShape;   // nested: Baz has its own expander
 };
 ```
 
 For Shape type examples and rules, see the `population` skill's `references/shape-example.ts`.
 
-### 3b. Populator — `src/repo/populate/FooPopulator.ts`
+### 3b. Expander — `src/repo/expand/FooExpander.ts`
 
-Subclass `BasePrismaPopulator<FooShape>`. Override `shape()` to return the static shape.
+Subclass `BasePrismaExpander<FooShape>`. Override `shape()` to return the static shape.
 The base class uses `this.field()` internally; you do not need to call it manually — `build()`
 iterates the normalized spec and calls `field()` for each requested key.
 
 ```typescript
-import BasePrismaPopulator from "@efesto-cloud/prisma-population";
+import BasePrismaExpander from "@efesto-cloud/prisma-expand";
 import type { FooShape } from "../shape/FooShape.js";
 
-export default class FooPopulator extends BasePrismaPopulator<FooShape> {
+export default class FooExpander extends BasePrismaExpander<FooShape> {
     protected shape(): FooShape {
         return {
             bar: true,
@@ -148,7 +148,7 @@ export default class FooPopulator extends BasePrismaPopulator<FooShape> {
 `toPrismaInclude` handles the nesting recursively. No extra code needed in the subclass;
 just declare the correct Shape type.
 
-See `references/prisma-populator-example.ts` for annotated examples including nested cases.
+See `references/prisma-expander-example.ts` for annotated examples including nested cases.
 
 ---
 
@@ -156,10 +156,10 @@ See `references/prisma-populator-example.ts` for annotated examples including ne
 
 ### 4a. Repository Interface — `src/repo/IFooRepo.ts`
 
-Add the `Options` namespace with a `populate` field, and add `options?` to query methods:
+Add the `Options` namespace with an `expand` field, and add `options?` to query methods:
 
 ```typescript
-import type { Populate } from "@efesto-cloud/population";
+import type { Expand } from "@efesto-cloud/expand";
 import type { FooShape } from "./shape/FooShape.js";
 
 interface IFooRepo {
@@ -170,20 +170,20 @@ interface IFooRepo {
 
 namespace IFooRepo {
     export type Options = {
-        populate?: Populate<FooShape>;
+        expand?: Expand<FooShape>;
     };
 }
 ```
 
 ### 4b. Repository Implementation — `src/repo/impl/FooRepoImpl.ts`
 
-Add import for `FooPopulator` and pass `include` to query calls:
+Add import for `FooExpander` and pass `include` to query calls:
 
 ```typescript
-import FooPopulator from "../populate/FooPopulator.js";
+import FooExpander from "../expand/FooExpander.js";
 
 async search(query: SearchFoo, options?: IFooRepo.Options): Promise<Foo[]> {
-    const include = new FooPopulator().build(options?.populate);
+    const include = new FooExpander().build(options?.expand);
     const rows = await this.db.client.foo.findMany({
         where: { ... },
         orderBy: { name: "asc" },
@@ -193,7 +193,7 @@ async search(query: SearchFoo, options?: IFooRepo.Options): Promise<Foo[]> {
 }
 
 async get(id: string, options?: IFooRepo.Options): Promise<Maybe<Foo>> {
-    const include = new FooPopulator().build(options?.populate);
+    const include = new FooExpander().build(options?.expand);
     const row = await this.db.client.foo.findUnique({
         where: { id },
         ...(include ? { include } : {}),
@@ -215,5 +215,5 @@ task done.
 
 ## Reference Files
 
-- `references/prisma-populator-example.ts` — Annotated Populator examples (flat + nested)
+- `references/prisma-expander-example.ts` — Annotated Expander examples (flat + nested)
 - For Shape type examples: `population` skill's `references/shape-example.ts`

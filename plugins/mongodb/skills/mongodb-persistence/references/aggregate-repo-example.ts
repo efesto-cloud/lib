@@ -2,13 +2,13 @@
  * Aggregate Repository Example — aggregation pipeline, optional population, streaming, bulk save.
  *
  * Use this pattern when:
- *   - Callers need related entities eagerly loaded (the "populate" option)
+ *   - Callers need related entities eagerly loaded (the "expand" option)
  *   - Complex filtering that benefits from $match aggregation stages
  *   - Large result sets that should be streamed rather than loaded in full
  *   - Bulk writes via saveMany()
  *
- * The QueryBuilder and population system (Shape, Populator, QueryBuilder files) are a separate
- * concern handled by a dedicated skill. This example shows how the repo *uses* them.
+ * The QueryBuilder and expand (eager-loading) system (Shape, Expander, QueryBuilder files) are a
+ * separate concern handled by a dedicated skill. This example shows how the repo *uses* them.
  * If those files don't exist yet for this entity, they need to be created separately.
  *
  * Replace `Foo`/`foo`/`Bar` with the real entity names throughout.
@@ -31,8 +31,8 @@ type FooDocument = Overwrite<
         _id: ObjectId;
         deleted_at: Date | null;
         category_id: ObjectId | null;   // FK stored as ObjectId (DTO has string)
-        bar?: BarDocument | null;        // optional — only present after $lookup aggregation
-        tags?: TagDocument[];            // optional array — only present after $lookup aggregation
+        bar?: BarDocument | null;        // optional — only present after $lookup expansion
+        tags?: TagDocument[];            // optional array — only present after $lookup expansion
     }
 >;
 
@@ -44,18 +44,18 @@ export default FooDocument;
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Maybe from "@efesto-cloud/maybe";
-import type { Populate } from "@efesto-cloud/population";
+import type { Expand } from "@efesto-cloud/expand";
 import { ObjectId } from "mongodb";
 import { Readable } from "node:stream";
 import Foo from "~/entity/Foo.js";
-import type { FooShape } from "./shape/FooShape.js"; // from the population system
+import type { FooShape } from "./shape/FooShape.js"; // from the expand (eager-loading) system
 
 export type SearchFoo = {
     name?: string;
     include_deleted?: boolean;
 };
 
-// The options parameter with populate? is the hook for the population system.
+// The options parameter with expand? is the hook for the expand (eager-loading) system.
 // All read methods that should support eager-loading accept it.
 interface IFooRepo {
     search(query: SearchFoo, options?: IFooRepo.Options): Promise<Foo[]>;
@@ -69,9 +69,9 @@ interface IFooRepo {
 
 namespace IFooRepo {
     export type Options = {
-        // Populate<FooShape> is a partial of the shape — callers specify only what they need.
+        // Expand<FooShape> is a partial of the shape — callers specify only what they need.
         // When undefined, no $lookup stages are added to the pipeline.
-        populate?: Populate<FooShape>;
+        expand?: Expand<FooShape>;
     };
 }
 
@@ -83,23 +83,23 @@ export default IFooRepo;
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Maybe from "@efesto-cloud/maybe";
+import type { IMongoDBUnitOfWork } from "@efesto-cloud/mongodb-unit-of-work";
 import { inject, injectable } from "inversify";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { Readable } from "node:stream";
-import type IDatabaseContext from "~/db/Context/IDatabaseContext.js";
 import FooDocument from "~/db/Documents/FooDocument.js";
 import prepareBulkOps from "~/db/prepareBulkOps.js";
 import Symbols from "~/di/Symbols.js";
 import Foo from "~/entity/Foo.js";
 import FooMapper from "~/mapper/FooMapper.js";
 import IFooRepo, { SearchFoo } from "../IFooRepo.js";
-import FooQueryBuilder from "../query/FooQueryBuilder.js"; // part of the population system
+import FooQueryBuilder from "../query/FooQueryBuilder.js"; // part of the expand (eager-loading) system
 
 @injectable()
 export default class FooRepoImpl implements IFooRepo {
     constructor(
         @inject(Symbols.Collections.foo) private readonly coll: Collection<FooDocument>,
-        @inject(Symbols.DatabaseContext) private readonly db: IDatabaseContext,
+        @inject(Symbols.UnitOfWork) private readonly uow: IMongoDBUnitOfWork,
     ) {}
 
     // ── Read operations ───────────────────────────────────────────────────
@@ -109,16 +109,16 @@ export default class FooRepoImpl implements IFooRepo {
         if (query.name) filter.name = new RegExp(`^${query.name}`, "i");
         if (!query.include_deleted) filter.deleted_at = null;
 
-        // QueryBuilder builds a $match → (optional populate stages) → $sort pipeline.
-        // populateWith(undefined) is a no-op — the query runs cleanly without $lookup stages.
+        // QueryBuilder builds a $match → (optional expand stages) → $sort pipeline.
+        // expandWith(undefined) is a no-op — the query runs cleanly without $lookup stages.
         const pipeline = new FooQueryBuilder()
             .match(filter)
-            .populateWith(options?.populate)
+            .expandWith(options?.expand)
             .sort({ name: 1 })
             .build();
 
         const docs = await this.coll
-            .aggregate<FooDocument>(pipeline, { session: this.db.session })
+            .aggregate<FooDocument>(pipeline, { session: this.uow.session })
             .toArray();
         return docs.map(FooMapper.from);
     }
@@ -132,11 +132,11 @@ export default class FooRepoImpl implements IFooRepo {
 
         const pipeline = new FooQueryBuilder()
             .match(filter)
-            .populateWith(options?.populate)
+            .expandWith(options?.expand)
             .sort({ name: 1 })
             .build();
 
-        const cursor = this.coll.aggregate<FooDocument>(pipeline, { session: this.db.session });
+        const cursor = this.coll.aggregate<FooDocument>(pipeline, { session: this.uow.session });
         let isDestroyed = false;
 
         return new Readable({
@@ -169,15 +169,15 @@ export default class FooRepoImpl implements IFooRepo {
     }
 
     async get(id: ObjectId, options?: IFooRepo.Options): Promise<Maybe<Foo>> {
-        // Using aggregate + limit(1) instead of findOne so that populate stages can apply.
+        // Using aggregate + limit(1) instead of findOne so that expand stages can apply.
         const pipeline = new FooQueryBuilder()
             .match({ _id: id } as Filter<FooDocument>)
-            .populateWith(options?.populate)
+            .expandWith(options?.expand)
             .limit(1)
             .build();
 
         const docs = await this.coll
-            .aggregate<FooDocument>(pipeline, { session: this.db.session })
+            .aggregate<FooDocument>(pipeline, { session: this.uow.session })
             .toArray();
 
         if (!docs.length) return Maybe.none();
@@ -190,11 +190,11 @@ export default class FooRepoImpl implements IFooRepo {
 
         const pipeline = new FooQueryBuilder()
             .match({ _id: { $in: ids } })
-            .populateWith(options?.populate)
+            .expandWith(options?.expand)
             .build();
 
         const docs = await this.coll
-            .aggregate<FooDocument>(pipeline, { session: this.db.session })
+            .aggregate<FooDocument>(pipeline, { session: this.uow.session })
             .toArray();
         return docs.map(FooMapper.from);
     }
@@ -202,12 +202,12 @@ export default class FooRepoImpl implements IFooRepo {
     async findBySlug(slug: string, options?: IFooRepo.Options): Promise<Maybe<Foo>> {
         const pipeline = new FooQueryBuilder()
             .match({ slug })
-            .populateWith(options?.populate)
+            .expandWith(options?.expand)
             .limit(1)
             .build();
 
         const docs = await this.coll
-            .aggregate<FooDocument>(pipeline, { session: this.db.session })
+            .aggregate<FooDocument>(pipeline, { session: this.uow.session })
             .toArray();
 
         if (!docs.length) return Maybe.none();
@@ -224,13 +224,13 @@ export default class FooRepoImpl implements IFooRepo {
             await this.coll.updateOne(
                 { _id: raw._id },
                 { $set: { deleted_at: entity.deleted_at!.toJSDate() } },
-                { session: this.db.session },
+                { session: this.uow.session },
             );
         } else {
             await this.coll.updateOne(
                 { _id: raw._id },
                 { $set: raw },
-                { upsert: true, session: this.db.session },
+                { upsert: true, session: this.uow.session },
             );
         }
     }
@@ -240,7 +240,7 @@ export default class FooRepoImpl implements IFooRepo {
         // based on entity.isDeleted() — same logic as save() but in a single bulkWrite.
         const ops = prepareBulkOps(entities, FooMapper);
         if (!ops.length) return; // guard against empty arrays from the driver
-        await this.coll.bulkWrite(ops, { session: this.db.session });
+        await this.coll.bulkWrite(ops, { session: this.uow.session });
     }
 }
 

@@ -1,8 +1,10 @@
 # Repository port
 
 The interface use cases use to persist and look up entities. Lives in
-`core/src/repo/`. Implementations live in adapter packages
-(`@*/prisma`, `@*/stub`).
+`core/src/repo/`. Implementations live in adapter packages — the
+chosen-DB adapter (`@*/persistence-adapter`, concretely
+`@*/prisma-adapter` / `@*/mongodb-adapter` / `@*/drizzle-adapter`, …)
+and the in-memory `@*/stub`.
 
 ## What a repo port is
 
@@ -15,7 +17,9 @@ The port:
 
 - Speaks in **domain types**: returns `Foo`, accepts `Foo`, uses
   domain enums and value-object factories.
-- **Never** mentions Prisma, MongoDB, SQL, or any storage tech.
+- **Never** mentions Prisma, MongoDB, SQL, or any storage tech — those
+  are just the databases an adapter might target; the port is blind to
+  the choice.
 - **Never** has a `delete(id)` method — soft-delete only.
 - Returns `null` for missing single lookups; returns `[]` for empty
   result lists.
@@ -136,47 +140,58 @@ The mapper is the adapter package's responsibility, but the port
 implicitly depends on it. The contract (from `@efesto-cloud/entity`):
 
 ```ts
-interface IEntityMapper<Entity, Row> {
-    from(row: Row): Entity;
-    to(entity: Entity): Row;
+interface IEntityMapper<E extends IEntity, RAW> {
+    from(dto: RAW): E;
+    to<P extends keyof RAW = keyof RAW>(
+        entity: E,
+        options?: { pick?: P[] },
+    ): Pick<RAW, P>;
 }
 ```
 
-- **`from`** — DB row → entity. May throw on corrupt data (it's an
-  ops issue, not a domain failure).
-- **`to`** — entity → DB row. Cannot fail; the entity is already
-  valid.
+`RAW` is whatever the adapter's driver stores/returns (a Prisma payload
+type, a MongoDB document, a Drizzle row, …) — the port stays unaware of
+which.
 
-See `references/prisma-persistence.md` for full mapper rules.
+- **`from`** — stored record → entity. May throw on corrupt data (it's
+  an ops issue, not a domain failure).
+- **`to`** — entity → stored record. Cannot fail; the entity is already
+  valid. The optional `pick` narrows the output to a subset of columns
+  (used for partial updates).
 
-## Population — when to add it
+See `references/persistence-adapter.md` for full mapper rules (and the
+DB's dedicated skill — `prisma-persistence` / `mongodb-persistence` —
+for driver-specific record types).
+
+## Population (eager-loading) — when to add it
 
 If callers need to eagerly load related entities (`Foo` with its
-`bars`), the port grows an `options.populate` field:
+`bars`), the port grows an `options.expand` field:
 
 ```ts
-import type { Populate } from "@efesto-cloud/population";
+import type { Expand } from "@efesto-cloud/expand";
 import type { FooShape } from "./shape/FooShape.js";
 
 interface IFooRepository {
     findById(
         id: string,
-        options?: { includeDeleted?: boolean; populate?: Populate<FooShape> },
+        options?: { includeDeleted?: boolean; expand?: Expand<FooShape> },
     ): Promise<Foo | null>;
     // ...
 }
 
 export namespace IFooRepository {
     export type Options = {
-        populate?: Populate<FooShape>;
+        expand?: Expand<FooShape>;
     };
 }
 ```
 
 The `FooShape` type lives at `core/src/repo/shape/FooShape.ts` (or
-in the adapter, depending on where the populator lives). See
-`references/population.md` for the type system and
-`references/prisma-population.md` for the Prisma impl.
+in the adapter, depending on where the eager-loader lives). See
+`references/population.md` for the type system and the DB's dedicated
+skill (`prisma-population` / `mongodb-population`, …) for the concrete
+eager-loading impl.
 
 ## Common methods by aggregate type
 
@@ -213,8 +228,9 @@ For `list({ ... })`:
   `@inject(InternalSymbols.Repo.Foo)`. Calls `findById`, `list`,
   `save`. Maps domain errors from `null` results to
   `FooNotFoundError`.
-- **Adapter → port**: implements the interface with Prisma /
-  in-memory / etc. Uses a mapper to bridge `Foo ↔ FooRow`.
+- **Adapter → port**: implements the interface against the chosen
+  database (Prisma / MongoDB / Drizzle / …) or in-memory (`@*/stub`).
+  Uses a mapper to bridge `Foo ↔ FooRow`.
 - **Composition root → port**: binds the symbol to the implementation
   in the adapter's `install.ts`.
 
@@ -223,10 +239,14 @@ The port itself depends only on:
 - The entity class (for return types).
 - `core/src/type/` types (for filter shapes).
 - `core/src/repo/shape/<X>Shape.ts` (only when population is enabled).
+- `@efesto-cloud/expand` (only the `Expand<T>` type, when population is
+  enabled).
 
-Nothing else. If your port wants to import from `@*/prisma-client` or
-from `@efesto-cloud/prisma-database-context`, you've broken the
-hexagon.
+Nothing else. If your port wants to import from a driver package (a
+Prisma client, the MongoDB driver, …) or from any DB-specific
+transaction context, you've broken the hexagon. Transactions are
+expressed only through the generic `IUnitOfWork` port from
+`@efesto-cloud/unit-of-work`, never a concrete database context.
 
 ## Checklist — new repo port
 
@@ -240,10 +260,11 @@ hexagon.
 - [ ] `save(entity): Promise<void>` — upsert.
 - [ ] `count<X>()` methods where the use cases need a single integer.
 - [ ] No `delete(id)` method.
-- [ ] No Prisma / MongoDB / driver types imported.
+- [ ] No driver types imported (Prisma / MongoDB / Drizzle / any DB
+      client or transaction context).
 - [ ] Symbol added to `InternalSymbols.Repo.Foo`.
 - [ ] Type-only re-export from `core/src/repo/index.ts`.
-- [ ] Now follow `references/prisma-persistence.md` for the impl side.
+- [ ] Now follow `references/persistence-adapter.md` for the impl side.
 
 ## "Seen in the wild"
 
