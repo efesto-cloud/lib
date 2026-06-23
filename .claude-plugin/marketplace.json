@@ -25,6 +25,12 @@
             "description": "",
             "source": "./plugins/prisma",
             "strict": false
+        },
+        {
+            "name": "Web Guidelines",
+            "description": "Efesto Cloud Web Guidelines",
+            "source": "./plugins/web-guidelines",
+            "strict": false
         }
     ]
 }

@@ -1,0 +1,67 @@
+/* ============================================================
+   Efesto — design tokens
+   Framework-agnostic source of truth. Every brand value as a
+   plain custom property. Light by default; opt regions into the
+   dark forge canvas with [data-theme="dark"] or .efesto-dark.
+   ============================================================ */
+
+:root {
+  /* ── Fire & forge — the accents ───────────────────────── */
+  --efesto-forge:  #B84A1E;  /* primary accent: italic keyword, rules, CTAs (on light) */
+  --efesto-ember:  #E8722A;  /* secondary accent: rules & glow on the dark canvas */
+  --efesto-spark:  #FAC775;  /* amber highlight: italic keyword on dark, key numbers */
+  --efesto-gold:   #C8963C;  /* muted brass — rare, for fine detail */
+
+  /* ── Coal & neutrals — the structure ──────────────────── */
+  --efesto-coal:   #14110E;  /* near-black: headings on light, the dark canvas itself */
+  --efesto-ash:    #2A2622;  /* raised surface / border on the dark canvas */
+  --efesto-stone:  #4A453F;  /* body text on light */
+  --efesto-steel:  #5A5C60;  /* cool neutral: "tool" side, secondary dividers */
+  --efesto-dust:   #8A8178;  /* muted: captions, body text on dark */
+
+  /* ── Warm lights — the paper ──────────────────────────── */
+  --efesto-warm:   #EFE8DC;  /* warm off-white: text on the dark canvas */
+  --efesto-light:  #F8F4ED;  /* card / raised surface on light */
+  --efesto-paper:  #FAF7F1;  /* primary light canvas (cream) */
+
+  /* ── Typography ───────────────────────────────────────── */
+  --efesto-font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --efesto-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ── Layout ───────────────────────────────────────────── */
+  --efesto-maxw:   1240px;
+  --efesto-gutter: clamp(20px, 5vw, 80px);
+}
+
+/* ── Semantic roles — LIGHT (default) ───────────────────────
+   Components read these, never the raw palette, so a region
+   flips wholesale when you switch the theme. */
+:root,
+[data-theme="light"] {
+  --efesto-bg:          var(--efesto-paper);
+  --efesto-surface:     var(--efesto-light);
+  --efesto-text:        var(--efesto-stone);
+  --efesto-heading:     var(--efesto-coal);
+  --efesto-strong:      var(--efesto-coal);
+  --efesto-muted:       var(--efesto-dust);
+  --efesto-border:      rgba(74, 69, 63, 0.18);
+  --efesto-accent:      var(--efesto-forge);   /* the highlighted italic word */
+  --efesto-accent-line: var(--efesto-forge);   /* eyebrow rules, dividers */
+  --efesto-logo:        var(--efesto-coal);    /* wordmark letter color */
+}
+
+/* ── Semantic roles — DARK (the forge canvas) ──────────────
+   Apply to <html>, <body>, or any single region. */
+[data-theme="dark"],
+.efesto-dark {
+  --efesto-bg:          var(--efesto-coal);
+  --efesto-surface:     var(--efesto-ash);
+  --efesto-text:        var(--efesto-dust);
+  --efesto-heading:     var(--efesto-paper);
+  --efesto-strong:      var(--efesto-paper);
+  --efesto-muted:       var(--efesto-dust);
+  --efesto-border:      rgba(250, 247, 241, 0.12);
+  --efesto-accent:      var(--efesto-spark);   /* amber keyword on coal */
+  --efesto-accent-line: var(--efesto-ember);   /* warmer rule on coal */
+  --efesto-logo:        var(--efesto-paper);    /* use wordmark-dark.svg here */
+}
