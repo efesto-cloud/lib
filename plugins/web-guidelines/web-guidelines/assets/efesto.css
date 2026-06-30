@@ -1,0 +1,117 @@
+/* ============================================================
+   Efesto — brand stylesheet
+   Loads the typefaces, applies the brand to <body>, and ships a
+   few brand classes. Imports efesto-tokens.css for the palette
+   and semantic roles. Copy both files next to your HTML and link
+   this one:  <link rel="stylesheet" href="efesto.css">
+
+   Light by default. Opt a page or a region into the dark forge
+   canvas with  data-theme="dark"  or  class="efesto-dark".
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+@import url('efesto-tokens.css');
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--efesto-font-mono);
+  font-size: 16px;
+  line-height: 1.6;
+  background: var(--efesto-bg);
+  color: var(--efesto-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Headings — the editorial serif ──────────────────────────
+   Impact comes from scale and italic, not weight. Display heads
+   are set light (300); smaller heads step up to 500. */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--efesto-font-display);
+  color: var(--efesto-heading);
+  margin: 0 0 0.5em;
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+h1 { font-size: clamp(44px, 6vw, 88px); line-height: 0.92; letter-spacing: -0.025em; }
+h2 { font-size: clamp(36px, 5.5vw, 72px); line-height: 1.02; }
+h3 { font-size: clamp(26px, 3vw, 32px); font-weight: 400; }
+h4 { font-size: 20px; font-weight: 500; line-height: 1.2; }
+
+/* The signature move: one italic keyword glows in the accent. */
+em, .efesto-accent {
+  font-style: italic;
+  color: var(--efesto-accent);
+  font-weight: 400;
+}
+
+p { margin: 0 0 1em; }
+b, strong { color: var(--efesto-strong); font-weight: 500; }
+
+a { color: var(--efesto-accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Eyebrow / label — the technical mono voice ──────────────
+   Small, upper, wide-tracked. The counterpoint to the serif. */
+.efesto-eyebrow {
+  font-family: var(--efesto-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--efesto-accent);
+  font-weight: 400;
+}
+
+/* ── Layout helpers ──────────────────────────────────────── */
+.efesto-container {
+  max-width: var(--efesto-maxw);
+  margin: 0 auto;
+  padding: 0 var(--efesto-gutter);
+}
+
+.efesto-section {
+  padding: clamp(72px, 10vw, 120px) 0;
+  background: var(--efesto-bg);
+  color: var(--efesto-text);
+}
+
+/* A region on the dark forge canvas. Equivalent to data-theme="dark". */
+.efesto-dark {
+  background: var(--efesto-bg);
+  color: var(--efesto-text);
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.efesto-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--efesto-font-mono);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--efesto-heading);
+  padding: 15px 24px;
+  border: 1px solid var(--efesto-accent);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+.efesto-button:hover {
+  background: var(--efesto-forge);
+  color: var(--efesto-paper);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+/* ── Logo ────────────────────────────────────────────────── */
+.efesto-logo {
+  color: var(--efesto-logo);   /* drives the wordmark's currentColor letters */
+  display: inline-block;
+  line-height: 0;
+}
+.efesto-logo svg { height: 100%; width: auto; display: block; }
