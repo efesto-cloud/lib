@@ -17,18 +17,19 @@ import TeardownUtil from "@efesto-cloud/teardown";
 
 const teardown = new TeardownUtil();
 
+// Register cleanups in the same order you set things up.
 teardown
     .register(async () => {
-        await server.close();
+        await db.close();
     })
     .register(async () => {
-        await db.close();
+        await server.close();
     });
 ```
 
 On `SIGINT` or `SIGTERM`:
 
-1. Each registered function runs **sequentially**, in the order they were registered.
+1. Each registered function runs **sequentially**, in **last-in/first-out** order — the reverse of the order they were registered.
 2. The process then exits with code `0`.
 3. A second signal while shutdown is already in progress forces exit with code `1`.
 
@@ -47,5 +48,5 @@ class TeardownUtil {
 ## Notes
 
 - Failing cleanup functions (rejected promises) will bubble up and bypass later handlers. Wrap with `try/catch` inside each `fn` if you need best-effort shutdown.
-- Registration order matters: close things in the reverse order you opened them (HTTP server first, database last, etc.).
+- Registration order matters: cleanups run last-in/first-out, so register them in setup order (database first, HTTP server last) and they tear down in reverse (HTTP server first, database last).
 - Only `SIGINT` and `SIGTERM` are handled. Uncaught exceptions or other signals do not trigger the handlers.
