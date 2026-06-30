@@ -1,5 +1,11 @@
 # @efesto-cloud/teardown
 
+## 0.0.5
+
+### Patch Changes
+
+- 358b43b: Run teardown cleanups in last-in/first-out order. Functions now execute in the reverse of their registration order, so resources tear down opposite to how they were set up (HTTP server first, then queues, dependencies, and finally the database). Register cleanups in setup order instead of manually reversing them.
+
 ## 0.0.4
 
 ### Patch Changes
