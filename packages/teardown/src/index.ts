@@ -22,8 +22,11 @@ export default class TeardownUtil {
     }
 
     private async execute(signal: string = "unknown") {
-        for (const fn of this.fns) {
-            await fn(signal);
+        // Teardown is last-in/first-out: tear down in the reverse order of
+        // setup, so the HTTP server stops accepting requests before the
+        // services it depends on (queues, database, ...) are shut down.
+        for (let i = this.fns.length - 1; i >= 0; i--) {
+            await this.fns[i](signal);
         }
     }
 }
