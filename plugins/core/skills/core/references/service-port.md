@@ -209,10 +209,14 @@ export default function install(opts: { apiKey: string }) {
 ```ts
 container.load(
     installServices(),
-    useMock ? installStub() : installPrisma({ DB: env.DB }),
+    useMock ? installStub() : installPersistence({ DB: env.DB }),
     installEmail({ apiKey: env.RESEND_API_KEY }),
 );
 ```
+
+`installPersistence` is the chosen adapter's installer (`installPrisma`,
+`installMongo`, …); the composition root is the only place that names a
+concrete database. See `references/composition-root.md`.
 
 Now any use case can inject `IEmailSender` and it works in production
 (Resend) without core knowing anything about Resend.
@@ -229,7 +233,7 @@ export default class InMemoryEmailSender implements IEmailSender {
     readonly sent: SendEmailInput[] = [];
     async send(input): Promise<Result<void, EmailSendFailedError>> {
         this.sent.push(input);
-        return Result.ok(undefined);
+        return Result.ok();
     }
 }
 ```

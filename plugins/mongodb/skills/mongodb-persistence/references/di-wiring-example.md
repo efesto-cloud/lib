@@ -77,10 +77,10 @@ import FooRepoImpl from '~/repo/impl/FooRepoImpl.js';
 | Scope | Usage | Reason |
 |---|---|---|
 | `inSingletonScope` | `MongoClient`, typed `Collection<X>` instances | Created once, shared forever |
-| `inRequestScope` | Repos, `IDatabaseContext` | One per HTTP request — ensures all repos in a request share the same session |
+| `inRequestScope` | Repos, `IMongoDBUnitOfWork` | One per HTTP request — ensures all repos in a request share the same session |
 | `inTransientScope` | (Not commonly used here) | New instance on every injection |
 
-`inRequestScope` is the correct scope for repos because it ensures all repos injected into the same HTTP request share the same `IDatabaseContext` instance, and therefore the same MongoDB `ClientSession`. This is what makes multi-repo use cases transactional — they all see and participate in the same transaction.
+`inRequestScope` is the correct scope for repos because it ensures all repos injected into the same HTTP request share the same `IMongoDBUnitOfWork` instance, and therefore the same MongoDB `ClientSession`. This is what makes multi-repo use cases transactional — they all see and participate in the same transaction.
 
 ---
 

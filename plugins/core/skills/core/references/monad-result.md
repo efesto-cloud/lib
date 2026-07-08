@@ -8,13 +8,22 @@ and any service that has a recognised failure mode.
 
 ```ts
 import Result from "@efesto-cloud/result";
+// or named module-level factories:
+import { ok, err } from "@efesto-cloud/result";
 
-const ok: Result<number, never> = Result.ok(42);
-const err: Result<never, MyError> = Result.err(new MyError());
+const okR: Result<number, never> = Result.ok(42);
+const errR: Result<never, MyError> = Result.err(new MyError());
+const voidR: Result<void, never> = Result.ok();  // no argument
 ```
 
-- `Result.ok(value)` — success branch.
+- `Result.ok(value)` — success branch. Called with no argument it
+  yields `Result<void, never>`.
 - `Result.err(error)` — failure branch.
+
+`Result` is the default export and a declaration-merged namespace, so
+`import Result from "@efesto-cloud/result"` (then `Result.ok(...)`) and
+`import { ok, err } from "@efesto-cloud/result"` reference the same
+implementations.
 
 The error must be a non-null value; `Result.err(undefined)` defeats
 the purpose. Prefer a real error class.
@@ -61,11 +70,14 @@ If chaining is repetitive, the functional helpers (below) help.
 ## Transformations
 
 | Method | Signature | What it does |
-|--------|-----------|-------------|
+| --- | --- | --- |
 | `.map(fn)` | `Result<T, E>.map(t -> u): Result<U, E>` | Transform the success value; pass through on failure. |
-| `.flatMap(fn)` | `Result<T, E>.flatMap(t -> Result<U, E>): Result<U, E>` | Same but the function itself returns a `Result`. |
+| `.flatMap(fn)` / `.andThen(fn)` | `Result<T, E>.flatMap(t -> Result<U, F>): Result<U, E \| F>` | Same but the function itself returns a `Result` (`andThen` is an alias). |
 | `.mapError(fn)` | `Result<T, E>.mapError(e -> e2): Result<T, E2>` | Transform the error; pass through on success. |
-| `.fold(onSuccess, onFailure)` | Both branches return the same type | Collapse to a single value. |
+| `.orElse(fn)` | `Result<T, E>.orElse(e -> Result<T, F>): Result<T, F>` | Recover from failure with a `Result`-returning function. |
+| `.match(onOk, onErr)` | `(t -> a, e -> b): a \| b` | Collapse to a single value. |
+| `.fold(onErr, onOk)` | `(e -> a, t -> b): a \| b` | Same as `match` but error-first argument order (compat alias). |
+| `.tap(fn)` / `.tapError(fn)` | `(t -> void)` / `(e -> void): Result<T, E>` | Run a side effect on success / failure; return `this`. |
 
 `flatMap` is the workhorse for chaining Result-returning steps:
 
@@ -80,17 +92,22 @@ output is the next step's input. Use whichever reads more clearly.
 
 ## Fallbacks
 
-`.else(() => fallback)` collapses a failure to a known value:
+Two ways to supply a default for the failure branch:
+
+- `.unwrapOr(fallback)` — returns the raw value `T` on success or the
+  eager `fallback` on failure.
+- `.else(() => fallback)` — returns a `Result<T, E>`: `this` on
+  success, or a success wrapping the lazily-computed `fallback` on
+  failure. End the chain with `.data` to get the raw value.
 
 ```ts
 const fooName = FooName.create(input.name)
+    .unwrapOr(defaultName);
+
+const fooNameR = FooName.create(input.name)
     .else(() => FooName.create("Untitled").unwrapOrThrow())
     .data;
 ```
-
-(That example is slightly contrived because chaining `.else` after a
-fallback is the same as the original; the value comes from the
-fallback only when the original failed.)
 
 ## Unwrapping
 
@@ -108,9 +125,9 @@ envelope. Use this style only when the failure means "server bug"; if
 it's a user-facing failure, branch on `isFailure()` and translate to
 a meaningful response.
 
-`.unwrap()` does **not** exist on the project's Result. Don't try to
-use it — the only unwrap path is the explicit
-`unwrapOrThrow()`.
+`.unwrap()` does **not** exist on the project's Result. The unwrap
+paths are `unwrapOrThrow()` (throw on failure) and
+`unwrapOr(fallback)` (return a fallback on failure).
 
 ## Serialisation
 
@@ -137,7 +154,7 @@ const InputSchema = z.object({ name: z.string().min(1) });
 
 const parsed = Result.fromZod(InputSchema.safeParse(rawInput));
 if (parsed.isFailure()) {
-    // parsed.error is a Zod issue array
+    // parsed.error is a ZodError; result type is Result<Output, ZodError>
     return Result.err(new ValidationError(parsed.error));
 }
 // parsed.data is the typed object
@@ -146,12 +163,50 @@ if (parsed.isFailure()) {
 Used in route loaders/actions for input shaping. The use case's
 input type is then the parsed-and-typed object.
 
+## Wrapping throwing functions
+
+`Result.fromThrowable(fn, errorMapper)` returns a new function that
+runs `fn` and captures any thrown error into `Result.err`:
+
+```ts
+const safeParse = Result.fromThrowable(
+    JSON.parse,
+    (caught) => new ParseError(caught),
+);
+const parsed = safeParse(raw);  // Result<unknown, ParseError>
+```
+
+## Async
+
+For asynchronous workflows use the companion `@efesto-cloud/result-async`
+package. `ResultAsync<T, E>` wraps a `Promise<Result<T, E>>`, is
+`await`-able (resolves to the underlying `Result<T, E>`), and exposes
+the same fluent surface (`map`, `mapError`, `flatMap`/`andThen`,
+`orElse`, `match`, `tap`, `tapError`, `unwrapOr`, `unwrapOrThrow`).
+
+```ts
+import ResultAsync, { okAsync, errAsync, fromPromise } from "@efesto-cloud/result-async";
+
+const userR = fromPromise(
+    fetchUser(id),                       // a rejecting promise
+    (caught) => new FetchError(caught),
+)
+    .map((user) => user.profile)
+    .mapError((e) => new ProfileError(e));
+
+const result = await userR;  // Result<Profile, ProfileError>
+```
+
+Construct with `okAsync(value)`, `errAsync(error)`, `fromPromise(p,
+errorMapper)`, `fromSafePromise(p)` (for promises that never reject),
+or `fromThrowable(fn, errorMapper)`.
+
 ## Anti-patterns
 
 - **`isErr()`** — not part of the API. Use `isFailure()`.
 - **`unwrap()`** — not part of the API. Use `unwrapOrThrow()`.
-- **`getOr()`** — not part of the API. Use `.else(() => default).data`
-  or `.unwrapOrThrow()` plus an outer try/catch.
+- **`getOr()`** — not part of the API. Use `.unwrapOr(default)` or
+  `.else(() => default).data`.
 - **Throwing inside a Result-returning function.** If the function's
   type is `Result<T, E>`, it never throws — that's the contract.
   Wrap any throwing dependency in a try/catch and produce
@@ -188,7 +243,9 @@ input type is then the parsed-and-typed object.
 ```ts
 // Construct
 Result.ok(value);
+Result.ok();           // Result<void, never>
 Result.err(error);
+Result.fromThrowable(fn, (caught) => mapError(caught));
 
 // Check
 result.isSuccess();
@@ -200,19 +257,29 @@ result.error;       // available after isFailure() narrowed
 
 // Transform
 result.map((t) => u);
-result.flatMap((t) => Result.ok(u));
+result.flatMap((t) => Result.ok(u));   // alias: andThen
 result.mapError((e) => e2);
-result.fold(
+result.orElse((e) => Result.ok(fallback));
+result.match(
     (t) => /* on success */,
     (e) => /* on failure */,
 );
+result.fold(
+    (e) => /* on failure */,           // error-first (compat alias)
+    (t) => /* on success */,
+);
+
+// Side effects
+result.tap((t) => { /* on success */ });
+result.tapError((e) => { /* on failure */ });
 
 // Fallback / unwrap
+result.unwrapOr(fallback);
 result.else(() => fallback).data;
 result.unwrapOrThrow();
 
 // Serialise
 result.toObject();
 Result.fromObject(obj);
-Result.fromZod(zodParseResult);
+Result.fromZod(zodParseResult);        // Result<Output, ZodError>
 ```

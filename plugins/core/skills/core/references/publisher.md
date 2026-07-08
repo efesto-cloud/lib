@@ -29,7 +29,7 @@ The generic parameter is a **tuple type** describing the arguments
 ## Basic usage
 
 ```ts
-import Publisher from "@efesto-cloud/publisher";
+import { Publisher } from "@efesto-cloud/publisher";
 
 const bus = new Publisher<[string, number]>();
 
@@ -102,10 +102,11 @@ fooChanges.subscribe((change) => {
 fooChanges.notify({ id: "abc", field: "name", oldValue: "Old", newValue: "New" });
 ```
 
-For "no arguments" use `Publisher<[]>`:
+For "no arguments" use `Publisher<[]>` — and since the generic
+defaults to `[]`, a bare `new Publisher()` is equivalent:
 
 ```ts
-const ping = new Publisher<[]>();
+const ping = new Publisher();   // same as Publisher<[]>
 ping.subscribe(() => console.log("pinged"));
 ping.notify();
 ```

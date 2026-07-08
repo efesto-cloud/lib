@@ -26,6 +26,8 @@ for service ports.
 
 ```ts
 import Maybe from "@efesto-cloud/maybe";
+// or named module-level factories:
+import { some, none, maybe } from "@efesto-cloud/maybe";
 
 const present: Maybe<string> = Maybe.some("hello");
 const absent: Maybe<string> = Maybe.none();
@@ -35,8 +37,15 @@ const fromNullable: Maybe<string> = Maybe.maybe(maybeString);
 // — `some` if value is non-null, `none` otherwise.
 ```
 
+`Maybe` is the default export and a declaration-merged namespace, so
+`import Maybe from "@efesto-cloud/maybe"` (then `Maybe.maybe(...)`) and
+`import { some, none, maybe } from "@efesto-cloud/maybe"` reference the
+same implementations.
+
 `Maybe.maybe(v)` is the standard converter from `T | null | undefined`.
-Use it at boundaries that receive nullable inputs.
+Use it at boundaries that receive nullable inputs. Note `Maybe<T>`
+requires `T extends NonNullable<unknown>` — the wrapped type can't
+itself be nullable.
 
 ## The two states
 
@@ -59,11 +68,13 @@ the runtime would also misbehave because `none()` carries no data.
 ## Transformations
 
 | Method | What it does |
-|--------|-------------|
+| --- | --- |
 | `.map(fn)` | Apply `fn` to the value if `some`; stay `none` otherwise. |
-| `.flatMap(fn)` | Same but `fn` returns a `Maybe`. |
+| `.flatMap(fn)` / `.andThen(fn)` | Same but `fn` returns a `Maybe` (`andThen` is an alias). |
 | `.filter(pred)` | Stay `some` only if `pred(value)` holds. |
-| `.fold(onNone, onSome)` | Collapse to a single value. |
+| `.match(onSome, onNone)` | Collapse to a single value (some-first). |
+| `.fold(onNone, onSome)` | Same as `match` but none-first argument order (compat alias). |
+| `.tap(fn)` / `.tapNone(fn)` | Run a side effect when `some` / `none`; return the `Maybe`. |
 
 ```ts
 const displayName = Maybe.maybe(user.nickname)
@@ -77,8 +88,16 @@ is non-empty").
 
 ## Fallbacks
 
-`.else(() => default)` produces a `Maybe<T>` with the default value
-when `none`:
+`.unwrapOr(default)` returns the raw value `T` if `some`, or the eager
+`default` if `none`:
+
+```ts
+const url = Maybe.maybe(profile.website).unwrapOr("https://example.com");
+```
+
+`.else(() => default)` instead produces a `Maybe<T>` (always `some`)
+with the lazily-computed default when `none`, so the chain ends with
+`.data`:
 
 ```ts
 const url = Maybe.maybe(profile.website)
@@ -86,8 +105,8 @@ const url = Maybe.maybe(profile.website)
     .data;
 ```
 
-The result of `.else(...)` is always `some` (the value), so `.data`
-is safe.
+`.unwrapOrThrow()` returns the value if `some`, otherwise throws
+`NoneError`. Use only when absence is a programmer error.
 
 ## Conversion to `Result`
 
@@ -124,13 +143,49 @@ const [email, name] = both.data;
 
 ## Side effects
 
-`.run(fn)` runs the function on the value if `some`, no-op otherwise:
+`.tap(fn)` runs the function on the value if `some`, no-op otherwise;
+`.tapNone(fn)` runs on the `none` branch. Both return the original
+`Maybe` so they compose in chains:
 
 ```ts
-Maybe.maybe(stripeCustomerId).run((id) => analytics.identify(id));
+Maybe.maybe(stripeCustomerId)
+    .tap((id) => analytics.identify(id))
+    .tapNone(() => analytics.track("anonymous"));
 ```
 
-Returns the original `Maybe` so it composes in chains.
+`.run(fn)` is a compat alias that runs on the `some` branch but
+returns `void` (it does not chain) — prefer `.tap(fn)`.
+
+## Wrapping nullish/throwing functions
+
+`Maybe.fromThrowable(fn)` returns a new function that runs `fn` and
+collapses a thrown error or a `null`/`undefined` return to `none`:
+
+```ts
+const lookup = Maybe.fromThrowable((k: string) => cache.get(k));
+const value = lookup("key");  // Maybe<V>
+```
+
+## Async
+
+For asynchronous workflows use the companion `@efesto-cloud/maybe-async`
+package. `MaybeAsync<T>` wraps a `Promise<Maybe<T>>`, is `await`-able
+(resolves to the underlying `Maybe<T>`), and exposes the same fluent
+surface (`map`, `flatMap`/`andThen`, `filter`, `orElse`, `match`,
+`tap`, `tapNone`, `unwrapOr`, `unwrapOrThrow`).
+
+```ts
+import MaybeAsync, { maybeAsync, someAsync, noneAsync, fromPromise } from "@efesto-cloud/maybe-async";
+
+const profileM = fromPromise(fetchUser(id))  // rejection or null -> none
+    .map((user) => user.profile);
+
+const result = await profileM;  // Maybe<Profile>
+```
+
+Construct with `maybeAsync(value)`, `someAsync(value)`, `noneAsync()`,
+or bridge promises with `fromPromise(p)`, `fromSafePromise(p)`, or
+`fromThrowable(fn)`.
 
 ## Serialisation
 
@@ -181,6 +236,7 @@ caching or message-bus payloads.
 Maybe.some(v);
 Maybe.none();
 Maybe.maybe(nullableV);
+Maybe.fromThrowable(fn);
 
 // Check
 m.isSome();
@@ -191,18 +247,22 @@ m.data;            // after isSome() narrowed
 
 // Transform
 m.map((t) => u);
-m.flatMap((t) => Maybe.some(u));
+m.flatMap((t) => Maybe.some(u));   // alias: andThen
 m.filter((t) => predicate);
-m.fold(() => onNone, (t) => onSome);
+m.match((t) => onSome, () => onNone);   // some-first
+m.fold(() => onNone, (t) => onSome);    // none-first (compat alias)
 
 // Side effect
-m.run((t) => { /* ... */ });
+m.tap((t) => { /* on some */ });
+m.tapNone(() => { /* on none */ });
 
 // Fallback / unwrap
+m.unwrapOr(default);
 m.else(() => default).data;
+m.unwrapOrThrow();                 // throws NoneError when none
 
 // Cross over
-m.toResult();
+m.toResult();                      // Result<T, NoneError>
 m.toResult().mapError(() => new DomainError());
 
 // Combine

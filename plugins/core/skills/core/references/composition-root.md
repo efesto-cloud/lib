@@ -23,6 +23,12 @@ one file plugs the typed resolver into the request handler's context.
 
 ## `container.server.ts` — the boot sequence
 
+The composition root imports **one** active persistence adapter plus the
+`@*/stub` in-memory adapter, and picks between them at runtime. The
+active adapter is whichever the project chose — its installer is
+generically `installPersistence`, concretely `installPrisma` /
+`installMongo` / `installDrizzle`. Core never sees which one.
+
 ```ts
 // webapp/app/container.server.ts
 import {
@@ -32,7 +38,9 @@ import {
     installServices,
     type UseCaseResolver,
 } from "@task-management/core";
-import installPrisma from "@task-management/prisma/install";
+// The active adapter. Swap this one import to switch databases —
+// e.g. @task-management/mongodb-adapter exporting installMongo.
+import installPersistence from "@task-management/prisma-adapter/install";
 import installStub, { seed as seedStub } from "@task-management/stub";
 
 let booted = false;
@@ -49,7 +57,7 @@ async function bootContainer(env: CloudflareEnvironment): Promise<void> {
     // 3. Load the chosen adapter + impure services.
     container.load(
         installServices(),
-        useMock ? installStub() : installPrisma({ DB: env.DB }),
+        useMock ? installStub() : installPersistence({ DB: env.DB }),
     );
 
     // 4. Optionally seed the stub.
@@ -79,16 +87,19 @@ What's going on, step by step:
 2. **`useMock = env.NODE_ENV === "mock"`** — the environment-switch.
    `NODE_ENV` here is your Cloudflare env binding. In Node-based apps
    it'd be `process.env.NODE_ENV` or a CLI flag.
-3. **`container.load(installServices(), installPrisma(...))`** —
+3. **`container.load(installServices(), installPersistence(...))`** —
    second load wave:
    - `installServices()` (from `core/src/service/impl/installServices.ts`)
      binds impure services that core can't ship by default (e.g.
      `ScryptPasswordHasher` needs Node's `crypto`, which would crash
      a non-Node runtime if it were auto-loaded). The webapp opts in.
-   - `installPrisma({ DB: env.DB })` (from `prisma/src/install.ts`)
-     binds the Prisma client to `PrismaClientSymbol`, binds
-     `IPrismaContext` to `InternalSymbols.DatabaseContext`, and binds
-     every `<Entity>RepoImpl` to `InternalSymbols.Repo.<Entity>`.
+   - `installPersistence({ DB: env.DB })` (from the active adapter's
+     `src/install.ts`) binds the DB client/connection (driver-specific,
+     package-private), binds the unit-of-work implementation to
+     `InternalSymbols.UnitOfWork` — `@efesto-cloud/prisma-unit-of-work`
+     for Prisma, `@efesto-cloud/mongodb-unit-of-work` for MongoDB — and
+     binds every `<Entity>RepoImpl` to `InternalSymbols.Repo.<Entity>`.
+     See `references/persistence-adapter.md`.
    - `installStub()` (from `stub/src/install.ts`) is the same shape
      with in-memory implementations.
 4. **`seedStub(container)`** is only relevant for the mock path —
@@ -205,20 +216,23 @@ its own resolver) to resolve it to a `MemberDto`, and throws a 401
 response if absent. The actor object then enters the use case as
 plain input; the use case never re-verifies.
 
-## Adding a new adapter package
+## Adding (or switching to) another adapter package
 
-Suppose you're adding `@*/postgres` as an alternative to `@*/prisma`.
+Suppose you're adding `@*/mongodb-adapter` as an alternative to
+`@*/prisma-adapter`.
 
 1. **In the new package**: write `install({ ... })` returning a
    `ContainerModule` that binds the same `InternalSymbols.Repo.*` and
-   `InternalSymbols.DatabaseContext` keys to your Postgres impls.
-2. **In `container.server.ts`**: add a branch in the environment
-   switch:
+   `InternalSymbols.UnitOfWork` keys to your MongoDB impls (the
+   unit-of-work bound to `@efesto-cloud/mongodb-unit-of-work`).
+2. **In `container.server.ts`**: to *switch* databases, change the single
+   `installPersistence` import to the new adapter. To *run several side by
+   side*, add a branch in the environment switch:
    ```ts
    container.load(
        installServices(),
-       env.NODE_ENV === "mock"      ? installStub() :
-       env.PERSISTENCE === "postgres" ? installPostgres({ url: env.PG_URL }) :
+       env.NODE_ENV === "mock"        ? installStub() :
+       env.PERSISTENCE === "mongodb"  ? installMongo({ uri: env.MONGO_URI }) :
        installPrisma({ DB: env.DB }),
    );
    ```

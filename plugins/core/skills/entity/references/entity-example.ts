@@ -20,7 +20,7 @@
 
 // --- Imports ---
 // External libs first, then internal (always .js extension on imports)
-import { Entity, IEntity } from "@efesto-cloud/entity";
+import { Entity, type IEntity } from "@efesto-cloud/entity";
 import Maybe from "@efesto-cloud/maybe";
 import Result from "@efesto-cloud/result";
 import { DateTime } from "luxon";

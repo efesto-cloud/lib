@@ -1,7 +1,7 @@
 /**
- * Flat (leaf) Populator example for the population skill.
+ * Flat (leaf) Expander example for the population skill.
  *
- * This populator handles an entity whose populatable fields do NOT require
+ * This expander handles an entity whose populatable fields do NOT require
  * further nesting — all Shape fields are `true` (leaf nodes).
  *
  * Covers:
@@ -12,19 +12,19 @@
  *
  */
 
-import { BasePopulator } from "@efesto-cloud/mongodb-population";
-import type { NormalizedPopulate } from "@efesto-cloud/population";
+import { BaseExpander } from "@efesto-cloud/mongodb-expand";
+import type { NormalizedExpand } from "@efesto-cloud/expand";
 import CollectionNameEnum from "~/db/CollectionNameEnum.js";
 import type TCollectionName from "~/db/TCollectionName.js";
 import type { FooShape } from "../shape/FooShape.js";
 
-export default class FooPopulator extends BasePopulator<
+export default class FooExpander extends BaseExpander<
     FooShape,
     TCollectionName
 > {
     /**
      * Static shape definition — must match the FooShape type exactly.
-     * Used by `normalizePopulate()` to validate caller input and fill defaults.
+     * Used by `normalizeExpand()` to validate caller input and fill defaults.
      */
     static readonly SHAPE: FooShape = {
         category: true, // 1:1, required FK
@@ -38,7 +38,7 @@ export default class FooPopulator extends BasePopulator<
     // Foo document has `category_id: ObjectId` pointing to Category.
     // ------------------------------------------------------------------
     private category(): void {
-        if (!this.markPopulated("category")) return; // guard: prevent duplicates
+        if (!this.markExpanded("category")) return; // guard: prevent duplicates
         this.addStages(
             this.lookup({
                 from: CollectionNameEnum.category,
@@ -55,7 +55,7 @@ export default class FooPopulator extends BasePopulator<
     // Tag document has `foo_id: ObjectId`; Foo has no array field of its own.
     // ------------------------------------------------------------------
     private tags(): void {
-        if (!this.markPopulated("tags")) return;
+        if (!this.markExpanded("tags")) return;
         this.addStages(
             this.lookup({
                 from: CollectionNameEnum.tag,
@@ -73,7 +73,7 @@ export default class FooPopulator extends BasePopulator<
     // $lookup with an array localField matches any document whose _id is in the array.
     // ------------------------------------------------------------------
     private fileIds(): void {
-        if (!this.markPopulated("fileIds")) return;
+        if (!this.markExpanded("fileIds")) return;
         this.addStages(
             this.lookup({
                 from: CollectionNameEnum.file,
@@ -91,7 +91,7 @@ export default class FooPopulator extends BasePopulator<
     // FKs are handled safely without any extra options.
     // ------------------------------------------------------------------
     private owner(): void {
-        if (!this.markPopulated("owner")) return;
+        if (!this.markExpanded("owner")) return;
         this.addStages(
             this.lookup({
                 from: CollectionNameEnum.user,
@@ -104,10 +104,10 @@ export default class FooPopulator extends BasePopulator<
     }
 
     /**
-     * populate() is called with the normalized spec.
+     * expand() is called with the normalized spec.
      * Each `if (spec.X)` guard checks whether the caller requested that field.
      */
-    populate(spec: NormalizedPopulate<FooShape>): this {
+    expand(spec: NormalizedExpand<FooShape>): this {
         if (spec.category) this.category();
         if (spec.tags) this.tags();
         if (spec.fileIds) this.fileIds();
@@ -117,11 +117,11 @@ export default class FooPopulator extends BasePopulator<
 
     /**
      * Static helper — lets QueryBuilder (and tests) call buildPipeline()
-     * without instantiating the populator manually.
+     * without instantiating the expander manually.
      */
     static buildPipeline(
-        spec: NormalizedPopulate<FooShape>,
+        spec: NormalizedExpand<FooShape>,
     ): import("mongodb").Document[] {
-        return new FooPopulator().populate(spec).build();
+        return new FooExpander().expand(spec).build();
     }
 }

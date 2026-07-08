@@ -75,7 +75,7 @@ src/
 │   └── index.ts
 │
 ├── di/
-│   ├── InternalSymbols.ts    — repo + service + DB-context symbols
+│   ├── InternalSymbols.ts    — repo + service + unit-of-work symbols
 │   ├── UseCaseSymbols.ts     — use-case symbols (UseCase.<domain>.<N>)
 │   ├── UseCaseRegistry.ts    — empty interface, augmented by modules
 │   ├── resolveUseCase.ts     — createUseCaseResolver(container)
@@ -85,14 +85,18 @@ src/
     └── logger.ts             — thin wrapper, optional
 ```
 
-## `@*/prisma/src/`
+## `@*/persistence-adapter/src/`
+
+The chosen-DB adapter package — `@*/prisma-adapter`, `@*/mongodb-adapter`,
+`@*/drizzle-adapter`, … — has the same shape regardless of driver.
 
 ```
 src/
-├── install.ts                — exports `install({ DB })` returning
+├── install.ts                — exports `install({ … })` returning
 │                                ContainerModule with all repo bindings
-│                                + IPrismaContext binding
-├── PrismaSymbols.ts          — `PrismaClientSymbol` (package-private)
+│                                + the unit-of-work binding
+├── <Db>Symbols.ts            — package-private token(s), e.g. the raw
+│                                DB-client symbol (not in InternalSymbols)
 │
 ├── mapper/
 │   ├── FooMapper.ts          — IEntityMapper<Foo, FooRow>
@@ -100,11 +104,13 @@ src/
 │
 └── repository/
     ├── FooRepoImpl.ts        — @injectable() implementing IFooRepository
-    └── (optional) populate/, shape/  — for population
+    └── (optional) populate/, shape/  — for eager-loading (population)
 ```
 
 Mappers and impls **live here**, never in `@*/core`. The repo
-interface (`IFooRepository`) lives in `@*/core/src/repo/`.
+interface (`IFooRepository`) lives in `@*/core/src/repo/`. For the
+concrete driver code, follow the database's dedicated skill
+(`prisma-persistence`, `mongodb-persistence`, …).
 
 ## `@*/stub/src/`
 
@@ -116,8 +122,8 @@ src/
     └── InMemoryFooRepo.ts    — @injectable() implementing IFooRepository
 ```
 
-Same `InternalSymbols.Repo.Foo` keys as Prisma; the impls just live
-in `Map`s.
+Same `InternalSymbols.Repo.Foo` keys as the persistence adapter; the
+impls just live in `Map`s.
 
 ## `@*/webapp/`
 
@@ -154,10 +160,10 @@ workers/
 | Use case impl | `core/src/useCase/<domain>/impl/` | `usecase.md` |
 | Per-domain container module | `core/src/useCase/<domain>/<Domain>Module.ts` | `di-layer.md` |
 | Symbol | `core/src/di/InternalSymbols.ts` (repo/service) or `UseCaseSymbols.ts` (use case) | `di-layer.md` |
-| Repo impl (Prisma) | `prisma/src/repository/` | `prisma-persistence.md` |
-| Mapper | `prisma/src/mapper/` | `prisma-persistence.md` |
-| Populator | `prisma/src/repository/populate/` | `prisma-population.md` |
-| Shape type | `prisma/src/repository/shape/` (or `core/src/repo/shape/` if you reuse across adapters) | `population.md` |
+| Repo impl | `<adapter>/src/repository/` | `persistence-adapter.md` (+ the DB skill: `prisma-persistence` / `mongodb-persistence`) |
+| Mapper | `<adapter>/src/mapper/` | `persistence-adapter.md` (+ the DB skill) |
+| Populator (eager-loader) | `<adapter>/src/repository/populate/` | `population.md` (+ the DB skill: `prisma-persistence` / `mongodb-persistence`) |
+| Shape type | `<adapter>/src/repository/shape/` (or `core/src/repo/shape/` if you reuse across adapters) | `population.md` |
 | Route loader/action | `webapp/app/routes/<domain>/…` | `composition-root.md` |
 | Container bootstrap | `webapp/app/container.server.ts` | `composition-root.md` |
 
