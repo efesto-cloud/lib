@@ -38,6 +38,9 @@ jobs:
       - name: Knip
         run: pnpm knip
 
+      - name: Check plugins
+        run: pnpm check-plugins
+
       - name: Build
         run: pnpm build
 

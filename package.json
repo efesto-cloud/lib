@@ -11,6 +11,7 @@
         "knip": "knip",
         "clean": "pnpm -r clean",
         "check-packages": "node scripts/check-packages.mjs",
+        "check-plugins": "node scripts/check-plugins.mjs",
         "changeset": "changeset",
         "version": "changeset version && pnpm install --lockfile-only",
         "release": "pnpm build && changeset publish"
