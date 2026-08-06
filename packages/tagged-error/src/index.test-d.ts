@@ -1,4 +1,9 @@
-import { matchError, matchErrorPartial, TaggedError } from "./index.js";
+import {
+    matchError,
+    matchErrorPartial,
+    TaggedError,
+    taggedErrorSchema,
+} from "./index.js";
 
 class CartNotFound extends TaggedError("CartNotFound") {}
 class EmptyCart extends TaggedError("EmptyCart") {}
@@ -62,3 +67,12 @@ void _fn;
 void _fnIncomplete;
 void _partial;
 void _noOtherwise;
+
+const _schema = taggedErrorSchema(CartNotFound, EmptyCart, OutOfStock);
+const _out = _schema["~standard"].validate({ _tag: "OutOfStock", sku: "A" });
+if (!(_out instanceof Promise) && _out.issues === undefined) {
+    // l'output deve essere l'union delle classi concrete, non AnyTaggedError
+    const _e: CartNotFound | EmptyCart | OutOfStock = _out.value;
+    void _e;
+}
+void _schema;

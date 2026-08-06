@@ -1,3 +1,5 @@
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+
 export type AnyTaggedError = Error & { readonly _tag: string };
 
 export type TagHandlers<Self extends { readonly _tag: string }, R> = {
@@ -106,4 +108,51 @@ export function TaggedError<Tag extends string>(
         }
     }
     return Impl as unknown as TaggedErrorCtor<Tag>;
+}
+
+export type AnyTaggedErrorClass = {
+    // biome-ignore lint/suspicious/noExplicitAny: deve accettare qualunque forma concreta di props
+    new (...args: any[]): AnyTaggedError;
+    readonly _tag: string;
+};
+
+export function taggedErrorSchema<C extends readonly AnyTaggedErrorClass[]>(
+    ...classes: C
+): StandardSchemaV1<unknown, InstanceType<C[number]>> {
+    const byTag = new Map<string, AnyTaggedErrorClass>(
+        classes.map((c) => [c._tag, c]),
+    );
+    return {
+        "~standard": {
+            version: 1,
+            vendor: "efesto-cloud",
+            validate: (value: unknown) => {
+                if (typeof value !== "object" || value === null) {
+                    return { issues: [{ message: "Expected an object" }] };
+                }
+                const tag = (value as { _tag?: unknown })._tag;
+                if (typeof tag !== "string") {
+                    return {
+                        issues: [{ message: "Missing `_tag`", path: ["_tag"] }],
+                    };
+                }
+                const Cls = byTag.get(tag);
+                if (Cls === undefined) {
+                    return {
+                        issues: [
+                            {
+                                message: `Unknown error tag "${tag}"`,
+                                path: ["_tag"],
+                            },
+                        ],
+                    };
+                }
+                return {
+                    value: new Cls(
+                        value as Record<string, unknown>,
+                    ) as InstanceType<C[number]>,
+                };
+            },
+        },
+    };
 }

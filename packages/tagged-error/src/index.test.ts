@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { AnyTaggedError } from "./index.js";
-import { matchError, matchErrorPartial, TaggedError } from "./index.js";
+import {
+    matchError,
+    matchErrorPartial,
+    TaggedError,
+    taggedErrorSchema,
+} from "./index.js";
 
 test("il package espone il tipo AnyTaggedError", () => {
     const e: AnyTaggedError = Object.assign(new Error("x"), {
@@ -146,4 +151,41 @@ test("matchErrorPartial preferisce l'handler specifico a otherwise", () => {
         }),
         "S",
     );
+});
+
+test("lo schema reidrata l'istanza concreta dal payload", () => {
+    const schema = taggedErrorSchema(CartNotFound, OutOfStock);
+    const wire = JSON.parse(
+        JSON.stringify({ error: new OutOfStock({ sku: "ABC-1" }) }),
+    );
+    const out = schema["~standard"].validate(wire.error);
+    assert.ok(!(out instanceof Promise));
+    assert.equal(out.issues, undefined);
+    const revived = (out as { value: unknown }).value;
+    assert.ok(revived instanceof OutOfStock);
+    assert.equal((revived as OutOfStock).sku, "ABC-1");
+    assert.equal((revived as OutOfStock)._tag, "OutOfStock");
+});
+
+test("un tag sconosciuto produce un issue, non un'eccezione", () => {
+    const schema = taggedErrorSchema(CartNotFound);
+    const out = schema["~standard"].validate({ _tag: "Sconosciuto" });
+    assert.ok(!(out instanceof Promise));
+    assert.ok(out.issues !== undefined);
+});
+
+test("un input non-oggetto produce un issue", () => {
+    const schema = taggedErrorSchema(CartNotFound);
+    for (const bad of [null, 42, "stringa", undefined]) {
+        const out = schema["~standard"].validate(bad);
+        assert.ok(!(out instanceof Promise));
+        assert.ok(out.issues !== undefined, `atteso issue per ${String(bad)}`);
+    }
+});
+
+test("_tag mancante produce un issue", () => {
+    const schema = taggedErrorSchema(CartNotFound);
+    const out = schema["~standard"].validate({ sku: "X" });
+    assert.ok(!(out instanceof Promise));
+    assert.ok(out.issues !== undefined);
 });
