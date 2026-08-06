@@ -1,0 +1,44 @@
+{
+    "name": "@efesto-cloud/tagged-error",
+    "version": "1.0.0",
+    "description": "Tagged domain errors for efesto-cloud",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/efesto-cloud/lib.git",
+        "directory": "packages/tagged-error"
+    },
+    "type": "module",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*.js",
+            "types": "./dist/*.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc --project tsconfig.json",
+        "typecheck": "tsc --noEmit",
+        "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+        "test": "tsx --test \"src/**/*.test.ts\"",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "@standard-schema/spec": "^1.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "24"
+    },
+    "keywords": [],
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    }
+}

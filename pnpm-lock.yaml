@@ -180,6 +180,16 @@ importers:
         specifier: workspace:*
         version: link:../result
 
+  packages/tagged-error:
+    dependencies:
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.1.0
+    devDependencies:
+      '@types/node':
+        specifier: '24'
+        version: 24.12.2
+
   packages/teardown:
     devDependencies:
       '@types/node':
@@ -748,6 +758,9 @@ packages:
     resolution: {integrity: sha512-6hIU3RQu45B+VNTY4Ru8ppFwjVS/S5qwYyGhBotmjxfEKk41I2DlGtRfGJndZ5+6lneE2pwloqunlOyZuX/XAw==}
     cpu: [x64]
     os: [win32]
+
+  '@standard-schema/spec@1.1.0':
+    resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
@@ -1660,6 +1673,8 @@ snapshots:
 
   '@oxc-resolver/binding-win32-x64-msvc@11.19.1':
     optional: true
+
+  '@standard-schema/spec@1.1.0': {}
 
   '@tybys/wasm-util@0.10.1':
     dependencies:
