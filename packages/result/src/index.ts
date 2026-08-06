@@ -164,6 +164,32 @@ export class Failure<T = never, E = unknown> {
 type Result<T, E> = Success<T, E> | Failure<T, E>;
 
 // ---------------------------------------------------------------------------
+// Type helpers for collection combinators.
+// `OkOf`/`ErrOf` are distributive conditional types over `R`: since `Result`
+// is the union `Success | Failure`, both branches must be spelled out
+// explicitly, or inference fails on the non-matching member.
+// ---------------------------------------------------------------------------
+
+export type OkOf<R> =
+    R extends Success<infer T, infer _E>
+        ? T
+        : R extends Failure<infer T, infer _E>
+          ? T
+          : never;
+
+export type ErrOf<R> =
+    R extends Success<infer _T, infer E>
+        ? E
+        : R extends Failure<infer _T, infer E>
+          ? E
+          : never;
+
+type OkTuple<T extends readonly unknown[]> = { [K in keyof T]: OkOf<T[K]> };
+type ErrUnion<T extends readonly unknown[]> = {
+    [K in keyof T]: ErrOf<T[K]>;
+}[number];
+
+// ---------------------------------------------------------------------------
 // Single-source factory implementations. Both module-level exports and the
 // `Result` namespace alias these so there's only one implementation.
 // ---------------------------------------------------------------------------
@@ -195,6 +221,36 @@ const _fromZod = <Output>(
     res.success ? _ok(res.data) : _err(res.error);
 
 // ---------------------------------------------------------------------------
+// Collection combinators.
+// ---------------------------------------------------------------------------
+
+const _all = <T extends readonly Result<unknown, unknown>[]>(
+    results: readonly [...T],
+): Result<OkTuple<T>, ErrUnion<T>> => {
+    const values: unknown[] = [];
+    for (const r of results) {
+        if (r.isFailure()) return _err(r.error as ErrUnion<T>);
+        values.push(r.data);
+    }
+    return _ok(values as OkTuple<T>);
+};
+
+const _partition = <T, E>(results: readonly Result<T, E>[]): [T[], E[]] => {
+    const oks: T[] = [];
+    const errs: E[] = [];
+    for (const r of results) {
+        if (r.isSuccess()) oks.push(r.data);
+        else errs.push(r.error);
+    }
+    return [oks, errs];
+};
+
+const _flatten = <T, E, F>(
+    nested: Result<Result<T, E>, F>,
+): Result<T, E | F> =>
+    nested.isFailure() ? _err<E | F, T>(nested.error) : nested.data;
+
+// ---------------------------------------------------------------------------
 // Module-level factories (neverthrow-style).
 // ---------------------------------------------------------------------------
 
@@ -203,6 +259,9 @@ export const err = _err;
 export const fromThrowable = _fromThrowable;
 export const fromObject = _fromObject;
 export const fromZod = _fromZod;
+export const all = _all;
+export const partition = _partition;
+export const flatten = _flatten;
 
 // ---------------------------------------------------------------------------
 // `Result` namespace — declaration-merged with the `Result<T, E>` type so
@@ -216,6 +275,9 @@ namespace Result {
     export const fromThrowable = _fromThrowable;
     export const fromObject = _fromObject;
     export const fromZod = _fromZod;
+    export const all = _all;
+    export const partition = _partition;
+    export const flatten = _flatten;
 }
 
 export default Result;

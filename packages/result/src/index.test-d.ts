@@ -3,7 +3,7 @@
 
 import type Result from "./index.js";
 import type { err } from "./index.js";
-import { ok } from "./index.js";
+import { all, flatten, ok, partition } from "./index.js";
 
 type Equal<X, Y> =
     (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
@@ -72,3 +72,36 @@ const _c = rMatch.match({ ok: (d) => d });
 void _a;
 void _b;
 void _c;
+
+// all() / partition() / flatten() — collection combinators.
+
+declare const n: Result<number, "boom">;
+declare const s: Result<string, "bang">;
+declare const bl: Result<boolean, never>;
+
+const _tuple = all([n, s, bl]);
+if (_tuple.isSuccess()) {
+    const _t: [number, string, boolean] = _tuple.data;
+    void _t;
+} else {
+    const _e: "boom" | "bang" = _tuple.error;
+    void _e;
+}
+
+declare const list: Result<number, "boom">[];
+const _arr = all(list);
+if (_arr.isSuccess()) {
+    const _a2: number[] = _arr.data;
+    void _a2;
+}
+
+const [_oks, _errs]: [number[], "boom"[]] = partition(list);
+
+declare const nested: Result<Result<number, "dentro">, "fuori">;
+const _flat: Result<number, "dentro" | "fuori"> = flatten(nested);
+
+void _tuple;
+void _arr;
+void _oks;
+void _errs;
+void _flat;

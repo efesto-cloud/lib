@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it, test } from "node:test";
-import Result, { err, fromObject, fromThrowable, ok } from "./index.js";
+import Result, {
+    all,
+    err,
+    flatten,
+    fromObject,
+    fromThrowable,
+    ok,
+    partition,
+} from "./index.js";
 
 describe("Success", () => {
     it("is a success and not a failure", () => {
@@ -188,5 +196,45 @@ describe("factories", () => {
     it("namespace and named exports share one implementation", () => {
         assert.equal(Result.ok, ok);
         assert.equal(Result.err, err);
+    });
+});
+
+describe("combinators", () => {
+    test("all raccoglie tutti i successi in tupla", () => {
+        const r = all([ok(1), ok("due"), ok(true)] as const);
+        assert.ok(r.isSuccess());
+        assert.deepEqual(r.data, [1, "due", true]);
+    });
+
+    test("all ritorna il primo errore in ordine di iterazione", () => {
+        const r = all([ok(1), err("primo"), err("secondo")]);
+        assert.ok(r.isFailure());
+        assert.equal(r.error, "primo");
+    });
+
+    test("all su lista vuota e un successo con tupla vuota", () => {
+        const r = all([]);
+        assert.ok(r.isSuccess());
+        assert.deepEqual(r.data, []);
+    });
+
+    test("partition non corto-circuita e preserva l'ordine", () => {
+        const [oks, errs] = partition([
+            ok<number, string>(1),
+            err<string, number>("a"),
+            ok<number, string>(2),
+            err<string, number>("b"),
+        ]);
+        assert.deepEqual(oks, [1, 2]);
+        assert.deepEqual(errs, ["a", "b"]);
+    });
+
+    test("flatten appiattisce un Result annidato", () => {
+        assert.equal(flatten(ok(ok(5))).unwrapOr(0), 5);
+        assert.equal(flatten(ok(err<string, number>("dentro"))).unwrapOr(0), 0);
+        assert.equal(
+            flatten(err<string, Result<number, string>>("fuori")).unwrapOr(0),
+            0,
+        );
     });
 });
