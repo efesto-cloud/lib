@@ -301,9 +301,35 @@ codice di gestione errori è identico a quello del server.
 
 ## 6. `@efesto-cloud/toast`
 
-`Toast<T, E>` è un `Result` con un `message` umano ed è il tipo che attraversa
-il confine loader → client. Riceve gli stessi cambiamenti di `match` / `fold`
-per non far divergere la famiglia. Nessun combinatore, nessun codec.
+`Toast<T, E>` è un `Result` con un `message` umano. È **terminale per
+disegno**: serve a trasformare un `Result` in un `Toast` nell'ultimo miglio
+verso l'applicazione, così che questa possa mostrare un toast d'errore e
+contemporaneamente visualizzare dati o errori. `Toast.fromResult(result,
+okMsg, errMsg)` è già la porta d'ingresso prevista.
+
+**In questa iterazione riceve solo l'allineamento di `match` / `fold`**, per
+non far divergere la famiglia. Nessun combinatore, nessun codec.
+
+**Bug da correggere qui:** `packages/toast/package.json` non dichiara alcuna
+dipendenza, ma `src/index.ts` importa `@efesto-cloud/maybe` e
+`@efesto-cloud/result`. Installato da solo il package è rotto. Vanno aggiunte
+come `dependencies`.
+
+### 6.1 Perché *non* far estendere `Result` a `Toast`
+
+Valutato ed escluso. Dei 17 metodi di `Toast`, 9 ritornano il wrapper (`map`,
+`mapError`, `flatMap`, `andThen`, `orElse`, `tap`, `tapError`, `else`,
+`toObject`) e devono propagare il `message`: vanno riscritti comunque.
+L'ereditarietà risparmierebbe solo gli 8 che escono dalla monade, che sono
+one-liner.
+
+In cambio introdurrebbe un rischio permanente: `Toast` diventerebbe
+assegnabile a `Result`, quindi `Result.all([toast1, toast2])` compilerebbe
+restituendo un `Result` con i `message` persi in silenzio — e ogni metodo
+aggiunto in futuro a `Result` sarebbe un nuovo buco dello stesso tipo. La
+strada corretta (base parametrica sul costruttore di tipo) richiederebbe
+higher-kinded types, che TypeScript non ha; emularli peggiora inferenza e
+messaggi d'errore.
 
 ---
 
@@ -416,6 +442,13 @@ espongono entrypoint non standard.
 - **`.unwrap(message)`** — vietato esplicitamente dalla skill `monad-result`.
 - **`.tryRecover`** — è `orElse`, che esiste già.
 - **Regola di lint tag ↔ nome classe** — follow-up.
+- **Potatura dei metodi di concatenazione di `Toast`.** Essendo `Toast`
+  terminale, i suoi 9 metodi che ritornano il wrapper sono di fatto morti: la
+  catena appartiene a `Result`. Rimandata deliberatamente, non dimenticata —
+  con i tagged error e il nuovo `match` il quadro cambia, e `fromResult`
+  potrebbe derivare il messaggio dal `_tag` dell'errore invece di riceverlo
+  come stringa. Ha senso potare e ridisegnare in un colpo solo, dopo, con
+  quell'informazione in mano.
 
 ## Assunzioni dichiarate
 
