@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, test } from "node:test";
 import Result, { err, fromObject, fromThrowable, ok } from "./index.js";
 
 describe("Success", () => {
@@ -46,10 +46,10 @@ describe("Success", () => {
             5,
         );
         assert.equal(
-            ok(5).match(
-                (n) => `ok:${n}`,
-                () => "err",
-            ),
+            ok(5).match({
+                ok: (n) => `ok:${n}`,
+                err: () => "err",
+            }),
             "ok:5",
         );
         assert.equal(
@@ -83,6 +83,14 @@ describe("Success", () => {
             error: undefined,
         });
     });
+
+    test("match instrada sul ramo ok", () => {
+        const r = ok<number, string>(2);
+        assert.equal(
+            r.match({ ok: (d) => `ok:${d}`, err: (e) => `err:${e}` }),
+            "ok:2",
+        );
+    });
 });
 
 describe("Failure", () => {
@@ -103,10 +111,10 @@ describe("Failure", () => {
         assert.equal(
             err<string>("e")
                 .mapError((e) => `${e}!`)
-                .match(
-                    () => "ok",
-                    (e) => e,
-                ),
+                .match({
+                    ok: () => "ok",
+                    err: (e) => e,
+                }),
             "e!",
         );
     });
@@ -119,10 +127,10 @@ describe("Failure", () => {
             42,
         );
         assert.equal(
-            err<string>("e").match(
-                () => "ok",
-                (e) => `err:${e}`,
-            ),
+            err<string>("e").match({
+                ok: () => "ok",
+                err: (e) => `err:${e}`,
+            }),
             "err:e",
         );
         assert.equal(
@@ -151,6 +159,14 @@ describe("Failure", () => {
 
     it("throws the raw error on unwrapOrThrow", () => {
         assert.throws(() => err(new Error("boom")).unwrapOrThrow(), /boom/);
+    });
+
+    test("match instrada sul ramo err", () => {
+        const r = err<string, number>("boom");
+        assert.equal(
+            r.match({ ok: (d) => `ok:${d}`, err: (e) => `err:${e}` }),
+            "err:boom",
+        );
     });
 });
 

@@ -59,8 +59,8 @@ export class Success<T, E = never> {
     orElse<F>(_: (e: E) => Result<T, F>): Result<T, F> {
         return ok(this.data);
     }
-    match<A, B = A>(onOk: (data: T) => A, _onErr: (e: E) => B): A | B {
-        return onOk(this.data);
+    match<A, B = A>(handlers: { ok: (data: T) => A; err: (e: E) => B }): A | B {
+        return handlers.ok(this.data);
     }
     tap(fn: (data: T) => void): Result<T, E> {
         fn(this.data);
@@ -77,6 +77,7 @@ export class Success<T, E = never> {
     }
 
     // -- compat aliases (pre-existing API) ----------------------------------
+    /** @deprecated Usa `match({ ok, err })`. `fold` ha gli argomenti in ordine inverso. */
     fold<A, B = A>(_onErr: (e: E) => A, onOk: (data: T) => B): A | B {
         return onOk(this.data);
     }
@@ -123,8 +124,8 @@ export class Failure<T = never, E = unknown> {
     orElse<F>(fn: (e: E) => Result<T, F>): Result<T, F> {
         return fn(this.error);
     }
-    match<A, B = A>(_onOk: (data: T) => A, onErr: (e: E) => B): A | B {
-        return onErr(this.error);
+    match<A, B = A>(handlers: { ok: (data: T) => A; err: (e: E) => B }): A | B {
+        return handlers.err(this.error);
     }
     tap(_: (data: T) => void): Result<T, E> {
         return this;
@@ -141,6 +142,7 @@ export class Failure<T = never, E = unknown> {
     }
 
     // -- compat aliases (pre-existing API) ----------------------------------
+    /** @deprecated Usa `match({ ok, err })`. `fold` ha gli argomenti in ordine inverso. */
     fold<A, B = A>(onErr: (e: E) => A, _onOk: (data: T) => B): A | B {
         return onErr(this.error);
     }

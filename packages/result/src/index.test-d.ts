@@ -57,3 +57,18 @@ declare const chained: ReturnType<typeof r.flatMap<number, Other>>;
 type _FlatMapUnionsErrors = Expect<
     Equal<typeof chained, Result<number, NotFound | Other>>
 >;
+
+// match() takes a single { ok, err } handlers object.
+// NOTE: named `rMatch` (not `r`) to avoid redeclaring the module-level `r`
+// above; type is `Result<number, string>` per the task brief verbatim.
+declare const rMatch: Result<number, string>;
+
+const _a: string = rMatch.match({ ok: (d) => `n:${d}`, err: (e) => e });
+const _b: string | number = rMatch.match({ ok: (d) => d, err: (e) => e });
+
+// @ts-expect-error - handler `err` mancante
+const _c = rMatch.match({ ok: (d) => d });
+
+void _a;
+void _b;
+void _c;
