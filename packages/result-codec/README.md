@@ -167,6 +167,12 @@ instances (via `DecodeError.is`); a domain failure still comes back as a
 `Result.err(...)`, not a throw — the "unsafe" only applies to the
 transport, not to the domain outcome.
 
+One exception, and it is about your schema rather than the payload: if a
+branch schema is a Zod schema that throws internally on the hostile value,
+Zod turns that throw into a Promise and you get the deliberate `TypeError`
+of limitation 4 instead of a `DecodeError`. Keep the codec's schemas free
+of throwing transforms and this cannot happen.
+
 ### `EncodeError` / `DecodeError`
 
 ```ts

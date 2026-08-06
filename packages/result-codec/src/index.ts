@@ -56,14 +56,31 @@ const validateSync = <S extends StandardSchemaV1>(
 ): StandardSchemaV1.Result<Out<S>> => {
     // Uno schema puo' lanciare in modo sincrono (un `transform`/`refine` non
     // difensivo di un validatore non-zod, o uno schema che legge le proprieta'
-    // dell'input a mano su un payload ostile). Il throw diventa un issue: un
-    // DecodeError/EncodeError, non un'eccezione che attraversa il render.
-    let out: StandardSchemaV1.Result<Out<S>> | PromiseLike<unknown>;
+    // dell'input a mano su un payload ostile), oppure restituire un risultato
+    // ostile il cui `then` lancia in lettura. Il throw diventa un issue: un
+    // DecodeError/EncodeError, non un'eccezione che attraversa il render. Il
+    // `try` copre percio' anche il test sul thenable, non la sola chiamata a
+    // `validate` — altrimenti `serialize` resterebbe scoperta, non avendo il
+    // blocco difensivo esterno di `deserialize`.
     try {
-        out = schema["~standard"].validate(value) as
+        const out = schema["~standard"].validate(value) as
             | StandardSchemaV1.Result<Out<S>>
             | PromiseLike<unknown>;
+        if (isThenable(out)) {
+            // Zod converte QUALSIASI throw dello schema in una Promise (il
+            // fallback `safeParseAsync` nel suo `~standard.validate`): quella
+            // Promise puo' essere gia' rifiutata e, senza handler, la
+            // unhandled rejection porta giu' il processo Node. In un loader
+            // non e' un 500, e' il server che cade. La neutralizziamo prima
+            // di lanciare.
+            Promise.resolve(out).catch(() => {});
+            throw new SyncValidatorRequiredError(
+                "result-codec richiede validatori sincroni (il client deserializza durante il render): lo schema ha restituito un thenable. Con zod questo accade sia quando la validazione e' davvero asincrona, sia quando uno schema sincrono ha lanciato — zod converte il throw in una Promise, e i due casi sono indistinguibili a valle: controlla anche i transform/refine sincroni.",
+            );
+        }
+        return out;
     } catch (caught) {
+        if (caught instanceof SyncValidatorRequiredError) throw caught;
         return {
             issues: [
                 {
@@ -72,18 +89,6 @@ const validateSync = <S extends StandardSchemaV1>(
             ],
         };
     }
-    if (isThenable(out)) {
-        // Zod converte QUALSIASI throw dello schema in una Promise (il
-        // fallback `safeParseAsync` nel suo `~standard.validate`): quella
-        // Promise puo' essere gia' rifiutata e, senza handler, la unhandled
-        // rejection porta giu' il processo Node. In un loader non e' un 500,
-        // e' il server che cade. La neutralizziamo prima di lanciare.
-        Promise.resolve(out).catch(() => {});
-        throw new SyncValidatorRequiredError(
-            "result-codec richiede validatori sincroni (il client deserializza durante il render): lo schema ha restituito un thenable. Con zod questo accade sia quando la validazione e' davvero asincrona, sia quando uno schema sincrono ha lanciato — zod converte il throw in una Promise, e i due casi sono indistinguibili a valle: controlla anche i transform/refine sincroni.",
-        );
-    }
-    return out;
 };
 
 export interface CodecSchemas<

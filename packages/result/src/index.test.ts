@@ -322,6 +322,33 @@ describe("fromSchema", () => {
         assert.throws(() => fromSchema(foreignThenableSchema, 1), TypeError);
     });
 
+    test("fromSchema non lascia sfuggire un errore grezzo se il risultato dello schema e' ostile", () => {
+        // Non e' il `validate` a lanciare: e' la LETTURA di `then` sul suo
+        // risultato. Se il test sul thenable sta fuori dal blocco difensivo,
+        // l'eccezione grezza esce da `fromSchema`, che invece resta totale.
+        const hostileResultSchema = {
+            "~standard": {
+                version: 1 as const,
+                vendor: "test",
+                validate: () => {
+                    const out = {};
+                    // biome-ignore lint/suspicious/noThenProperty: il test verifica proprio cosa succede quando leggere `then` lancia.
+                    Object.defineProperty(out, "then", {
+                        get() {
+                            throw new Error("lettura di then esplode");
+                        },
+                        enumerable: true,
+                        configurable: true,
+                    });
+                    return out;
+                },
+            },
+        } as unknown as StandardSchemaV1<number, number>;
+        const r = fromSchema(hostileResultSchema, 1);
+        assert.ok(r.isFailure());
+        assert.match(r.error[0]?.message ?? "", /lettura di then esplode/);
+    });
+
     test("fromSchema restituisce gli issue se lo schema lancia in modo sincrono", () => {
         // Un validatore non-zod che lancia: senza protezione l'eccezione
         // grezza esce da `fromSchema`, che invece deve restare totale sui

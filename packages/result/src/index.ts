@@ -244,6 +244,14 @@ const _describeThrown = (caught: unknown): string => {
         return "errore non descrivibile";
     }
 };
+/**
+ * Il `TypeError` deliberato del ramo thenable, con un'identita' riconoscibile
+ * cosi' che il `catch` difensivo possa rilanciarlo SELETTIVAMENTE. Resta un
+ * `TypeError`, quindi `assert.throws(..., TypeError)` continua a valere.
+ * Privata al modulo: non fa parte dell'API pubblica.
+ */
+class _SyncValidationRequiredError extends TypeError {}
+
 const _fromSchema = <S extends StandardSchemaV1>(
     schema: S,
     input: unknown,
@@ -252,14 +260,36 @@ const _fromSchema = <S extends StandardSchemaV1>(
     readonly StandardSchemaV1.Issue[]
 > => {
     // Uno schema puo' lanciare in modo sincrono (un `transform`/`refine` non
-    // difensivo di un validatore non-zod): `fromSchema` resta totale sui dati
-    // e riporta il fallimento nel canale errori, come ogni altro issue.
-    let out: ReturnType<S["~standard"]["validate"]>;
+    // difensivo di un validatore non-zod), oppure restituire un risultato
+    // ostile le cui proprieta' lanciano in lettura. `fromSchema` resta totale
+    // sui dati: il throw diventa un issue, come ogni altro fallimento. Il
+    // `try` copre percio' anche il test sul thenable e la lettura di
+    // `issues`/`value`, non la sola chiamata a `validate`.
     try {
-        out = schema["~standard"].validate(input) as ReturnType<
+        const out = schema["~standard"].validate(input) as ReturnType<
             S["~standard"]["validate"]
         >;
+        if (_isThenable(out)) {
+            // Zod converte QUALSIASI throw dello schema in una Promise (il
+            // fallback `safeParseAsync` nel suo `~standard.validate`): quella
+            // Promise puo' essere gia' rifiutata e, senza handler, porta giu'
+            // il processo Node. La neutralizziamo prima di lanciare.
+            Promise.resolve(out).catch(() => {});
+            throw new _SyncValidationRequiredError(
+                "fromSchema richiede una validazione sincrona: lo schema ha restituito un thenable. Con zod questo accade sia quando la validazione e' davvero asincrona, sia quando uno schema sincrono ha lanciato (zod converte il throw in una Promise): controlla anche i transform/refine sincroni.",
+            );
+        }
+        return out.issues
+            ? _err<
+                  readonly StandardSchemaV1.Issue[],
+                  StandardSchemaV1.InferOutput<S>
+              >([...out.issues])
+            : _ok(out.value);
     } catch (caught) {
+        // Il thenable e' un errore di programmazione da correggere, non una
+        // condizione di dato: si rilancia selettivamente invece di dipendere
+        // da dove sta scritto il `try`.
+        if (caught instanceof _SyncValidationRequiredError) throw caught;
         return _err<
             readonly StandardSchemaV1.Issue[],
             StandardSchemaV1.InferOutput<S>
@@ -269,22 +299,6 @@ const _fromSchema = <S extends StandardSchemaV1>(
             },
         ]);
     }
-    if (_isThenable(out)) {
-        // Zod converte QUALSIASI throw dello schema in una Promise (il
-        // fallback `safeParseAsync` nel suo `~standard.validate`): quella
-        // Promise puo' essere gia' rifiutata e, senza handler, porta giu' il
-        // processo Node. La neutralizziamo prima di lanciare.
-        Promise.resolve(out).catch(() => {});
-        throw new TypeError(
-            "fromSchema richiede una validazione sincrona: lo schema ha restituito un thenable. Con zod questo accade sia quando la validazione e' davvero asincrona, sia quando uno schema sincrono ha lanciato (zod converte il throw in una Promise): controlla anche i transform/refine sincroni.",
-        );
-    }
-    return out.issues
-        ? _err<
-              readonly StandardSchemaV1.Issue[],
-              StandardSchemaV1.InferOutput<S>
-          >([...out.issues])
-        : _ok(out.value);
 };
 
 // ---------------------------------------------------------------------------

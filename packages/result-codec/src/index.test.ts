@@ -173,6 +173,46 @@ test("uno schema che restituisce un thenable non nativo lancia comunque un TypeE
     assert.throws(() => c.serialize(Result.ok(1)), TypeError);
 });
 
+test("serialize non lascia sfuggire un errore grezzo se il risultato dello schema e' ostile", () => {
+    // Non e' il `validate` a lanciare: e' la LETTURA di `then` sul suo
+    // risultato. `deserialize` sarebbe comunque coperta dal proprio blocco
+    // difensivo esterno; `serialize` no, quindi la protezione deve stare
+    // dentro `validateSync` e non dipendere da chi la chiama.
+    const hostileResultSchema = {
+        "~standard": {
+            version: 1 as const,
+            vendor: "test",
+            validate: () => {
+                const out = {};
+                // biome-ignore lint/suspicious/noThenProperty: il test verifica proprio cosa succede quando leggere `then` lancia.
+                Object.defineProperty(out, "then", {
+                    get() {
+                        throw new Error("lettura di then esplode");
+                    },
+                    enumerable: true,
+                    configurable: true,
+                });
+                return out;
+            },
+        },
+    } as unknown as StandardSchemaV1<number, number>;
+    const c = codec({
+        serialize: { ok: hostileResultSchema, err: ErrSchema },
+        deserialize: { ok: hostileResultSchema, err: ErrSchema },
+    });
+
+    const out = c.serialize(Result.ok(1));
+    assert.ok(out.isFailure());
+    assert.ok(EncodeError.is(out.error));
+    assert.equal(out.error.branch, "ok");
+    assert.match(out.error.issues[0]?.message ?? "", /lettura di then esplode/);
+
+    const back = c.deserialize({ success: true, data: 1 });
+    assert.ok(back.isFailure());
+    assert.ok(DecodeError.is(back.error));
+    assert.equal(back.error.branch, "ok");
+});
+
 test("deserialize ricostruisce il ramo ok", () => {
     const wire = JSON.parse(
         JSON.stringify(
