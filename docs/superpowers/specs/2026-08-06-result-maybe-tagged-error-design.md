@@ -124,13 +124,33 @@ L'implementazione deve:
 - assegnare `this.name = tag` (own enumerable — è ciò che oggi fa sopravvivere
   il discriminatore a `JSON.stringify`);
 - esporre `_tag` sia sull'istanza sia come statico sulla classe;
-- fare `Object.assign(this, props)` **dopo** `super()`, escludendo `message` e
-  `cause` che sono già gestiti da `Error`;
-- esporre `toJSON()` che emette `{ ..._ownProps, _tag, name, message }` — serve
-  perché `message` è own ma **non** enumerabile e altrimenti si perderebbe;
+- copiare i props **dopo** `super()`, con le tre regole di sicurezza qui sotto;
+- esporre `toJSON()` che emette `{ ..._ownProps, _tag, name, message }`, più
+  `cause` appiattita (§ 5.6) — serve perché `message` è own ma **non**
+  enumerabile e altrimenti si perderebbe. `stack` è deliberatamente escluso:
+  non deve raggiungere il client;
 - esporre `static is(u: unknown): u is …` che verifica `u instanceof Error &&
   u._tag === tag` (funziona cross-realm, a differenza di `instanceof` sulla
-  classe).
+  classe) e restringe al **tipo concreto**, props inclusi.
+
+**Le tre regole sulla copia dei props — non negoziabili.** `taggedErrorSchema`
+costruisce istanze da payload di rete non fidato, quindi il costruttore è
+codice di confine:
+
+1. **Rifiutare le chiavi riservate**, `_tag`, `name`, `message`, `cause`,
+   `stack` e **`__proto__`**. Quest'ultima è la più insidiosa: `JSON.parse` la
+   materializza come proprietà own, quindi arriva nel ciclo di copia come una
+   chiave qualunque.
+2. **Rifiutare qualunque chiave raggiungibile sul prototipo**
+   (`k in Object.getPrototypeOf(this)`), così un payload non può sostituire
+   `toJSON`, `match` o `constructor` con un dato.
+3. **Assegnare con `Object.defineProperty`**, mai con assegnazione diretta:
+   `this[k] = v` invocherebbe i setter, incluso quello di `__proto__`.
+
+Senza la 1 e la 3 un payload `{"__proto__":{…}}` sostituisce il prototipo
+dell'istanza: `instanceof` diventa `false` e `.match` sparisce — cioè
+esattamente la garanzia per cui questo package esiste. È stato riscontrato in
+review, non è teorico.
 
 ### 1.4 Costo noto
 
@@ -257,45 +277,148 @@ per chi il codec lo usa — coerente con la granularità del monorepo.
 Dipendenze: `@efesto-cloud/result`, `@efesto-cloud/tagged-error`,
 `@standard-schema/spec` (solo tipi).
 
+### 5.1 Quattro schemi, non due
+
 ```ts
 const UserResult = codec({
-    ok: UserSchema,                                        // qualunque StandardSchemaV1
-    err: taggedErrorSchema(FooNotFoundError, InvalidFooNameError),
+    serialize:   { ok: UserToWire,   err: DomainErrorToWire },
+    deserialize: { ok: UserFromWire, err: DomainErrorFromWire },
 });
-
-UserResult.serialize(result): Result<IResult<OkOut, ErrOut>, EncodeError>;
-UserResult.serializeUnsafe(result): IResult<OkOut, ErrOut>;          // lancia EncodeError
-
-UserResult.deserialize(input: unknown): Result<Result<Ok, Err>, DecodeError>;
-UserResult.deserializeUnsafe(input: unknown): Result<Ok, Err>;       // lancia DecodeError
 ```
 
-**Il doppio `Result` in `deserialize` è il punto del design:** distingue *"il
-dominio ha detto no"* (il `Result` interno) da *"il payload sul filo non è
-quello che ci aspettavamo"* (quello esterno) — schema cambiato, versioni
-disallineate, dato corrotto in coda. `fromObject` oggi confonde i due casi e
-produce un `Success` contenente spazzatura.
+**Uno schema per direzione, non uno per ramo.** È la lezione presa da
+better-result, ed è il cardine di tutto il resto.
+
+La prima stesura di questa spec prevedeva due soli schemi (`{ ok, err }`),
+assumendo che lo stesso schema validasse entrambi i versi. Quell'assunzione
+costringeva a infilare la ricostruzione delle istanze **dentro** il `validate`
+di uno schema — cioè a far compiere a un validatore un effetto collaterale che
+non gli compete. Da lì sono nati due difetti, entrambi trovati in review:
+la validazione dei props d'errore non avveniva mai (si guardava solo il
+`_tag`), e la costruzione da payload non fidato ha aperto un buco di prototype
+pollution.
+
+Separare le direzioni li chiude entrambi per costruzione: lo schema di
+`deserialize.err` è uno schema vero, quindi valida i props come qualunque
+altro payload, e se vuole restituire un'istanza lo fa con una trasformazione
+esplicita, che è il posto giusto.
+
+Ne segue anche che **la forma sul filo può differire da quella di dominio** —
+`Date` verso stringa ISO, value object verso primitivo — senza forzare il
+dominio ad assomigliare al JSON.
+
+### 5.2 La superficie
+
+```ts
+UserResult.serialize(result): Result<IResult<OkWire, ErrWire>, EncodeError>;
+UserResult.serializeUnsafe(result): IResult<OkWire, ErrWire>;   // lancia EncodeError
+
+UserResult.deserialize(input: unknown): Result<Ok, Err | DecodeError>;
+UserResult.deserializeUnsafe(input: unknown): Result<Ok, Err>;  // lancia DecodeError
+```
+
+**`deserialize` restituisce un'unione piatta, non un `Result` annidato.**
+Anche questa è una correzione. La stesura precedente restituiva
+`Result<Result<Ok, Err>, DecodeError>` per distinguere *"il dominio ha detto
+no"* da *"il payload non è quello che ci aspettavamo"*. La distinzione resta
+giusta, ma si ottiene meglio dal **tag**: `DecodeError` entra nel canale
+errori come un'altra variante e si gestisce con lo stesso `matchError` di
+tutte le altre. Il doppio `Result` costringeva ogni consumatore a scartare due
+livelli prima di arrivare al dato — scomodo esattamente dove serve di più, nel
+componente.
+
+```ts
+const result = UserResult.deserialize(useLoaderData());
+return matchError(result, {
+    FooNotFoundError: () => <NonTrovato />,
+    InvalidFooNameError: (e) => <ErroreCampo campo={e.campo} />,
+    DecodeError: (e) => <PayloadIncompatibile issues={e.issues} />,
+});
+```
 
 **Linea guida d'uso:** `serializeUnsafe` sul server (i dati li produci tu, un
 fallimento è un bug) e `deserialize` sul client (il filo non è fidato).
 
 `EncodeError` e `DecodeError` sono essi stessi `TaggedError` — il codec
-dogfooda il package. `DecodeError` porta gli `Issue` di Standard Schema come
-props, così il chiamante sa *cosa* non tornava nel payload.
+dogfooda il package. Entrambi portano gli `Issue` di Standard Schema e un
+campo `branch` che dice *dove* si è rotto il contratto.
 
-### 5.1 `taggedErrorSchema` — reidratazione delle istanze
+### 5.3 Il codec è sincrono — divergenza deliberata
 
-Esportato da `tagged-error`. Restituisce uno `StandardSchemaV1` il cui
-`validate`:
+Standard Schema ammette validatori asincroni, e better-result infatti espone
+`serialize`/`deserialize` come `async`. **Noi no.**
 
-1. verifica che l'input sia un oggetto con `_tag` fra quelli registrati;
-2. ricostruisce l'istanza con `new Cls(props)`, **rimuovendo prima `_tag` e
-   `name`** dai props (altrimenti `Object.assign` sovrascriverebbe i valori
-   canonici della classe);
-3. emette un `Issue` se il tag è sconosciuto.
+Il motivo è il nostro confine concreto: il lato client di un loader React
+Router deserializza **durante il render**, dove non si può attendere una
+Promise. Un codec asincrono renderebbe inutilizzabile il caso d'uso per cui il
+package esiste.
 
-Effetto: nel client `result.error instanceof FooNotFoundError` funziona, e il
-codice di gestione errori è identico a quello del server.
+Il codec quindi richiede validatori sincroni e lancia un `TypeError` se uno
+schema ne restituisce una Promise — stessa politica di `fromSchema` (§ 2.4).
+
+### 5.4 Manteniamo la nostra busta
+
+better-result usa `{ status: "ok", value }` / `{ status: "error", error }`.
+Noi restiamo su `IResult` — `{ success, data, error }` — perché è già la forma
+che `Result.toObject()`, `Result.fromObject()` e tutto `@efesto-cloud/toast`
+producono e consumano in tutta l'organizzazione. Cambiarla sarebbe un breaking
+change molto più largo del codec, senza guadagno.
+
+### 5.5 `taggedErrorSchema` — comodità, non unica strada
+
+Esportato da `tagged-error`. Restituisce uno `StandardSchemaV1` che verifica il
+`_tag` contro un registro di classi e ricostruisce l'istanza concreta.
+
+Con la separazione delle direzioni il suo ruolo si ridimensiona: è **uno degli
+schemi che puoi passare nello slot `deserialize.err`**, non il meccanismo
+obbligatorio. Serve quando ti basta discriminare sul tag e non hai props da
+validare — il caso comune, viste le convenzioni dei `core`, dove gli errori di
+dominio sono per lo più parameterless.
+
+Quando i props contano, si compone con uno schema che li valida:
+
+```ts
+// solo tag — errori parameterless
+deserialize: { err: taggedErrorSchema(FooNotFoundError, FooArchivedError) }
+
+// tag + props validati
+deserialize: { err: z.union([
+    FooFieldTooLongSchema,   // valida campo e maxLength, poi costruisce l'istanza
+    taggedErrorSchema(FooNotFoundError),
+]) }
+```
+
+**Nota di sicurezza, appresa a caro prezzo.** `taggedErrorSchema` costruisce
+istanze da un payload non fidato. Il costruttore di `TaggedError` deve quindi
+rifiutare ogni chiave che ombreggi il prototipo — `__proto__` in testa, che
+`JSON.parse` materializza come proprietà own — e assegnare con
+`Object.defineProperty`, mai con assegnazione diretta, che invocherebbe i
+setter. Questo è implementato e testato in Fase A; qualunque schema che
+costruisca istanze da dato di rete ha lo stesso dovere.
+
+### 5.6 `cause` attraverso il filo
+
+Un `Error` non è serializzabile: `name`, `message` e `stack` sono own ma non
+enumerabili, quindi `JSON.stringify(new Error("x"))` produce `{}`. Una `cause`
+attraverserebbe la rete come oggetto vuoto.
+
+`TaggedErrorBase.toJSON()` la appiattisce ricorsivamente a dato — nome,
+messaggio, props e, per una cause tagged, il suo `_tag`. Tre scelte esplicite:
+
+- **`stack` è omesso**, sia dall'errore sia dalle sue cause: una stack trace
+  del server non deve raggiungere il client. better-result invece la include;
+  qui divergiamo di proposito.
+- **La catena è protetta dai cicli.** `err.cause = err`, o una cause che punta
+  a un antenato, produce `"[Circular]"` invece di far esplodere
+  `JSON.stringify`. better-result non documenta alcuna protezione.
+- **Una cause che non è un `Error` passa inalterata**: è dato del chiamante e
+  non tocca a noi reinterpretarlo.
+
+**Una cause non viene ricostruita come istanza.** Torna come dato, anche se
+tagged. Nemmeno better-result lo fa, e reidratare ricorsivamente una catena
+significherebbe registrare ogni classe che può comparire come cause — costo
+alto per un valore quasi sempre solo diagnostico. Chi ha bisogno dell'istanza
+la ricostruisce nel proprio schema di `deserialize.err`.
 
 ---
 
