@@ -108,6 +108,10 @@ importers:
       '@efesto-cloud/maybe':
         specifier: workspace:*
         version: link:../maybe
+    devDependencies:
+      '@types/node':
+        specifier: '24'
+        version: 24.12.2
 
   packages/metadata: {}
 
