@@ -65,7 +65,8 @@ If chaining is repetitive, the functional helpers (below) help.
 | `.map(fn)` | `Result<T, E>.map(t -> u): Result<U, E>` | Transform the success value; pass through on failure. |
 | `.flatMap(fn)` | `Result<T, E>.flatMap(t -> Result<U, E>): Result<U, E>` | Same but the function itself returns a `Result`. |
 | `.mapError(fn)` | `Result<T, E>.mapError(e -> e2): Result<T, E2>` | Transform the error; pass through on success. |
-| `.fold(onSuccess, onFailure)` | Both branches return the same type | Collapse to a single value. |
+| `.match({ ok, err })` | Both branches return the same type | Collapse to a single value. Recommended. |
+| `.fold(onErr, onOk)` | Both branches return the same type | **Deprecated** — use `.match({ ok, err })` instead. Note the argument order: the *error* handler comes first. |
 
 `flatMap` is the workhorse for chaining Result-returning steps:
 
@@ -146,9 +147,23 @@ if (parsed.isFailure()) {
 Used in route loaders/actions for input shaping. The use case's
 input type is then the parsed-and-typed object.
 
+## Static guards
+
+`Result.isOk(result)` / `Result.isErr(result)` (also available as the
+named exports `isOk` / `isErr`) narrow a `Result` from outside a method
+chain — handy as an `Array.prototype.filter` predicate:
+
+```ts
+const results: Result<Foo, DomainError>[] = items.map(tryBuildFoo);
+const successes = results.filter(Result.isOk); // Foo[]-narrowed Success[]
+```
+
 ## Anti-patterns
 
-- **`isErr()`** — not part of the API. Use `isFailure()`.
+- **`result.isErr()`** as an instance method — not part of the API. Use
+  `.isFailure()`. (The standalone `Result.isErr(result)` / `isErr(result)`
+  guard *does* exist and is useful as an `Array.prototype.filter`
+  predicate — see "Static guards" below.)
 - **`unwrap()`** — not part of the API. Use `unwrapOrThrow()`.
 - **`getOr()`** — not part of the API. Use `.else(() => default).data`
   or `.unwrapOrThrow()` plus an outer try/catch.
@@ -202,14 +217,22 @@ result.error;       // available after isFailure() narrowed
 result.map((t) => u);
 result.flatMap((t) => Result.ok(u));
 result.mapError((e) => e2);
+result.match({
+    ok: (t) => /* on success */,
+    err: (e) => /* on failure */,
+});
 result.fold(
+    (e) => /* on failure — error handler comes FIRST, deprecated */,
     (t) => /* on success */,
-    (e) => /* on failure */,
 );
 
 // Fallback / unwrap
 result.else(() => fallback).data;
 result.unwrapOrThrow();
+
+// Static guards
+Result.isOk(result);
+Result.isErr(result);
 
 // Serialise
 result.toObject();

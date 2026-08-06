@@ -22,9 +22,10 @@ Use this skill to keep `Result<T, E>` usage consistent across the project.
 - Integrate Zod validation with `Result.fromZod(zodParseResult)` — converts `SafeParseReturnType` to `Result`.
 
 ## Common Mistakes To Avoid
-- Do not use `isErr()`.
+- Do not call `result.isErr()` as an instance method — it does not exist, use `result.isFailure()`. (The standalone `Result.isErr(result)` guard does exist, e.g. for `Array.prototype.filter`.)
 - Do not use `unwrap()`.
 - Do not use `getOr()`.
+- Do not pass handlers to `fold` in success-first order — `fold(onErr, onOk)` calls the *first* argument with the error. Prefer `match({ ok, err })`, which reads unambiguously and is not deprecated.
 
 ## Procedure
 1. Identify where `Result<T, E>` is created and returned.
@@ -38,7 +39,7 @@ Use this skill to keep `Result<T, E>` usage consistent across the project.
 	- Propagate error: branch on `isFailure()`
 	- Convert to plain value with fallback: `res.else(() => value)`
 	- Crash-fast boundary only: `res.unwrapOrThrow()`
-5. If mapping/transformation is needed, use `map`, `flatMap`, `mapError`, or `fold`.
+5. If mapping/transformation is needed, use `map`, `flatMap`, `mapError`, or `match({ ok, err })` to collapse to a single value.
 
 ## Quick Patterns
 ```ts
