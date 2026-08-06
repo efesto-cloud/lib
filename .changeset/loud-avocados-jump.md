@@ -30,3 +30,8 @@ su un export dedicato, ed e' rimandata.
 `@efesto-cloud/toast` dichiara ora `dependencies` su maybe e result invece
 di `peerDependencies`, allineandosi alla convenzione degli altri package del
 monorepo: non e' piu' il consumatore a doverle installare.
+
+Fix: `fromSchema` ora rileva un `validate()` asincrono in modo strutturale
+(callable `then`) invece di `instanceof Promise`, cosi' da lanciare anche su
+thenable non nativi o Promise cross-realm (node:vm, worker, iframe) invece
+di restituire in silenzio `ok(undefined)`.
