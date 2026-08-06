@@ -65,7 +65,7 @@ adopt the message of the `Toast` they return.
 | `mapError(fn)` | Transform `error`; data and message pass through. |
 | `flatMap(fn)` / `andThen(fn)` | Chain another `Toast`. |
 | `orElse(fn)` | Recover from a failure by returning a new `Toast`. |
-| `match(onOk, onErr)` | Collapse to a single value (success-first). |
+| `match({ ok, err })` | Collapse to a single value. |
 | `tap(fn)` | Side-effect on success; passes through. |
 | `tapError(fn)` | Side-effect on failure; passes through. |
 | `unwrapOr(fallback)` | `data`, or `fallback` on failure. |
@@ -80,7 +80,7 @@ imports (`import { ok, err, fromResult } from "@efesto-cloud/toast"`).
 
 | Method | Prefer |
 | --- | --- |
-| `fold(onErr, onOk)` | `match(onOk, onErr)` |
+| `fold(onErr, onOk)` | `match({ ok, err })` — `fold` is deprecated and, unlike the old positional `match`, calls its *first* argument with the error. |
 | `run(fn)` | `tap(fn)` |
 | `else(() => value)` | `unwrapOr(value)` when you want the raw value |
 

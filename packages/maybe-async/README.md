@@ -62,7 +62,7 @@ MaybeAsync.fromThrowable(asyncFn);      // wrap an async function; throw -> None
 | `flatMap(fn)` / `andThen(fn)` | Chain another `Maybe` / `MaybeAsync` / `Promise<Maybe>`. |
 | `filter(predicate)` | Drop to `None` if predicate fails. `predicate` may be async. |
 | `orElse(fn)` | Recover from `None` by returning a new Maybe/MaybeAsync. |
-| `match(onSome, onNone)` | Collapse to a single value (some-first). Returns a `Promise`. |
+| `match({ some, none })` | Collapse to a single value. Returns a `Promise`. |
 | `tap(fn)` | Side-effect if `Some`; passes through. |
 | `tapNone(fn)` | Side-effect if `None`; passes through. |
 | `unwrapOr(fallback)` | Returns `Promise<T \| U>` — value or fallback. |

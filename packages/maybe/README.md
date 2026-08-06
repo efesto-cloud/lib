@@ -30,6 +30,7 @@ const displayName = Maybe.maybe(user.nickname)
 - Extract with `unwrapOr(fallback)`; use `unwrapOrThrow()` only when a missing
   value is a programmer error (throws `NoneError`).
 - Convert to `Result` when the caller expects one: `m.toResult()`.
+- Collapse to a single value with `m.match({ some, none })`.
 
 Factories are available both as namespace members (`Maybe.some(...)`) and as
 named imports (`import { some, none, maybe } from "@efesto-cloud/maybe"`).
@@ -44,8 +45,9 @@ some(value);    // always Some
 none();         // always None
 
 fromObject({ some: true, data });
-fromThrowable(fn);   // (...args) => Maybe<T>; None if fn throws or returns nullish
-combine(m1, m2);     // Some<[T1, T2]> only if both present
+fromThrowable(fn);          // (...args) => Maybe<T>; None if fn throws or returns nullish
+fromResult(result);         // Some(data) on Success, None on Failure (error is dropped)
+all([m1, m2, m3]);          // variadic, tuple-typed: Some<[T1, T2, T3]> only if every element is Some
 ```
 
 ### Instance methods
@@ -56,19 +58,26 @@ combine(m1, m2);     // Some<[T1, T2]> only if both present
 | `map(fn)` | Transform the contained value. |
 | `flatMap(fn)` / `andThen(fn)` | Chain another `Maybe`-returning call. |
 | `filter(predicate)` | Drop to `None` if predicate fails. |
-| `match(onSome, onNone)` | Collapse to a single value (some-first). |
+| `match({ some, none })` | Collapse to a single value. |
+| `or(other)` | Return `this` if `Some`, otherwise `other`. |
 | `tap(fn)` | Side-effect if `Some`; passes through. |
 | `tapNone(fn)` | Side-effect if `None`; passes through. |
 | `unwrapOr(fallback)` | Contained value, or `fallback` if `None`. |
 | `unwrapOrThrow()` | Contained value, or throws `NoneError`. |
 | `toObject()` | Plain `{ some, data }` shape. |
-| `toResult()` | Convert to `Result<T, NoneError>`. |
+| `toResult(errorFactory?)` | Convert to `Result<T, E \| NoneError>`. Without an argument the error is `NoneError`; pass a factory to produce a domain-specific error on `None` instead. |
+
+### Collection combinators
+
+```ts
+Maybe.flatten(nested); // Maybe<Maybe<T>> -> Maybe<T>
+```
 
 #### Compatibility aliases
 
 | Method | Prefer |
 | --- | --- |
-| `fold(onNone, onSome)` | `match(onSome, onNone)` |
+| `fold(onNone, onSome)` | `match({ some, none })` |
 | `run(fn)` | `tap(fn)` |
 | `else(() => value)` | `unwrapOr(value)` when you want the raw value |
 

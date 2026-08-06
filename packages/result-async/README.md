@@ -46,6 +46,7 @@ errAsync(error);                                      // ResultAsync<never, E>
 ResultAsync.fromPromise(p, (e) => mapped);            // wrap a rejecting promise
 ResultAsync.fromSafePromise(p);                       // wrap a non-rejecting promise
 ResultAsync.fromThrowable(asyncFn, (e) => mapped);    // wrap an async function
+ResultAsync.fromResult(result);                       // bridge a sync Result into ResultAsync
 ```
 
 ### Instance methods
@@ -57,11 +58,21 @@ ResultAsync.fromThrowable(asyncFn, (e) => mapped);    // wrap an async function
 | `mapError(fn)` | Transform `error`; data passes through. `fn` may be async. |
 | `flatMap(fn)` / `andThen(fn)` | Chain another `Result` / `ResultAsync` / `Promise<Result>`. |
 | `orElse(fn)` | Recover from a failure by returning a new Result/ResultAsync. |
-| `match(onOk, onErr)` | Collapse to a single value. Returns a `Promise`. |
+| `match({ ok, err })` | Collapse to a single value. Returns a `Promise`. |
 | `tap(fn)` | Side-effect on success; passes the value through. |
 | `tapError(fn)` | Side-effect on failure; passes the value through. |
+| `tapBoth({ ok?, err? })` | Side-effect on whichever branch matched; passes through. |
 | `unwrapOr(fallback)` | Returns `Promise<T \| U>` — data or fallback. |
 | `unwrapOrThrow()` | Returns `Promise<T>` or throws the error. |
+
+### Async combinators
+
+```ts
+import { allAsync, partitionAsync } from "@efesto-cloud/result-async";
+
+allAsync([ra1, ra2, ra3]);   // Promise<Result<[T1, T2, T3], E1 | E2 | E3>> — awaits concurrently, first error short-circuits
+partitionAsync([ra1, ra2]);  // Promise<[T[], E[]]> — awaits concurrently, does not short-circuit
+```
 
 ## Patterns
 
