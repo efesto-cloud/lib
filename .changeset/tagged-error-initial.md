@@ -1,5 +1,5 @@
 ---
-"@efesto-cloud/tagged-error": minor
+"@efesto-cloud/tagged-error": major
 ---
 
 Nuovo package: errori di dominio con `_tag` letterale, `match` esaustivo

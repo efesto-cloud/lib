@@ -89,7 +89,7 @@ test("match instrada sul tag corretto", () => {
     // Il cast esplicito e necessario: senza, TypeScript restringe il tipo di
     // `err` al tipo del valore assegnato (OutOfStock) tramite control-flow
     // narrowing, nonostante l'annotazione union — e la signature di `match`,
-    // che infierisce Self da `this`, vedrebbe solo OutOfStock invece
+    // che inferisce Self da `this`, vedrebbe solo OutOfStock invece
     // dell'union dichiarata, facendo fallire il typecheck sull'handler
     // CartNotFound come proprieta in eccesso.
     const err: CartNotFound | OutOfStock = new OutOfStock({

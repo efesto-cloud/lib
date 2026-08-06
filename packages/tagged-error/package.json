@@ -1,6 +1,6 @@
 {
     "name": "@efesto-cloud/tagged-error",
-    "version": "1.0.0",
+    "version": "0.0.0",
     "description": "Tagged domain errors for efesto-cloud",
     "repository": {
         "type": "git",
