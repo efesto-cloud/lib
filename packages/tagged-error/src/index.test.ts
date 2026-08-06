@@ -260,3 +260,23 @@ test("un array con _tag non e un payload valido", () => {
     assert.ok(out.issues !== undefined);
 });
 
+test("tag duplicati falliscono alla composizione dello schema", () => {
+    class AltroOutOfStock extends TaggedError("OutOfStock")<{ sku: string }> {}
+    assert.throws(
+        () => taggedErrorSchema(OutOfStock, AltroOutOfStock),
+        (e: unknown) =>
+            e instanceof TypeError && e.message.includes("OutOfStock"),
+    );
+});
+
+test("un tag senza handler fallisce in modo diagnosticabile", () => {
+    // Il caso della migrazione: l'errore e allargato ad AnyTaggedError, quindi
+    // il compilatore non puo verificare l'esaustivita.
+    const err: AnyTaggedError = new OutOfStock({ sku: "X" });
+    assert.throws(
+        () => matchError(err, { CartNotFound: () => "no" }),
+        (e: unknown) =>
+            e instanceof TypeError && e.message.includes("OutOfStock"),
+    );
+});
+

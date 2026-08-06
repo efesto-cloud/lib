@@ -6,8 +6,15 @@ export type TagHandlers<Self extends { readonly _tag: string }, R> = {
     [K in Self["_tag"]]: (error: Extract<Self, { readonly _tag: K }>) => R;
 };
 
-const dispatch = <R>(tag: string, handlers: unknown, arg: unknown): R =>
-    (handlers as Record<string, (a: unknown) => R>)[tag](arg);
+const dispatch = <R>(tag: string, handlers: unknown, arg: unknown): R => {
+    const handler = (
+        handlers as Record<string, ((a: unknown) => R) | undefined>
+    )[tag];
+    if (typeof handler !== "function") {
+        throw new TypeError(`No handler for tag "${tag}"`);
+    }
+    return handler(arg);
+};
 
 export abstract class TaggedErrorBase extends Error {
     abstract readonly _tag: string;
@@ -137,9 +144,13 @@ export type AnyTaggedErrorClass = {
 export function taggedErrorSchema<C extends readonly AnyTaggedErrorClass[]>(
     ...classes: C
 ): StandardSchemaV1<unknown, InstanceType<C[number]>> {
-    const byTag = new Map<string, AnyTaggedErrorClass>(
-        classes.map((c) => [c._tag, c]),
-    );
+    const byTag = new Map<string, AnyTaggedErrorClass>();
+    for (const c of classes) {
+        if (byTag.has(c._tag)) {
+            throw new TypeError(`Duplicate error tag "${c._tag}"`);
+        }
+        byTag.set(c._tag, c);
+    }
     return {
         "~standard": {
             version: 1,
