@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it, test } from "node:test";
+import { z } from "zod";
 import Result, {
     all,
     err,
     flatten,
     fromObject,
+    fromSchema,
     fromThrowable,
     isErr,
     isOk,
@@ -266,5 +268,34 @@ describe("tapBoth e guard statici", () => {
         ];
         assert.equal(list.filter(isOk).length, 2);
         assert.equal(list.filter(isErr).length, 1);
+    });
+});
+
+describe("fromSchema", () => {
+    test("fromSchema restituisce ok sull'input valido", () => {
+        const schema = z.object({ nome: z.string() });
+        const r = fromSchema(schema, { nome: "ada" });
+        assert.ok(r.isSuccess());
+        assert.deepEqual(r.data, { nome: "ada" });
+    });
+
+    test("fromSchema restituisce gli issue sull'input invalido", () => {
+        const schema = z.object({ nome: z.string() });
+        const r = fromSchema(schema, { nome: 42 });
+        assert.ok(r.isFailure());
+        assert.ok(Array.isArray(r.error));
+        assert.ok(r.error.length > 0);
+        assert.equal(typeof r.error[0].message, "string");
+    });
+
+    test("fromSchema lancia se la validazione e asincrona", () => {
+        const asyncSchema = {
+            "~standard": {
+                version: 1 as const,
+                vendor: "test",
+                validate: () => Promise.resolve({ value: 1 }),
+            },
+        };
+        assert.throws(() => fromSchema(asyncSchema, 1), TypeError);
     });
 });

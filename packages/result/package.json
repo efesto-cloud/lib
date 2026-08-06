@@ -30,6 +30,17 @@
         "test": "tsx --test \"src/**/*.test.ts\"",
         "clean": "rm -rf dist"
     },
+    "dependencies": {
+        "@standard-schema/spec": "^1.0.0"
+    },
+    "peerDependencies": {
+        "zod": "^4"
+    },
+    "peerDependenciesMeta": {
+        "zod": {
+            "optional": true
+        }
+    },
     "devDependencies": {
         "@types/node": "24",
         "zod": "^4"

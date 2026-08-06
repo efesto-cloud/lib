@@ -1,3 +1,4 @@
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type { ZodError, ZodSafeParseResult } from "zod";
 
 // ---------------------------------------------------------------------------
@@ -233,6 +234,26 @@ const _fromZod = <Output>(
     res: ZodSafeParseResult<Output>,
 ): Result<Output, ZodError<Output>> =>
     res.success ? _ok(res.data) : _err(res.error);
+const _fromSchema = <S extends StandardSchemaV1>(
+    schema: S,
+    input: unknown,
+): Result<
+    StandardSchemaV1.InferOutput<S>,
+    readonly StandardSchemaV1.Issue[]
+> => {
+    const out = schema["~standard"].validate(input);
+    if (out instanceof Promise) {
+        throw new TypeError(
+            "fromSchema richiede una validazione sincrona; usa uno schema non asincrono",
+        );
+    }
+    return out.issues
+        ? _err<
+              readonly StandardSchemaV1.Issue[],
+              StandardSchemaV1.InferOutput<S>
+          >([...out.issues])
+        : _ok(out.value);
+};
 
 // ---------------------------------------------------------------------------
 // Collection combinators.
@@ -280,6 +301,7 @@ export const err = _err;
 export const fromThrowable = _fromThrowable;
 export const fromObject = _fromObject;
 export const fromZod = _fromZod;
+export const fromSchema = _fromSchema;
 export const all = _all;
 export const partition = _partition;
 export const flatten = _flatten;
@@ -298,6 +320,7 @@ namespace Result {
     export const fromThrowable = _fromThrowable;
     export const fromObject = _fromObject;
     export const fromZod = _fromZod;
+    export const fromSchema = _fromSchema;
     export const all = _all;
     export const partition = _partition;
     export const flatten = _flatten;
