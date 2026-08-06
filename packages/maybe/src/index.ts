@@ -62,8 +62,8 @@ export class Some<T extends NonNullable<unknown>> implements ISome<T> {
         return predicate(this.data) ? new Some(this.data) : new None();
     }
 
-    match<A, B = A>(onSome: (value: T) => A, _onNone: () => B): A | B {
-        return onSome(this.data);
+    match<A, B = A>(handlers: { some: (value: T) => A; none: () => B }): A | B {
+        return handlers.some(this.data);
     }
 
     tap(fn: (value: T) => void): Maybe<T> {
@@ -72,6 +72,10 @@ export class Some<T extends NonNullable<unknown>> implements ISome<T> {
     }
 
     tapNone(_: () => void): Maybe<T> {
+        return this;
+    }
+
+    or(_: Maybe<T>): Maybe<T> {
         return this;
     }
 
@@ -88,6 +92,7 @@ export class Some<T extends NonNullable<unknown>> implements ISome<T> {
         fn(this.data);
     }
 
+    /** @deprecated Usa `match({ some, none })`. */
     fold<R1, R2>(_: () => R1, onSome: (value: T) => R2): R1 | R2 {
         return onSome(this.data);
     }
@@ -103,7 +108,7 @@ export class Some<T extends NonNullable<unknown>> implements ISome<T> {
         };
     }
 
-    toResult(): Result<T, NoneError> {
+    toResult<E = NoneError>(_?: () => E): Result<T, E | NoneError> {
         return Result.ok(this.data);
     }
 }
@@ -139,8 +144,8 @@ export class None<T extends NonNullable<unknown> = never> implements INone {
         return new None();
     }
 
-    match<A, B = A>(_onSome: (value: T) => A, onNone: () => B): A | B {
-        return onNone();
+    match<A, B = A>(handlers: { some: (value: T) => A; none: () => B }): A | B {
+        return handlers.none();
     }
 
     tap(_: (value: T) => void): Maybe<T> {
@@ -150,6 +155,10 @@ export class None<T extends NonNullable<unknown> = never> implements INone {
     tapNone(fn: () => void): Maybe<T> {
         fn();
         return this;
+    }
+
+    or(other: Maybe<T>): Maybe<T> {
+        return other;
     }
 
     unwrapOr<U>(fallback: U): T | U {
@@ -165,6 +174,7 @@ export class None<T extends NonNullable<unknown> = never> implements INone {
         return;
     }
 
+    /** @deprecated Usa `match({ some, none })`. */
     fold<R1, R2>(onNone: () => R1, _: (value: T) => R2): R1 | R2 {
         return onNone();
     }
@@ -180,8 +190,8 @@ export class None<T extends NonNullable<unknown> = never> implements INone {
         };
     }
 
-    toResult(): Result<T, NoneError> {
-        return Result.err(new NoneError());
+    toResult<E = NoneError>(errorFactory?: () => E): Result<T, E | NoneError> {
+        return Result.err(errorFactory ? errorFactory() : new NoneError());
     }
 }
 
@@ -212,16 +222,31 @@ const _fromThrowable = <Args extends unknown[], T extends NonNullable<unknown>>(
         }
     };
 };
-const _combine = <
-    T1 extends NonNullable<unknown>,
-    T2 extends NonNullable<unknown>,
->(
-    m1: Maybe<T1>,
-    m2: Maybe<T2>,
-): Maybe<[T1, T2]> =>
-    m1.isSome() && m2.isSome()
-        ? new Some<[T1, T2]>([m1.data, m2.data])
-        : new None();
+type SomeOf<M> =
+    M extends Some<infer T> ? T : M extends None<infer T> ? T : never;
+
+type SomeTuple<T extends readonly unknown[]> = {
+    [K in keyof T]: SomeOf<T[K]>;
+} & NonNullable<unknown>;
+
+const _all = <T extends readonly Maybe<NonNullable<unknown>>[]>(
+    maybes: readonly [...T],
+): Maybe<SomeTuple<T>> => {
+    const values: unknown[] = [];
+    for (const m of maybes) {
+        if (m.isNone()) return new None<SomeTuple<T>>();
+        values.push(m.data);
+    }
+    return new Some<SomeTuple<T>>(values as SomeTuple<T>);
+};
+
+const _flatten = <T extends NonNullable<unknown>>(
+    nested: Maybe<Maybe<T>>,
+): Maybe<T> => (nested.isNone() ? new None<T>() : nested.data);
+
+const _fromResult = <T extends NonNullable<unknown>>(
+    r: Result<T, unknown>,
+): Maybe<T> => (r.isSuccess() ? new Some<T>(r.data) : new None<T>());
 
 // ---------------------------------------------------------------------------
 // Module-level factories (neverthrow-style).
@@ -232,11 +257,13 @@ export const none = _none;
 export const maybe = _maybe;
 export const fromObject = _fromObject;
 export const fromThrowable = _fromThrowable;
-export const combine = _combine;
+export const all = _all;
+export const flatten = _flatten;
+export const fromResult = _fromResult;
 
 // ---------------------------------------------------------------------------
 // `Maybe` namespace — declaration-merged with the `Maybe<T>` type so existing
-// `Maybe.maybe(...)`, `Maybe.some(...)`, `Maybe.none(...)`, `Maybe.combine(...)`
+// `Maybe.maybe(...)`, `Maybe.some(...)`, `Maybe.none(...)`, `Maybe.all(...)`
 // and `import Maybe from "..."` keep working.
 // ---------------------------------------------------------------------------
 
@@ -246,7 +273,9 @@ namespace Maybe {
     export const none = _none;
     export const fromObject = _fromObject;
     export const fromThrowable = _fromThrowable;
-    export const combine = _combine;
+    export const all = _all;
+    export const flatten = _flatten;
+    export const fromResult = _fromResult;
 }
 
 export default Maybe;

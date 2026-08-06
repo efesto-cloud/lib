@@ -4,6 +4,7 @@
 import type Result from "@efesto-cloud/result";
 import type Maybe from "./index.js";
 import type { maybe, NoneError, some } from "./index.js";
+import { all } from "./index.js";
 
 type Equal<X, Y> =
     (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
@@ -29,10 +30,37 @@ type _MaybeStripsNull = Expect<
 declare const mapped: ReturnType<typeof m.map<string>>;
 type _MapType = Expect<Equal<typeof mapped, Maybe<string>>>;
 
-// toResult() bridges into Result with a NoneError failure channel.
+// toResult() bridges into Result with a NoneError failure channel by default.
+declare const someInstance: ReturnType<typeof some<number>>;
+const _resultDefault = someInstance.toResult();
 type _ToResult = Expect<
-    Equal<
-        ReturnType<typeof some<number>>["toResult"],
-        () => Result<number, NoneError>
-    >
+    Equal<typeof _resultDefault, Result<number, NoneError>>
 >;
+void _resultDefault;
+
+// all() collects into a typed tuple.
+declare const a: Maybe<number>;
+declare const b: Maybe<string>;
+
+const _t = all([a, b]);
+if (_t.isSome()) {
+    const _tt: [number, string] = _t.data;
+    void _tt;
+}
+
+// toResult() accepts a custom error factory.
+class MioErrore extends Error {}
+const _r: Result<number, MioErrore | NoneError> = a.toResult(
+    () => new MioErrore(),
+);
+
+// match() requires both handlers.
+const _m: string = a.match({ some: (v) => `n:${v}`, none: () => "vuoto" });
+
+// @ts-expect-error - handler `none` mancante
+const _bad = a.match({ some: (v) => v });
+
+void _t;
+void _r;
+void _m;
+void _bad;
