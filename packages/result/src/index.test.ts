@@ -6,6 +6,8 @@ import Result, {
     flatten,
     fromObject,
     fromThrowable,
+    isErr,
+    isOk,
     ok,
     partition,
 } from "./index.js";
@@ -236,5 +238,33 @@ describe("combinators", () => {
             flatten(err<string, Result<number, string>>("fuori")).unwrapOr(0),
             0,
         );
+    });
+});
+
+describe("tapBoth e guard statici", () => {
+    test("tapBoth osserva il ramo giusto e restituisce il Result", () => {
+        const visti: string[] = [];
+        const r = ok<number, string>(1).tapBoth({
+            ok: (d) => visti.push(`ok:${d}`),
+            err: (e) => visti.push(`err:${e}`),
+        });
+        assert.deepEqual(visti, ["ok:1"]);
+        assert.ok(r.isSuccess());
+
+        const r2 = err<string, number>("x").tapBoth({
+            err: (e) => visti.push(`err:${e}`),
+        });
+        assert.deepEqual(visti, ["ok:1", "err:x"]);
+        assert.ok(r2.isFailure());
+    });
+
+    test("i guard statici filtrano una lista", () => {
+        const list = [
+            ok<number, string>(1),
+            err<string, number>("a"),
+            ok<number, string>(2),
+        ];
+        assert.equal(list.filter(isOk).length, 2);
+        assert.equal(list.filter(isErr).length, 1);
     });
 });

@@ -2,8 +2,8 @@
 // never executed (the `.test-d.ts` extension is excluded from the test runner).
 
 import type Result from "./index.js";
-import type { err } from "./index.js";
-import { all, flatten, ok, partition } from "./index.js";
+import type { err, Failure, Success } from "./index.js";
+import { all, flatten, isErr, isOk, ok, partition } from "./index.js";
 
 type Equal<X, Y> =
     (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
@@ -105,3 +105,31 @@ void _arr;
 void _oks;
 void _errs;
 void _flat;
+
+// isOk() / isErr() — static guards, passed point-free to Array.prototype.filter().
+//
+// This is a known TS trap: a generic type guard passed by reference (not as an
+// inline arrow) to a generic higher-order function like `filter` does not
+// always get its type parameters inferred from the array's element type —
+// sometimes the result silently degrades to the input type (no narrowing) or
+// to `unknown[]`. Verified here (TS 6.0.2, strict mode, NodeNext): with the
+// `isOk`/`isErr` signatures as specified in the brief, `Array.prototype.filter`'s
+// `filter<S extends T>(predicate: (value: T, ...) => value is S): S[]` overload
+// DOES infer `S` correctly from the array's element type in this codebase's
+// configuration, narrowing to `Success<...>[]` / `Failure<...>[]` — not
+// `Result<...>[]` and not `unknown[]`. If this ever regresses (e.g. after a
+// tsconfig or TS version change), it will surface here as a type error.
+declare const guardList: Result<number, string>[];
+
+const _oksFiltered = guardList.filter(isOk);
+type _OksFilteredIsSuccessArray = Expect<
+    Equal<typeof _oksFiltered, Success<number, string>[]>
+>;
+
+const _errsFiltered = guardList.filter(isErr);
+type _ErrsFilteredIsFailureArray = Expect<
+    Equal<typeof _errsFiltered, Failure<number, string>[]>
+>;
+
+void _oksFiltered;
+void _errsFiltered;

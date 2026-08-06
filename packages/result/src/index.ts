@@ -69,6 +69,13 @@ export class Success<T, E = never> {
     tapError(_: (e: E) => void): Result<T, E> {
         return this;
     }
+    tapBoth(handlers: {
+        ok?: (data: T) => void;
+        err?: (e: E) => void;
+    }): Result<T, E> {
+        handlers.ok?.(this.data);
+        return this;
+    }
     unwrapOr<U>(_: U): T | U {
         return this.data;
     }
@@ -132,6 +139,13 @@ export class Failure<T = never, E = unknown> {
     }
     tapError(fn: (e: E) => void): Result<T, E> {
         fn(this.error);
+        return this;
+    }
+    tapBoth(handlers: {
+        ok?: (data: T) => void;
+        err?: (e: E) => void;
+    }): Result<T, E> {
+        handlers.err?.(this.error);
         return this;
     }
     unwrapOr<U>(fallback: U): T | U {
@@ -251,6 +265,13 @@ const _flatten = <T, E, F>(
     nested.isFailure() ? _err<E | F, T>(nested.error) : nested.data;
 
 // ---------------------------------------------------------------------------
+// Static type guards.
+// ---------------------------------------------------------------------------
+
+const _isOk = <T, E>(r: Result<T, E>): r is Success<T, E> => r.isSuccess();
+const _isErr = <T, E>(r: Result<T, E>): r is Failure<T, E> => r.isFailure();
+
+// ---------------------------------------------------------------------------
 // Module-level factories (neverthrow-style).
 // ---------------------------------------------------------------------------
 
@@ -262,6 +283,8 @@ export const fromZod = _fromZod;
 export const all = _all;
 export const partition = _partition;
 export const flatten = _flatten;
+export const isOk = _isOk;
+export const isErr = _isErr;
 
 // ---------------------------------------------------------------------------
 // `Result` namespace — declaration-merged with the `Result<T, E>` type so
@@ -278,6 +301,8 @@ namespace Result {
     export const all = _all;
     export const partition = _partition;
     export const flatten = _flatten;
+    export const isOk = _isOk;
+    export const isErr = _isErr;
 }
 
 export default Result;
