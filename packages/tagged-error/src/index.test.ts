@@ -78,6 +78,61 @@ test("toJSON include cause solo se definita", () => {
     assert.ok(withCause.toJSON().cause !== undefined);
 });
 
+test("una cause Error nativa sopravvive come dato, non come oggetto vuoto", () => {
+    const e = new CartNotFound({ cause: new TypeError("rotto") });
+    const wire = JSON.parse(JSON.stringify(e));
+    assert.equal(wire.cause.name, "TypeError");
+    assert.equal(wire.cause.message, "rotto");
+    // senza appiattimento JSON.stringify di un Error produce {}
+    assert.notDeepEqual(wire.cause, {});
+});
+
+test("una cause tagged conserva tag e props", () => {
+    const e = new CartNotFound({ cause: new OutOfStock({ sku: "ABC-1" }) });
+    const wire = JSON.parse(JSON.stringify(e));
+    assert.equal(wire.cause._tag, "OutOfStock");
+    assert.equal(wire.cause.sku, "ABC-1");
+    assert.equal(wire.cause.name, "OutOfStock");
+});
+
+test("la stack della cause non finisce nel payload", () => {
+    const e = new CartNotFound({ cause: new TypeError("rotto") });
+    const wire = JSON.parse(JSON.stringify(e));
+    assert.equal("stack" in wire.cause, false);
+    assert.equal("stack" in wire, false);
+});
+
+test("le cause annidate vengono appiattite ricorsivamente", () => {
+    const root = new TypeError("radice");
+    const middle = new OutOfStock({ sku: "S", cause: root });
+    const top = new CartNotFound({ cause: middle });
+    const wire = JSON.parse(JSON.stringify(top));
+    assert.equal(wire.cause._tag, "OutOfStock");
+    assert.equal(wire.cause.cause.name, "TypeError");
+    assert.equal(wire.cause.cause.message, "radice");
+});
+
+test("una catena di cause circolare non fa esplodere JSON.stringify", () => {
+    const a = new CartNotFound({ message: "a" });
+    const b = new OutOfStock({ sku: "S", cause: a });
+    (a as { cause?: unknown }).cause = b;
+
+    // il caso realistico: err.cause punta a un antenato
+    const wire = JSON.parse(JSON.stringify(a));
+    assert.equal(wire.cause._tag, "OutOfStock");
+    assert.equal(wire.cause.cause, "[Circular]");
+
+    // e il caso degenere: err.cause === err
+    const self = new CartNotFound();
+    (self as { cause?: unknown }).cause = self;
+    assert.equal(JSON.parse(JSON.stringify(self)).cause, "[Circular]");
+});
+
+test("una cause che non e un Error passa inalterata", () => {
+    const e = new CartNotFound({ cause: { codice: 42 } });
+    assert.deepEqual(JSON.parse(JSON.stringify(e)).cause, { codice: 42 });
+});
+
 test("il tag sopravvive a JSON.stringify", () => {
     const e = new OutOfStock({ sku: "ABC-1" });
     const wire = JSON.parse(JSON.stringify({ error: e }));

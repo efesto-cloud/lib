@@ -16,18 +16,52 @@ const dispatch = <R>(tag: string, handlers: unknown, arg: unknown): R => {
     return handler(arg);
 };
 
+/**
+ * Appiattisce una `cause` in dato serializzabile.
+ *
+ * Un `Error` non è serializzabile da solo: `name`, `message` e `stack` sono
+ * proprietà own ma **non enumerabili**, quindi `JSON.stringify(new Error("x"))`
+ * produce `{}`. Senza questo appiattimento una `cause` attraversa la rete come
+ * oggetto vuoto e l'informazione diagnostica si perde in silenzio.
+ *
+ * `stack` viene deliberatamente **omesso**, come in `toJSON()`: una stack trace
+ * del server non deve finire nel client.
+ *
+ * La catena delle `cause` è protetta dai cicli — `err.cause = err` è un modo
+ * realistico di far esplodere `JSON.stringify`. Una `cause` che non è un
+ * `Error` viene restituita così com'è: è dato del chiamante, e non tocca a noi
+ * reinterpretarlo.
+ */
+const serializeCause = (cause: unknown, seen: WeakSet<object>): unknown => {
+    if (!(cause instanceof Error)) return cause;
+    if (seen.has(cause)) return "[Circular]";
+    seen.add(cause);
+
+    const out: Record<string, unknown> = { ...cause };
+    out.name = cause.name;
+    out.message = cause.message;
+    delete out.stack;
+    if (cause.cause !== undefined) {
+        out.cause = serializeCause(cause.cause, seen);
+    }
+    return out;
+};
+
 export abstract class TaggedErrorBase extends Error {
     abstract readonly _tag: string;
 
     toJSON(): Record<string, unknown> {
         const self = this as unknown as Record<string, unknown> & Error;
-        return {
+        const out: Record<string, unknown> = {
             ...self,
             _tag: self._tag,
             name: self.name,
             message: self.message,
-            ...(self.cause !== undefined ? { cause: self.cause } : {}),
         };
+        if (self.cause !== undefined) {
+            out.cause = serializeCause(self.cause, new WeakSet([this]));
+        }
+        return out;
     }
 
     match<
