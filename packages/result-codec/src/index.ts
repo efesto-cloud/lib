@@ -114,26 +114,47 @@ export function codec<
         ) {
             return decodeErr([{ message: "Expected an object" }], "envelope");
         }
-        const envelope = input as {
-            success?: unknown;
-            data?: unknown;
-            error?: unknown;
-        };
-        if (typeof envelope.success !== "boolean") {
+        // Le tre letture sotto sono accessi a proprieta su un valore
+        // tipizzato `unknown`: possono essere un getter o un trap `get` di
+        // Proxy che lancia. Isolarle in un `try` che copre SOLO la lettura
+        // (non la validazione) le trasforma in un DecodeError invece di
+        // lasciar attraversare `deserialize` un'eccezione arbitraria — il
+        // `TypeError` deliberato di `validateSync` sul ramo thenable resta
+        // fuori da questo blocco e continua a propagarsi.
+        let success: unknown;
+        let data: unknown;
+        let errorField: unknown;
+        try {
+            const envelope = input as {
+                success?: unknown;
+                data?: unknown;
+                error?: unknown;
+            };
+            success = envelope.success;
+            data = envelope.data;
+            errorField = envelope.error;
+        } catch {
+            return decodeErr(
+                [{ message: "Reading the envelope threw" }],
+                "envelope",
+            );
+        }
+
+        if (typeof success !== "boolean") {
             return decodeErr(
                 [{ message: "Missing boolean `success`", path: ["success"] }],
                 "envelope",
             );
         }
 
-        if (envelope.success) {
-            const checked = validateSync(schemas.deserialize.ok, envelope.data);
+        if (success) {
+            const checked = validateSync(schemas.deserialize.ok, data);
             return checked.issues
                 ? decodeErr(checked.issues, "ok")
                 : ok(checked.value);
         }
 
-        const checked = validateSync(schemas.deserialize.err, envelope.error);
+        const checked = validateSync(schemas.deserialize.err, errorField);
         return checked.issues
             ? decodeErr(checked.issues, "err")
             : err(checked.value);

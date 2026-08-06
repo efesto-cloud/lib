@@ -247,3 +247,78 @@ test("deserializeUnsafe lancia sul payload rotto ma non sull'errore di dominio",
     assert.ok(dominio.isFailure());
     assert.ok(dominio.error instanceof FooNotFound);
 });
+
+test("deserialize non lancia se un getter della busta lancia: DecodeError con branch envelope", () => {
+    const bad = {};
+    Object.defineProperty(bad, "success", {
+        get() {
+            throw new Error("boom");
+        },
+        enumerable: true,
+        configurable: true,
+    });
+    const out = UserCodec.deserialize(bad);
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.equal(out.error.branch, "envelope");
+});
+
+test("deserialize non lancia se un trap `get` di Proxy lancia: DecodeError con branch envelope", () => {
+    const bad = new Proxy(
+        {},
+        {
+            get() {
+                throw new Error("boom");
+            },
+        },
+    );
+    const out = UserCodec.deserialize(bad);
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.equal(out.error.branch, "envelope");
+});
+
+test("deserializeUnsafe lancia un DecodeError, non l'errore grezzo, se un getter della busta lancia", () => {
+    const bad = {};
+    Object.defineProperty(bad, "success", {
+        get() {
+            throw new Error("boom");
+        },
+        enumerable: true,
+        configurable: true,
+    });
+    assert.throws(
+        () => UserCodec.deserializeUnsafe(bad),
+        (e: unknown) => e instanceof DecodeError,
+    );
+});
+
+test("deserializeUnsafe lancia un DecodeError, non l'errore grezzo, se un trap `get` di Proxy lancia", () => {
+    const bad = new Proxy(
+        {},
+        {
+            get() {
+                throw new Error("boom");
+            },
+        },
+    );
+    assert.throws(
+        () => UserCodec.deserializeUnsafe(bad),
+        (e: unknown) => e instanceof DecodeError,
+    );
+});
+
+test("il TypeError deliberato sul ramo thenable continua a propagarsi intatto", () => {
+    const asyncSchema = {
+        "~standard": {
+            version: 1 as const,
+            vendor: "test",
+            validate: () => Promise.resolve({ value: 1 }),
+        },
+    };
+    const c = codec({
+        serialize: { ok: asyncSchema, err: ErrSchema },
+        deserialize: { ok: asyncSchema, err: ErrSchema },
+    });
+    assert.throws(() => c.deserialize({ success: true, data: 1 }), TypeError);
+});
