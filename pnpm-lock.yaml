@@ -192,6 +192,25 @@ importers:
         specifier: '24'
         version: 24.12.2
 
+  packages/result-codec:
+    dependencies:
+      '@efesto-cloud/result':
+        specifier: workspace:*
+        version: link:../result
+      '@efesto-cloud/tagged-error':
+        specifier: workspace:*
+        version: link:../tagged-error
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.1.0
+    devDependencies:
+      '@types/node':
+        specifier: '24'
+        version: 24.12.2
+      zod:
+        specifier: ^4
+        version: 4.3.6
+
   packages/tagged-error:
     dependencies:
       '@standard-schema/spec':
