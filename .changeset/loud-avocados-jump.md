@@ -35,3 +35,15 @@ Fix: `fromSchema` ora rileva un `validate()` asincrono in modo strutturale
 (callable `then`) invece di `instanceof Promise`, cosi' da lanciare anche su
 thenable non nativi o Promise cross-realm (node:vm, worker, iframe) invece
 di restituire in silenzio `ok(undefined)`.
+
+Fix (cambio di comportamento osservabile): uno schema che lancia in modo
+sincrono durante la validazione ora produce un `Failure` con degli issues,
+invece di lasciar propagare l'eccezione grezza — `fromSchema` resta totale
+sui dati, come ogni altra funzione del package. Zod converte pero'
+QUALSIASI throw interno (anche uno sincrono, come un `transform`/`refine`
+non difensivo) in una Promise gia' rifiutata: prima di questa fix quella
+Promise veniva scartata senza handler dopo aver lanciato il `TypeError`
+del ramo thenable, causando una unhandled rejection; ora viene neutralizzata
+con un `.catch()` prima del throw. Il messaggio del `TypeError` e' stato
+riformulato di conseguenza: «asincrono» e «lo schema ha lanciato» sono
+indistinguibili a valle con zod, e il messaggio ora lo dice.
