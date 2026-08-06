@@ -31,6 +31,10 @@ Always run, in order, and resolve errors before finishing:
 1. `pnpm typecheck`
 2. `pnpm exec biome check --write .`
 3. `pnpm knip`
+4. `pnpm test` — the `tests/` integration workspace exposes no `typecheck`
+   script, so `pnpm -r typecheck` silently skips it; only `pnpm test`
+   actually exercises it, and it is the sole step here that would catch a
+   break there.
 
 When a package under `packages/` is added or modified, ask the user whether to generate a changeset (`pnpm changeset`) before finishing.
 
