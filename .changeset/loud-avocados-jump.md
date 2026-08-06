@@ -16,7 +16,8 @@ footgun che questo cambio elimina.
 Aggiunti: `all`, `partition`, `flatten`, `tapBoth`, `isOk`/`isErr` e
 `fromSchema` (Standard Schema, indipendente da zod) su Result; `tapBoth`,
 `fromResult`, `allAsync` e `partitionAsync` su ResultAsync; `flatten`, `or`,
-`fromResult` e `toResult(errorFactory)` su Maybe.
+`fromResult` e `toResult(errorFactory)` su Maybe. Result esporta inoltre i
+due tipi `OkOf<R>` ed `ErrOf<R>`, che estraggono i parametri di un Result.
 
 Packaging: `zod` passa da devDependency a peerDependency opzionale di
 result, cosi' da comparire nel manifest come gia' compariva nei tipi

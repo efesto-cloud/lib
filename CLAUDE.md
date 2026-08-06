@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `@efesto-cloud/lib` is a pnpm workspace monorepo publishing a set of `@efesto-cloud/*` packages used across projects in the efesto-cloud org. Node `>=24`, pnpm `>=9`, Changesets for versioning/release.
 
-Workspaces: `packages/*` and `example` (see [pnpm-workspace.yaml](pnpm-workspace.yaml)).
+Workspaces: `packages/*`, `example` and `tests` (see [pnpm-workspace.yaml](pnpm-workspace.yaml)).
+
+`tests` is `@efesto-cloud/integration-tests` — private, cross-package integration tests. It exposes `test` and `typecheck:test` but **no** `typecheck` script, so `pnpm typecheck` (which is `pnpm -r typecheck`) skips it. When you change a public API, `pnpm test` is what catches breakage there; a green `pnpm typecheck` does not cover it.
 
 ## Common commands
 
