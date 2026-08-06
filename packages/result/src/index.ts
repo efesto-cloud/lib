@@ -228,6 +228,9 @@ const _fromThrowable = <Args extends unknown[], T, E>(
         }
     };
 };
+const _isThenable = (value: unknown): value is PromiseLike<unknown> =>
+    typeof (value as { then?: unknown } | null | undefined)?.then ===
+    "function";
 const _fromObject = <T, E>(obj: IResult<T, E>): Result<T, E> =>
     obj.success ? new Success<T, E>(obj.data) : new Failure<T, E>(obj.error);
 const _fromZod = <Output>(
@@ -242,7 +245,7 @@ const _fromSchema = <S extends StandardSchemaV1>(
     readonly StandardSchemaV1.Issue[]
 > => {
     const out = schema["~standard"].validate(input);
-    if (out instanceof Promise) {
+    if (_isThenable(out)) {
         throw new TypeError(
             "fromSchema richiede una validazione sincrona; usa uno schema non asincrono",
         );

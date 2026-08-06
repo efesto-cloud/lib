@@ -298,4 +298,20 @@ describe("fromSchema", () => {
         };
         assert.throws(() => fromSchema(asyncSchema, 1), TypeError);
     });
+
+    test("fromSchema lancia anche su un thenable non nativo (cross-realm)", () => {
+        const foreignThenableSchema = {
+            "~standard": {
+                version: 1 as const,
+                vendor: "test",
+                validate: () => ({
+                    // biome-ignore lint/suspicious/noThenProperty: il test verifica proprio il rilevamento di un thenable non nativo.
+                    then(resolve: (value: { value: number }) => void) {
+                        resolve({ value: 1 });
+                    },
+                }),
+            },
+        };
+        assert.throws(() => fromSchema(foreignThenableSchema, 1), TypeError);
+    });
 });
