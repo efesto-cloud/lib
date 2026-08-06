@@ -321,4 +321,63 @@ describe("fromSchema", () => {
         } as unknown as StandardSchemaV1<number, number>;
         assert.throws(() => fromSchema(foreignThenableSchema, 1), TypeError);
     });
+
+    test("fromSchema restituisce gli issue se lo schema lancia in modo sincrono", () => {
+        // Un validatore non-zod che lancia: senza protezione l'eccezione
+        // grezza esce da `fromSchema`, che invece deve restare totale sui
+        // dati e riportare il fallimento nel canale errori.
+        const throwingSchema = {
+            "~standard": {
+                version: 1 as const,
+                vendor: "test",
+                validate: () => {
+                    throw new Error("boom-schema");
+                },
+            },
+        } as unknown as StandardSchemaV1<number, number>;
+        const r = fromSchema(throwingSchema, 1);
+        assert.ok(r.isFailure());
+        assert.ok(Array.isArray(r.error));
+        assert.equal(r.error.length, 1);
+        assert.match(r.error[0].message, /boom-schema/);
+    });
+
+    test("fromSchema non lascia una Promise rifiutata senza handler quando lo schema lancia", async () => {
+        // Zod converte QUALSIASI throw dello schema in una Promise (vedi
+        // `safeParseAsync` nel fallback di `~standard.validate`): senza un
+        // `.catch()` quella Promise diventa una unhandled rejection e porta
+        // giu' il processo Node.
+        const schema = z.object({
+            href: z.string().transform((s) => new URL(s)),
+        });
+        const rejections: unknown[] = [];
+        const onRejection = (reason: unknown) => {
+            rejections.push(reason);
+        };
+        process.on("unhandledRejection", onRejection);
+        try {
+            assert.throws(
+                () => fromSchema(schema, { href: "non-un-url" }),
+                TypeError,
+            );
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        } finally {
+            process.off("unhandledRejection", onRejection);
+        }
+        assert.deepEqual(rejections, []);
+    });
+
+    test("il messaggio del thenable non diagnostica solo l'asincronia", () => {
+        // Con zod il caso «validatore asincrono» e il caso «lo schema ha
+        // lanciato» sono indistinguibili a valle: il messaggio deve dirlo,
+        // altrimenti manda lo sviluppatore nella direzione sbagliata.
+        const schema = z.object({
+            href: z.string().transform((s) => new URL(s)),
+        });
+        assert.throws(
+            () => fromSchema(schema, { href: "non-un-url" }),
+            (e: unknown) =>
+                e instanceof TypeError && /ha lanciato|lanci/i.test(e.message),
+        );
+    });
 });

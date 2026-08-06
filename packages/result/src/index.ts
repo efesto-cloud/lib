@@ -237,6 +237,13 @@ const _fromZod = <Output>(
     res: ZodSafeParseResult<Output>,
 ): Result<Output, ZodError<Output>> =>
     res.success ? _ok(res.data) : _err(res.error);
+const _describeThrown = (caught: unknown): string => {
+    try {
+        return caught instanceof Error ? caught.message : String(caught);
+    } catch {
+        return "errore non descrivibile";
+    }
+};
 const _fromSchema = <S extends StandardSchemaV1>(
     schema: S,
     input: unknown,
@@ -244,10 +251,32 @@ const _fromSchema = <S extends StandardSchemaV1>(
     StandardSchemaV1.InferOutput<S>,
     readonly StandardSchemaV1.Issue[]
 > => {
-    const out = schema["~standard"].validate(input);
+    // Uno schema puo' lanciare in modo sincrono (un `transform`/`refine` non
+    // difensivo di un validatore non-zod): `fromSchema` resta totale sui dati
+    // e riporta il fallimento nel canale errori, come ogni altro issue.
+    let out: ReturnType<S["~standard"]["validate"]>;
+    try {
+        out = schema["~standard"].validate(input) as ReturnType<
+            S["~standard"]["validate"]
+        >;
+    } catch (caught) {
+        return _err<
+            readonly StandardSchemaV1.Issue[],
+            StandardSchemaV1.InferOutput<S>
+        >([
+            {
+                message: `Lo schema ha lanciato durante la validazione: ${_describeThrown(caught)}`,
+            },
+        ]);
+    }
     if (_isThenable(out)) {
+        // Zod converte QUALSIASI throw dello schema in una Promise (il
+        // fallback `safeParseAsync` nel suo `~standard.validate`): quella
+        // Promise puo' essere gia' rifiutata e, senza handler, porta giu' il
+        // processo Node. La neutralizziamo prima di lanciare.
+        Promise.resolve(out).catch(() => {});
         throw new TypeError(
-            "fromSchema richiede una validazione sincrona; usa uno schema non asincrono",
+            "fromSchema richiede una validazione sincrona: lo schema ha restituito un thenable. Con zod questo accade sia quando la validazione e' davvero asincrona, sia quando uno schema sincrono ha lanciato (zod converte il throw in una Promise): controlla anche i transform/refine sincroni.",
         );
     }
     return out.issues
