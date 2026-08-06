@@ -38,6 +38,21 @@ type _ToResult = Expect<
 >;
 void _resultDefault;
 
+// toResult() keeps the `NoneError` constituent in its error channel even
+// when `E` is explicitly instantiated to something else. Regression test:
+// if `Some.toResult` dropped `| NoneError` from its declared return type
+// (e.g. `Result<T, E>` instead of `Result<T, E | NoneError>`), calling with
+// the default `E = NoneError` above wouldn't notice — the union collapses
+// to `NoneError` either way. Instantiating with an unrelated `OtherError`
+// keeps the union from collapsing, so a dropped constituent becomes visible.
+class OtherError extends Error {}
+
+const _resultOtherOnSome = someInstance.toResult<OtherError>();
+type _ToResultKeepsNoneErrorOnSome = Expect<
+    Equal<typeof _resultOtherOnSome, Result<number, OtherError | NoneError>>
+>;
+void _resultOtherOnSome;
+
 // all() collects into a typed tuple.
 declare const a: Maybe<number>;
 declare const b: Maybe<string>;
@@ -53,6 +68,15 @@ class MioErrore extends Error {}
 const _r: Result<number, MioErrore | NoneError> = a.toResult(
     () => new MioErrore(),
 );
+
+// Same regression as above, on the generic `Maybe<T>` union (not just the
+// concrete `Some<T>` branch): `NoneError` must survive in the error channel
+// of both members when `E` is instantiated to an unrelated type.
+const _resultOtherOnMaybe = a.toResult<OtherError>();
+type _ToResultKeepsNoneErrorOnMaybe = Expect<
+    Equal<typeof _resultOtherOnMaybe, Result<number, OtherError | NoneError>>
+>;
+void _resultOtherOnMaybe;
 
 // match() requires both handlers.
 const _m: string = a.match({ some: (v) => `n:${v}`, none: () => "vuoto" });
