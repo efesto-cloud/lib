@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import Result from "@efesto-cloud/result";
-import { TaggedError, taggedErrorSchema } from "@efesto-cloud/tagged-error";
+import {
+    matchError,
+    TaggedError,
+    taggedErrorSchema,
+} from "@efesto-cloud/tagged-error";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import { z } from "zod";
 import { codec, DecodeError, EncodeError } from "./index.js";
@@ -321,4 +325,56 @@ test("il TypeError deliberato sul ramo thenable continua a propagarsi intatto", 
         deserialize: { ok: asyncSchema, err: ErrSchema },
     });
     assert.throws(() => c.deserialize({ success: true, data: 1 }), TypeError);
+});
+
+class FooForbidden extends TaggedError("FooForbidden")<{ motivo: string }> {}
+
+const FullErrSchema = taggedErrorSchema(FooNotFound, FooForbidden);
+const FullCodec = codec({
+    serialize: { ok: UserSchema, err: FullErrSchema },
+    deserialize: { ok: UserSchema, err: FullErrSchema },
+});
+
+test("round trip completo: un solo match copre dominio e trasporto", () => {
+    // --- server
+    const dominio = Result.err(new FooForbidden({ motivo: "ruolo" }));
+    const wire = JSON.parse(JSON.stringify(FullCodec.serializeUnsafe(dominio)));
+
+    // --- client
+    const decoded = FullCodec.deserialize(wire);
+    assert.ok(decoded.isFailure());
+
+    const status = matchError(decoded.error, {
+        FooNotFound: () => 404,
+        FooForbidden: (e) => (e.motivo === "ruolo" ? 403 : 400),
+        DecodeError: () => 502,
+    });
+    assert.equal(status, 403);
+});
+
+test("uno schema cambiato lato server si presenta come DecodeError, non come dato valido", () => {
+    const vecchioPayload = { success: true, data: { id: "1" } }; // manca `nome`
+    const decoded = FullCodec.deserialize(vecchioPayload);
+    assert.ok(decoded.isFailure());
+    assert.ok(DecodeError.is(decoded.error));
+    assert.equal(decoded.error.branch, "ok");
+});
+
+test("i props dell'errore vengono validati, non solo il tag", () => {
+    // FooForbidden richiede `motivo`: un payload che lo omette non passa
+    const PropsSchema = z.object({
+        _tag: z.literal("FooForbidden"),
+        motivo: z.string(),
+    });
+    const StrictCodec = codec({
+        serialize: { ok: UserSchema, err: PropsSchema },
+        deserialize: { ok: UserSchema, err: PropsSchema },
+    });
+    const out = StrictCodec.deserialize({
+        success: false,
+        error: { _tag: "FooForbidden" },
+    });
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.equal(out.error.branch, "err");
 });
