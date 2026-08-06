@@ -1,5 +1,6 @@
 import type Result from "@efesto-cloud/result";
-import { err, ok } from "@efesto-cloud/result";
+import type { ErrOf, OkOf } from "@efesto-cloud/result";
+import { all, err, ok, partition } from "@efesto-cloud/result";
 
 // ---------------------------------------------------------------------------
 // ResultAsync<T, E> — companion to Result<T, E> for asynchronous workflows.
@@ -186,5 +187,30 @@ export const fromPromise = ResultAsync.fromPromise;
 export const fromResult = ResultAsync.fromResult;
 export const fromSafePromise = ResultAsync.fromSafePromise;
 export const fromThrowable = ResultAsync.fromThrowable;
+
+// ---------------------------------------------------------------------------
+// Async combinators — await concurrently, then delegate to the sync
+// combinators from @efesto-cloud/result.
+// ---------------------------------------------------------------------------
+
+export async function allAsync<
+    T extends readonly PromiseLike<Result<unknown, unknown>>[],
+>(
+    inputs: readonly [...T],
+): Promise<
+    Result<{ [K in keyof T]: OkOf<Awaited<T[K]>> }, ErrOf<Awaited<T[number]>>>
+> {
+    const settled = await Promise.all(inputs);
+    return all(settled) as Result<
+        { [K in keyof T]: OkOf<Awaited<T[K]>> },
+        ErrOf<Awaited<T[number]>>
+    >;
+}
+
+export async function partitionAsync<T, E>(
+    inputs: readonly PromiseLike<Result<T, E>>[],
+): Promise<[T[], E[]]> {
+    return partition(await Promise.all(inputs));
+}
 
 export default ResultAsync;
