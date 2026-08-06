@@ -17,10 +17,10 @@ describe("Maybe <-> Result bridge", () => {
         const r = none<number>().toResult();
         assert.equal(r.isFailure(), true);
         assert.equal(
-            r.match(
-                () => null,
-                (e) => e instanceof NoneError,
-            ),
+            r.match({
+                ok: () => null,
+                err: (e) => e instanceof NoneError,
+            }),
             true,
         );
     });
