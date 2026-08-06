@@ -21,6 +21,7 @@ Run from the repo root:
 - `pnpm biome` — Biome check (lint + format). Use `pnpm exec biome check --write .` to auto-fix and format
 - `pnpm knip` — detect unused files/exports/deps
 - `pnpm check-packages` — validates package manifests via [scripts/check-packages.mjs](scripts/check-packages.mjs) (naming, exports, etc.)
+- `pnpm check-plugins` — validates the `plugins/` marketplace via [scripts/check-plugins.mjs](scripts/check-plugins.mjs) (plugin name shape, `<source>/skills/<name>/SKILL.md` present for every plugin)
 - `pnpm changeset` — add a changeset; `pnpm release` builds and publishes
 
 Per-package: `pnpm --filter @efesto-cloud/<name> <script>` (e.g. `build`, `typecheck`, `clean`). Tests are per-package — check that package's `package.json` for the runner (not all packages have tests).
