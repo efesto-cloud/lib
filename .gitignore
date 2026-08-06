@@ -141,3 +141,7 @@ vite.config.ts.timestamp-*
 # pnpm
 .pnpm-store/
 .DS_Store
+
+# Worktrees left behind by other sessions; each contains its own root
+# biome.json, which confuses `biome check` at the repo root if not ignored.
+.claude/worktrees/
