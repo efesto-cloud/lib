@@ -77,7 +77,14 @@ export function matchErrorPartial<
     return handler(error);
 }
 
-const RESERVED = new Set(["_tag", "name", "message", "cause", "stack"]);
+const RESERVED = new Set([
+    "_tag",
+    "name",
+    "message",
+    "cause",
+    "stack",
+    "__proto__",
+]);
 
 export function TaggedError<Tag extends string>(
     tag: Tag,
@@ -95,10 +102,21 @@ export function TaggedError<Tag extends string>(
             );
             this.name = tag;
             if (props) {
+                // I props possono arrivare da JSON.parse su dati non fidati:
+                // `__proto__` e una proprieta *propria* del risultato e
+                // un'assegnazione semplice ne invocherebbe il setter su
+                // Object.prototype, sostituendo il prototype dell'istanza.
+                // Regola: mai fare shadowing di qualcosa raggiungibile sul
+                // prototype, e assegnare sempre con defineProperty.
+                const proto = Object.getPrototypeOf(this);
                 for (const [k, v] of Object.entries(props)) {
-                    if (!RESERVED.has(k)) {
-                        (this as unknown as Record<string, unknown>)[k] = v;
-                    }
+                    if (RESERVED.has(k) || k in proto) continue;
+                    Object.defineProperty(this, k, {
+                        value: v,
+                        writable: true,
+                        enumerable: true,
+                        configurable: true,
+                    });
                 }
             }
         }
@@ -127,7 +145,11 @@ export function taggedErrorSchema<C extends readonly AnyTaggedErrorClass[]>(
             version: 1,
             vendor: "efesto-cloud",
             validate: (value: unknown) => {
-                if (typeof value !== "object" || value === null) {
+                if (
+                    typeof value !== "object" ||
+                    value === null ||
+                    Array.isArray(value)
+                ) {
                     return { issues: [{ message: "Expected an object" }] };
                 }
                 const tag = (value as { _tag?: unknown })._tag;

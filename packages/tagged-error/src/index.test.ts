@@ -189,3 +189,74 @@ test("_tag mancante produce un issue", () => {
     assert.ok(!(out instanceof Promise));
     assert.ok(out.issues !== undefined);
 });
+
+const revive = (payload: unknown): Record<string, unknown> => {
+    const schema = taggedErrorSchema(CartNotFound, OutOfStock);
+    const out = schema["~standard"].validate(payload);
+    assert.ok(!(out instanceof Promise));
+    assert.equal(out.issues, undefined);
+    return (out as { value: unknown }).value as Record<string, unknown>;
+};
+
+test("un payload con __proto__ non inquina il prototype dell'istanza", () => {
+    // Deve passare per JSON.parse: un letterale `{ __proto__: ... }` nel
+    // sorgente e interpretato come setter di prototype, non come proprieta
+    // propria, e quindi non riprodurrebbe il bug.
+    const payload = JSON.parse(
+        '{"_tag":"OutOfStock","sku":"X","__proto__":{"pwned":true}}',
+    );
+    const revived = revive(payload);
+    assert.ok(revived instanceof OutOfStock);
+    assert.ok(revived instanceof Error);
+    assert.equal(typeof revived.match, "function");
+    assert.equal(typeof revived.toJSON, "function");
+    assert.equal(revived.sku, "X");
+    assert.equal(revived.pwned, undefined);
+    assert.equal("pwned" in revived, false);
+    assert.equal(Object.getPrototypeOf(revived), OutOfStock.prototype);
+    assert.equal(
+        ({} as Record<string, unknown>).pwned,
+        undefined,
+        "Object.prototype non deve essere stato toccato",
+    );
+});
+
+test("i props dal filo non sovrascrivono i metodi del prototype", () => {
+    const withToJSON = revive({ _tag: "OutOfStock", sku: "X", toJSON: 5 });
+    assert.equal(typeof withToJSON.toJSON, "function");
+    assert.equal(
+        JSON.parse(JSON.stringify(withToJSON))._tag,
+        "OutOfStock",
+        "JSON.stringify deve continuare a funzionare",
+    );
+
+    const withMatch = revive({ _tag: "OutOfStock", sku: "X", match: 7 });
+    assert.equal(typeof withMatch.match, "function");
+    assert.equal(
+        (withMatch as unknown as OutOfStock).match({
+            OutOfStock: (e) => e.sku,
+        }),
+        "X",
+    );
+
+    const withCtor = revive({ _tag: "OutOfStock", sku: "X", constructor: 1 });
+    assert.equal(typeof withCtor.constructor, "function");
+    const withToString = revive({ _tag: "OutOfStock", toString: "nope" });
+    assert.equal(typeof withToString.toString, "function");
+});
+
+test("un payload con stack non sostituisce lo stack reale", () => {
+    const revived = revive({ _tag: "OutOfStock", sku: "X", stack: "FAKE" });
+    assert.notEqual(revived.stack, "FAKE");
+    assert.ok(typeof revived.stack === "string");
+    assert.ok((revived.stack as string).includes("OutOfStock"));
+});
+
+test("un array con _tag non e un payload valido", () => {
+    const schema = taggedErrorSchema(CartNotFound, OutOfStock);
+    const arr = Object.assign([], { _tag: "OutOfStock" });
+    const out = schema["~standard"].validate(arr);
+    assert.ok(!(out instanceof Promise));
+    assert.ok(out.issues !== undefined);
+});
+
