@@ -1,5 +1,9 @@
 export type AnyTaggedError = Error & { readonly _tag: string };
 
+export type TagHandlers<Self extends { readonly _tag: string }, R> = {
+    [K in Self["_tag"]]: (error: Extract<Self, { readonly _tag: K }>) => R;
+};
+
 export abstract class TaggedErrorBase extends Error {
     abstract readonly _tag: string;
 
@@ -12,6 +16,20 @@ export abstract class TaggedErrorBase extends Error {
             message: self.message,
             ...(self.cause !== undefined ? { cause: self.cause } : {}),
         };
+    }
+
+    match<
+        Self extends { readonly _tag: string },
+        H extends TagHandlers<Self, unknown>,
+    >(
+        this: Self,
+        handlers: H & Record<Exclude<keyof H, Self["_tag"]>, never>,
+    ): ReturnType<H[keyof H]> {
+        const table = handlers as unknown as Record<
+            string,
+            (e: Self) => ReturnType<H[keyof H]>
+        >;
+        return table[this._tag](this);
     }
 }
 

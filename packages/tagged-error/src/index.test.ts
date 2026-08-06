@@ -79,3 +79,27 @@ test("il tag sopravvive a JSON.stringify", () => {
     assert.equal(wire.error._tag, "OutOfStock");
     assert.equal(wire.error.sku, "ABC-1");
 });
+
+test("match instrada sul tag corretto", () => {
+    // Il cast esplicito e necessario: senza, TypeScript restringe il tipo di
+    // `err` al tipo del valore assegnato (OutOfStock) tramite control-flow
+    // narrowing, nonostante l'annotazione union — e la signature di `match`,
+    // che infierisce Self da `this`, vedrebbe solo OutOfStock invece
+    // dell'union dichiarata, facendo fallire il typecheck sull'handler
+    // CartNotFound come proprieta in eccesso.
+    const err: CartNotFound | OutOfStock = new OutOfStock({
+        sku: "ABC-1",
+    }) as CartNotFound | OutOfStock;
+    const out = err.match({
+        CartNotFound: () => "nessun carrello",
+        OutOfStock: (e) => `esaurito ${e.sku}`,
+    });
+    assert.equal(out, "esaurito ABC-1");
+});
+
+test("match funziona anche su un errore concreto singolo", () => {
+    const out = new OutOfStock({ sku: "X" }).match({
+        OutOfStock: (e) => e.sku,
+    });
+    assert.equal(out, "X");
+});
