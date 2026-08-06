@@ -4,6 +4,9 @@ export type TagHandlers<Self extends { readonly _tag: string }, R> = {
     [K in Self["_tag"]]: (error: Extract<Self, { readonly _tag: K }>) => R;
 };
 
+const dispatch = <R>(tag: string, handlers: unknown, arg: unknown): R =>
+    (handlers as Record<string, (a: unknown) => R>)[tag](arg);
+
 export abstract class TaggedErrorBase extends Error {
     abstract readonly _tag: string;
 
@@ -25,11 +28,7 @@ export abstract class TaggedErrorBase extends Error {
         this: Self,
         handlers: H & Record<Exclude<keyof H, Self["_tag"]>, never>,
     ): ReturnType<H[keyof H]> {
-        const table = handlers as unknown as Record<
-            string,
-            (e: Self) => ReturnType<H[keyof H]>
-        >;
-        return table[this._tag](this);
+        return dispatch(this._tag, handlers, this);
     }
 }
 
@@ -58,11 +57,7 @@ export function matchError<
     error: Self,
     handlers: H & Record<Exclude<keyof H, Self["_tag"]>, never>,
 ): ReturnType<H[keyof H]> {
-    const table = handlers as unknown as Record<
-        string,
-        (e: Self) => ReturnType<H[keyof H]>
-    >;
-    return table[error._tag](error);
+    return dispatch(error._tag, handlers, error);
 }
 
 export function matchErrorPartial<
