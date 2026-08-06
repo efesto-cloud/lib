@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it, test } from "node:test";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import { z } from "zod";
 import Result, {
     all,
@@ -300,6 +301,12 @@ describe("fromSchema", () => {
     });
 
     test("fromSchema lancia anche su un thenable non nativo (cross-realm)", () => {
+        // Deliberatamente fuori dal tipo dichiarato: e' il caso che
+        // `fromSchema` deve sopravvivere a runtime — un thenable non nativo
+        // che `instanceof Promise` non riconoscerebbe. Il cast vive qui, al
+        // punto di costruzione dello schema, non nell'asserzione:
+        // `assert.throws` sotto continua a provare esattamente cio' che deve
+        // provare.
         const foreignThenableSchema = {
             "~standard": {
                 version: 1 as const,
@@ -311,7 +318,7 @@ describe("fromSchema", () => {
                     },
                 }),
             },
-        };
+        } as unknown as StandardSchemaV1<number, number>;
         assert.throws(() => fromSchema(foreignThenableSchema, 1), TypeError);
     });
 });
