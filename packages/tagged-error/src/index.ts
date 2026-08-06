@@ -2,6 +2,17 @@ export type AnyTaggedError = Error & { readonly _tag: string };
 
 export abstract class TaggedErrorBase extends Error {
     abstract readonly _tag: string;
+
+    toJSON(): Record<string, unknown> {
+        const self = this as unknown as Record<string, unknown> & Error;
+        return {
+            ...self,
+            _tag: self._tag,
+            name: self.name,
+            message: self.message,
+            ...(self.cause !== undefined ? { cause: self.cause } : {}),
+        };
+    }
 }
 
 type CtorArgs<Props extends object> = object extends Props
