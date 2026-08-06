@@ -43,8 +43,7 @@ if (r.isFailure()) {
 ```ts
 Result.ok();              // Success<void>
 Result.ok(value);         // Success<T>
-Result.err();             // Failure<void>
-Result.err(error);        // Failure<E>
+Result.err(error);        // Failure<E> — the error is required
 
 Result.fromObject({ success: true, data }); // rebuild from serialized form
 Result.fromZod(zodSchema.safeParse(input)); // from Zod's safeParse result
