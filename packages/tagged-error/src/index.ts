@@ -51,7 +51,21 @@ export interface TaggedErrorCtor<Tag extends string> {
     ): TaggedErrorBase &
         Readonly<Props> & { readonly _tag: Tag; readonly name: Tag };
     readonly _tag: Tag;
-    is(u: unknown): u is TaggedErrorBase & { readonly _tag: Tag };
+    /**
+     * Type guard sul tag. La signature e polimorfa su `this`: chiamata su una
+     * sottoclasse concreta restringe al tipo dell'istanza di quella classe,
+     * preservando i props dichiarati.
+     *
+     * Nota di soundness nota e accettata: una sottoclasse che non ridefinisce
+     * `_tag` (`class Deep extends OutOfStock {}`) eredita il tag del padre, per
+     * cui `Deep.is(x)` non puo davvero dimostrare `x is Deep`.
+     */
+    is<Self>(
+        this: abstract new (
+            ...args: never[]
+        ) => Self,
+        u: unknown,
+    ): u is Self;
 }
 
 export type PartialTagHandlers<Self extends { readonly _tag: string }> =
@@ -72,7 +86,10 @@ export function matchError<
 export function matchErrorPartial<
     Self extends AnyTaggedError,
     H extends PartialTagHandlers<Self>,
->(error: Self, handlers: H): ReturnType<NonNullable<H[keyof H]>> {
+>(
+    error: Self,
+    handlers: H & Record<Exclude<keyof H, Self["_tag"] | "otherwise">, never>,
+): ReturnType<NonNullable<H[keyof H]>> {
     const table = handlers as unknown as Record<
         string,
         ((e: Self) => ReturnType<NonNullable<H[keyof H]>>) | undefined

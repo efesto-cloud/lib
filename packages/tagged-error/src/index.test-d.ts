@@ -63,10 +63,35 @@ const _partial: number = matchErrorPartial(error, {
 // @ts-expect-error - otherwise e obbligatorio
 const _noOtherwise = matchErrorPartial(error, { CartNotFound: () => 404 });
 
+const _partialTypo = matchErrorPartial(error, {
+    // @ts-expect-error - tag inesistente: senza il guard cadrebbe in silenzio
+    // su otherwise invece di essere segnalato
+    OutOfStok: () => "specifico",
+    otherwise: () => "fallback",
+});
+
 void _fn;
 void _fnIncomplete;
 void _partial;
 void _noOtherwise;
+void _partialTypo;
+
+// is() restringe al tipo concreto della classe ricevente, props inclusi
+declare const unknownValue: unknown;
+if (OutOfStock.is(unknownValue)) {
+    const _sku: string = unknownValue.sku;
+    const _tag: "OutOfStock" = unknownValue._tag;
+    const _isError: Error = unknownValue;
+    void _sku;
+    void _tag;
+    void _isError;
+}
+if (CartNotFound.is(unknownValue)) {
+    const _cartTag: "CartNotFound" = unknownValue._tag;
+    // @ts-expect-error - CartNotFound non dichiara props
+    void unknownValue.sku;
+    void _cartTag;
+}
 
 const _schema = taggedErrorSchema(CartNotFound, EmptyCart, OutOfStock);
 const _out = _schema["~standard"].validate({ _tag: "OutOfStock", sku: "A" });

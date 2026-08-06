@@ -280,3 +280,12 @@ test("un tag senza handler fallisce in modo diagnosticabile", () => {
     );
 });
 
+test("is() restringe al tipo concreto preservando i props", () => {
+    const u: unknown = new OutOfStock({ sku: "ABC-1" });
+    assert.ok(OutOfStock.is(u));
+    if (OutOfStock.is(u)) {
+        // il narrowing deve dare accesso ai props dichiarati senza cast
+        assert.equal(u.sku, "ABC-1");
+        assert.equal(u._tag, "OutOfStock");
+    }
+});
