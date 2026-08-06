@@ -135,22 +135,30 @@ validated and matchable — a React Router loader/action response reaching
 the client is the common case — use `@efesto-cloud/result-codec` instead;
 see `references/result-codec.md`.
 
-## Zod integration
+## Schema validation
 
-`Result.fromZod(zodParseResult)` converts a Zod `SafeParseReturnType`:
+`Result.fromSchema(schema, input)` accepts any validator implementing
+[Standard Schema](https://standardschema.dev) — zod 4, Valibot, ArkType —
+and returns `Result<Output, readonly StandardSchemaV1.Issue[]>`. There is
+no zod-specific constructor: this package does not depend on zod.
 
 ```ts
 import { z } from "zod";
 
 const InputSchema = z.object({ name: z.string().min(1) });
 
-const parsed = Result.fromZod(InputSchema.safeParse(rawInput));
+const parsed = Result.fromSchema(InputSchema, rawInput);
 if (parsed.isFailure()) {
-    // parsed.error is a Zod issue array
+    // parsed.error is a readonly Issue[]
     return Result.err(new ValidationError(parsed.error));
 }
 // parsed.data is the typed object
 ```
+
+`fromSchema` is synchronous: a schema whose `validate` returns a thenable
+throws a `TypeError`. Note that zod turns *any* throw inside validation
+into a Promise, so a `transform` that throws surfaces here as that same
+`TypeError` — keep schemas free of throwing transforms.
 
 Used in route loaders/actions for input shaping. The use case's
 input type is then the parsed-and-typed object.
@@ -245,5 +253,5 @@ Result.isErr(result);
 // Serialise
 result.toObject();
 Result.fromObject(obj);
-Result.fromZod(zodParseResult);
+Result.fromSchema(schema, input);
 ```

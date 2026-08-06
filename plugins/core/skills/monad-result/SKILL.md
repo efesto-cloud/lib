@@ -19,7 +19,7 @@ Use this skill to keep `Result<T, E>` usage consistent across the project.
 - Execute side effects with `result.run(fn)` — runs `fn` on success data, no-op on failure.
 - Serialize to plain object with `result.toObject()` — returns `ISuccess<T> | IFailure<E>`.
 - Deserialize with `Result.fromObject(obj)` — reconstructs from a plain `IResult<T, E>` object.
-- Integrate Zod validation with `Result.fromZod(zodParseResult)` — converts `SafeParseReturnType` to `Result`.
+- Validate input with `Result.fromSchema(schema, input)` — takes any Standard Schema validator (zod 4, Valibot, ArkType) and returns `Result<Output, readonly Issue[]>`.
 
 ## Common Mistakes To Avoid
 - Do not call `result.isErr()` as an instance method — it does not exist, use `result.isFailure()`. (The standalone `Result.isErr(result)` guard does exist, e.g. for `Array.prototype.filter`.)

@@ -46,9 +46,13 @@ Result.ok(value);         // Success<T>
 Result.err(error);        // Failure<E> — the error is required
 
 Result.fromObject({ success: true, data }); // rebuild from serialized form
-Result.fromZod(zodSchema.safeParse(input)); // from Zod's safeParse result
-Result.fromSchema(standardSchema, input);   // from any Standard Schema (zod-independent)
+Result.fromSchema(standardSchema, input);   // from any Standard Schema
 ```
+
+`fromSchema` accepts any validator implementing [Standard
+Schema](https://standardschema.dev) — zod 4, Valibot, ArkType. There is no
+zod-specific constructor: `Result.fromSchema(zodSchema, input)` is the zod
+path, and it keeps this package free of any dependency on zod.
 
 ### Instance methods
 

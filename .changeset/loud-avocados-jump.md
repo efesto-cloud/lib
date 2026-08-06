@@ -19,13 +19,19 @@ Aggiunti: `all`, `partition`, `flatten`, `tapBoth`, `isOk`/`isErr` e
 `fromResult` e `toResult(errorFactory)` su Maybe. Result esporta inoltre i
 due tipi `OkOf<R>` ed `ErrOf<R>`, che estraggono i parametri di un Result.
 
-Packaging: `zod` passa da devDependency a peerDependency opzionale di
-result, cosi' da comparire nel manifest come gia' compariva nei tipi
-pubblici. Attenzione: da solo questo non rende risolvibile il `.d.ts` per
-chi installa result senza zod, perche' `dist/index.d.ts` importa ancora i
-tipi di zod in modo incondizionato — serve comunque `skipLibCheck: true`
-oppure zod installata. La correzione completa richiede spostare `fromZod`
-su un export dedicato, ed e' rimandata.
+BREAKING: `Result.fromZod` e' rimosso. Usa `Result.fromSchema(schema,
+input)`, che accetta qualunque validatore Standard Schema — zod 4 incluso —
+e restituisce `Result<Output, readonly Issue[]>`. La migrazione e' diretta:
+`Result.fromZod(S.safeParse(x))` diventa `Result.fromSchema(S, x)`. Cambia il
+tipo del canale errori, da `ZodError<Output>` a `readonly
+StandardSchemaV1.Issue[]`.
+
+Con `fromZod` sparisce l'unico import dei tipi di zod dal `.d.ts` pubblico,
+e con esso il problema di packaging che affliggeva questo package: `result`
+non dichiara piu' zod ne' fra le dependencies ne' fra le peerDependencies, e
+il suo `dist/index.d.ts` e' risolvibile senza `skipLibCheck` e senza avere
+zod installata. `@standard-schema/spec` resta l'unica dipendenza, ed e' di
+soli tipi.
 
 `@efesto-cloud/toast` dichiara ora `dependencies` su maybe e result invece
 di `peerDependencies`, allineandosi alla convenzione degli altri package del

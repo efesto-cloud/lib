@@ -1,5 +1,4 @@
 import type { StandardSchemaV1 } from "@standard-schema/spec";
-import type { ZodError, ZodSafeParseResult } from "zod";
 
 // ---------------------------------------------------------------------------
 // Plain-object shapes — preserved for backwards compatibility.
@@ -233,10 +232,6 @@ const _isThenable = (value: unknown): value is PromiseLike<unknown> =>
     "function";
 const _fromObject = <T, E>(obj: IResult<T, E>): Result<T, E> =>
     obj.success ? new Success<T, E>(obj.data) : new Failure<T, E>(obj.error);
-const _fromZod = <Output>(
-    res: ZodSafeParseResult<Output>,
-): Result<Output, ZodError<Output>> =>
-    res.success ? _ok(res.data) : _err(res.error);
 const _describeThrown = (caught: unknown): string => {
     try {
         return caught instanceof Error ? caught.message : String(caught);
@@ -346,7 +341,6 @@ export const ok = _ok;
 export const err = _err;
 export const fromThrowable = _fromThrowable;
 export const fromObject = _fromObject;
-export const fromZod = _fromZod;
 export const fromSchema = _fromSchema;
 export const all = _all;
 export const partition = _partition;
@@ -357,7 +351,7 @@ export const isErr = _isErr;
 // ---------------------------------------------------------------------------
 // `Result` namespace — declaration-merged with the `Result<T, E>` type so
 // existing `Result.ok(...)`, `Result.err(...)`, `Result.fromObject(...)`,
-// `Result.fromZod(...)` and `import Result from "..."` keep working.
+// `Result.fromSchema(...)` and `import Result from "..."` keep working.
 // ---------------------------------------------------------------------------
 
 namespace Result {
@@ -365,7 +359,6 @@ namespace Result {
     export const err = _err;
     export const fromThrowable = _fromThrowable;
     export const fromObject = _fromObject;
-    export const fromZod = _fromZod;
     export const fromSchema = _fromSchema;
     export const all = _all;
     export const partition = _partition;

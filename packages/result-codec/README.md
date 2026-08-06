@@ -24,7 +24,8 @@ too:
 pnpm add zod
 ```
 
-See **Known limitations → 1** below before skipping this step.
+Any Standard Schema validator works — zod 4, Valibot, ArkType. Neither
+`result-codec` nor `@efesto-cloud/result` depends on zod.
 
 ## Quick Start
 
@@ -105,7 +106,7 @@ in the component.
   right outcome.
 - The codec is synchronous by construction — the client deserializes
   during render. A schema that resolves asynchronously (or a zod schema
-  whose `transform`/`refine` throws — see limitation 4) makes the codec
+  whose `transform`/`refine` throws — see limitation 3) makes the codec
   throw a `TypeError`, not silently `await` something render can't wait
   for.
 - `deserialize`'s returned error type is `Out<DErr> | DecodeError` — a flat
@@ -149,7 +150,7 @@ Validates the active branch (`ok` or `err`) against the matching schema
 and produces the flat envelope `{ success, data, error }` (`IResult` from
 `@efesto-cloud/result`). On a schema mismatch, `serialize` returns
 `Result.err(new EncodeError({ issues, branch }))`; `serializeUnsafe`
-throws that `EncodeError`. See limitation 3 for a compiler gap on this
+throws that `EncodeError`. See limitation 2 for a compiler gap on this
 path.
 
 ### `.deserialize(input)` / `.deserializeUnsafe(input)`
@@ -170,7 +171,7 @@ transport, not to the domain outcome.
 One exception, and it is about your schema rather than the payload: if a
 branch schema is a Zod schema that throws internally on the hostile value,
 Zod turns that throw into a Promise and you get the deliberate `TypeError`
-of limitation 4 instead of a `DecodeError`. Keep the codec's schemas free
+of limitation 3 instead of a `DecodeError`. Keep the codec's schemas free
 of throwing transforms and this cannot happen.
 
 ### `EncodeError` / `DecodeError`
@@ -194,19 +195,7 @@ plain tag guards.
 
 ## Known limitations
 
-### 1. The inherited zod constraint
-
-`result-codec` depends on `@efesto-cloud/result`, whose `dist/index.d.ts`
-imports zod's types unconditionally (`import type { ZodError,
-ZodSafeParseResult } from "zod"`), even though zod is only an *optional*
-peer dependency of `result` — so it is not installed by default. A
-consumer of `result-codec` that does not have zod among its own
-dependencies will not compile without `skipLibCheck: true` in its
-`tsconfig.json`. The real fix — moving `fromZod` to a dedicated
-zod-specific export of `result` — is tracked but not done yet. Either add
-`zod` as a dependency, or set `skipLibCheck: true`.
-
-### 2. `taggedErrorSchema` validates the tag, not the props
+### 1. `taggedErrorSchema` validates the tag, not the props
 
 `taggedErrorSchema` (see `@efesto-cloud/tagged-error`) checks that `_tag`
 matches one of the given classes and then constructs `new Cls(value)` on
@@ -233,7 +222,7 @@ const UserForbiddenWireSchema = z.object({
 The package's own test suite has the worked example ("i props dell'errore
 vengono validati, non solo il tag").
 
-### 3. The `serialize` error union is not compiler-checked
+### 2. The `serialize` error union is not compiler-checked
 
 `taggedErrorSchema`'s Standard Schema has `InferInput = unknown`, so
 `schemas.serialize.err` accepts *any* value at the type level. Concretely:
@@ -248,7 +237,7 @@ doesn't match `In<SOk>`. There is no automated safety net for the `err`
 side today; when adding an error class, grep for the `codec(...)` calls
 that serialize it.
 
-### 4. A zod schema whose `transform`/`refine` can throw
+### 3. A zod schema whose `transform`/`refine` can throw
 
 The codec is synchronous by construction, but zod's Standard Schema
 `validate()` converts *any* internal throw — not just genuine async
@@ -270,11 +259,11 @@ input.
   failure — it only throws for `DecodeError` (a transport problem); a
   domain error still comes back as `Result.err(...)`.
 - Do not use `taggedErrorSchema` when the `err` branch needs its props
-  verified, not just its tag — see limitation 2.
+  verified, not just its tag — see limitation 1.
 - Do not write a `transform`/`refine` that throws in a codec schema — see
-  limitation 4.
+  limitation 3.
 - Do not assume `serialize` catches a forgotten error class at compile
-  time — see limitation 3.
+  time — see limitation 2.
 - Do not deserialize with a *looser* schema than what `serialize` produced
   if you need a strict contract — the two directions are independent
   schema pairs on purpose (to allow, e.g., a stricter `deserialize` for a
