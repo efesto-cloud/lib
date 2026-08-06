@@ -16,6 +16,7 @@ Run from the repo root:
 
 - `pnpm build` — build all packages (`tsc` per package)
 - `pnpm typecheck` — `tsc --noEmit` across all packages
+- `pnpm typecheck:test` — `tsc --noEmit` over test files (`*.test.ts`, `*.test-d.ts`) for the packages that expose a `typecheck:test` script; `pnpm typecheck` does not include these
 - `pnpm test` — run tests across all packages
 - `pnpm biome` — Biome check (lint + format). Use `pnpm exec biome check --write .` to auto-fix and format
 - `pnpm knip` — detect unused files/exports/deps
@@ -29,9 +30,13 @@ Per-package: `pnpm --filter @efesto-cloud/<name> <script>` (e.g. `build`, `typec
 Always run, in order, and resolve errors before finishing:
 
 1. `pnpm typecheck`
-2. `pnpm exec biome check --write .`
-3. `pnpm knip`
-4. `pnpm test` — the `tests/` integration workspace exposes no `typecheck`
+2. `pnpm typecheck:test` — `pnpm -r typecheck` does not run the `typecheck:test`
+   scripts, so type-level test assertions (`.test-d.ts` files, and `as`/cast
+   expressions inside `.test.ts` files) go unchecked by every other step here;
+   this is the only one that catches a break there.
+3. `pnpm exec biome check --write .`
+4. `pnpm knip`
+5. `pnpm test` — the `tests/` integration workspace exposes no `typecheck`
    script, so `pnpm -r typecheck` silently skips it; only `pnpm test`
    actually exercises it, and it is the sole step here that would catch a
    break there.
