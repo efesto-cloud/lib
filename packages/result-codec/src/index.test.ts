@@ -67,6 +67,66 @@ test("la busta serializzata sopravvive a JSON.stringify", () => {
     assert.equal(wire.error._tag, "FooNotFound");
 });
 
+const DateSchema = z.object({
+    id: z.string(),
+    creatoIl: z.date().transform((d) => d.toISOString()),
+});
+
+const DateCodec = codec({
+    serialize: { ok: DateSchema, err: ErrSchema },
+    deserialize: { ok: DateSchema, err: ErrSchema },
+});
+
+test("serialize usa il valore validato dello schema, non il dato di dominio, sul ramo ok", () => {
+    const creatoIl = new Date("2024-01-01T00:00:00.000Z");
+    const out = DateCodec.serialize(Result.ok({ id: "1", creatoIl }));
+    assert.ok(out.isSuccess());
+    if (!out.isSuccess()) return;
+    assert.ok(out.data.success);
+    if (!out.data.success) return;
+    // Se l'implementazione usasse `result.data` invece di `checked.value`,
+    // qui arriverebbe l'istanza `Date` di dominio, non la stringa ISO
+    // prodotta dallo schema di serializzazione.
+    assert.equal(out.data.data.creatoIl, "2024-01-01T00:00:00.000Z");
+    assert.equal(typeof out.data.data.creatoIl, "string");
+    // Verifica statica: il campo sul filo ha il tipo di OUTPUT dello schema
+    // (string), non quello di dominio (Date) — questa riga non
+    // compilerebbe se il tipo dichiarato del busta non seguisse Out<SOk>.
+    const wireCreatoIl: string = out.data.data.creatoIl;
+    void wireCreatoIl;
+});
+
+class ItemExpired extends TaggedError("ItemExpired")<{ scadutoIl: Date }> {}
+
+const ItemExpiredWireSchema = z.object({
+    _tag: z.literal("ItemExpired"),
+    scadutoIl: z.date().transform((d) => d.toISOString()),
+});
+
+const ExpiryCodec = codec({
+    serialize: { ok: UserSchema, err: ItemExpiredWireSchema },
+    deserialize: { ok: UserSchema, err: ItemExpiredWireSchema },
+});
+
+test("serialize usa il valore validato dello schema, non l'istanza di dominio, sul ramo err", () => {
+    const scadutoIl = new Date("2024-06-15T12:00:00.000Z");
+    const out = ExpiryCodec.serialize(
+        Result.err(new ItemExpired({ scadutoIl })),
+    );
+    assert.ok(out.isSuccess());
+    if (!out.isSuccess()) return;
+    assert.equal(out.data.success, false);
+    if (out.data.success) return;
+    // Se l'implementazione usasse `result.error` invece di `checked.value`,
+    // qui arriverebbe l'istanza `ItemExpired` con la `Date` di dominio, non
+    // la stringa ISO prodotta dallo schema di serializzazione dell'errore.
+    assert.equal(out.data.error.scadutoIl, "2024-06-15T12:00:00.000Z");
+    assert.equal(typeof out.data.error.scadutoIl, "string");
+    // Verifica statica: stesso ragionamento del ramo ok, ma su Out<SErr>.
+    const wireScadutoIl: string = out.data.error.scadutoIl;
+    void wireScadutoIl;
+});
+
 test("uno schema asincrono lancia un TypeError", () => {
     const asyncSchema = {
         "~standard": {
