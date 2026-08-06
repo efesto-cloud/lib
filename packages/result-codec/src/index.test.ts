@@ -168,3 +168,82 @@ test("uno schema che restituisce un thenable non nativo lancia comunque un TypeE
     });
     assert.throws(() => c.serialize(Result.ok(1)), TypeError);
 });
+
+test("deserialize ricostruisce il ramo ok", () => {
+    const wire = JSON.parse(
+        JSON.stringify(
+            UserCodec.serializeUnsafe(Result.ok({ id: "1", nome: "ada" })),
+        ),
+    );
+    const out = UserCodec.deserialize(wire);
+    assert.ok(out.isSuccess());
+    assert.deepEqual(out.data, { id: "1", nome: "ada" });
+});
+
+test("deserialize ricostruisce l'ISTANZA d'errore, non un oggetto piatto", () => {
+    const wire = JSON.parse(
+        JSON.stringify(
+            UserCodec.serializeUnsafe(Result.err(new FooNotFound())),
+        ),
+    );
+    const out = UserCodec.deserialize(wire);
+    assert.ok(out.isFailure());
+    assert.ok(out.error instanceof FooNotFound);
+});
+
+test("una busta malformata da DecodeError con branch envelope", () => {
+    for (const bad of [null, 42, "x", [], {}, { success: "forse" }]) {
+        const out = UserCodec.deserialize(bad);
+        assert.ok(
+            out.isFailure(),
+            `atteso fallimento per ${JSON.stringify(bad)}`,
+        );
+        assert.ok(DecodeError.is(out.error));
+        assert.equal(out.error.branch, "envelope");
+    }
+});
+
+test("un payload che non rispetta lo schema da DecodeError con branch ok", () => {
+    const out = UserCodec.deserialize({ success: true, data: { id: 1 } });
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.equal(out.error.branch, "ok");
+    assert.ok(out.error.issues.length > 0);
+});
+
+test("un tag d'errore sconosciuto da DecodeError con branch err", () => {
+    const out = UserCodec.deserialize({
+        success: false,
+        error: { _tag: "MaiSentito" },
+    });
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.equal(out.error.branch, "err");
+});
+
+test("l'errore di dominio e quello di trasporto si distinguono per tag", () => {
+    const dominio = UserCodec.deserialize({
+        success: false,
+        error: { _tag: "FooNotFound" },
+    });
+    assert.ok(dominio.isFailure());
+    assert.ok(FooNotFound.is(dominio.error));
+    assert.ok(!DecodeError.is(dominio.error));
+
+    const trasporto = UserCodec.deserialize({ success: "forse" });
+    assert.ok(trasporto.isFailure());
+    assert.ok(DecodeError.is(trasporto.error));
+});
+
+test("deserializeUnsafe lancia sul payload rotto ma non sull'errore di dominio", () => {
+    assert.throws(
+        () => UserCodec.deserializeUnsafe({ success: "forse" }),
+        (e: unknown) => e instanceof DecodeError,
+    );
+    const dominio = UserCodec.deserializeUnsafe({
+        success: false,
+        error: { _tag: "FooNotFound" },
+    });
+    assert.ok(dominio.isFailure());
+    assert.ok(dominio.error instanceof FooNotFound);
+});

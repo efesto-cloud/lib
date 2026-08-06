@@ -54,16 +54,10 @@ export interface CodecSchemas<
     deserialize: { ok: DOk; err: DErr };
 }
 
-// `DOk`/`DErr` non sono ancora usati nel corpo dell'interfaccia: `deserialize`
-// arriva nel Task 3, che aggiungera qui i metodi che li referenziano. Restano
-// nella lista dei parametri di tipo per allinearsi a `CodecSchemas` e alla
-// firma di ritorno di `codec()`.
 export interface ResultCodec<
     SOk extends StandardSchemaV1,
     SErr extends StandardSchemaV1,
-    // biome-ignore lint/correctness/noUnusedVariables: usato dal Task 3 (deserialize)
     DOk extends StandardSchemaV1,
-    // biome-ignore lint/correctness/noUnusedVariables: usato dal Task 3 (deserialize)
     DErr extends StandardSchemaV1,
 > {
     serialize(
@@ -72,6 +66,8 @@ export interface ResultCodec<
     serializeUnsafe(
         result: Result<In<SOk>, In<SErr>>,
     ): IResult<Out<SOk>, Out<SErr>>;
+    deserialize(input: unknown): Result<Out<DOk>, Out<DErr> | DecodeError>;
+    deserializeUnsafe(input: unknown): Result<Out<DOk>, Out<DErr>>;
 }
 
 export function codec<
@@ -103,8 +99,54 @@ export function codec<
         return ok({ success: false, data: undefined, error: checked.value });
     };
 
+    const decodeErr = (
+        issues: readonly StandardSchemaV1.Issue[],
+        branch: "envelope" | "ok" | "err",
+    ) => err(new DecodeError({ issues, branch }));
+
+    const deserialize = (
+        input: unknown,
+    ): Result<Out<DOk>, Out<DErr> | DecodeError> => {
+        if (
+            typeof input !== "object" ||
+            input === null ||
+            Array.isArray(input)
+        ) {
+            return decodeErr([{ message: "Expected an object" }], "envelope");
+        }
+        const envelope = input as {
+            success?: unknown;
+            data?: unknown;
+            error?: unknown;
+        };
+        if (typeof envelope.success !== "boolean") {
+            return decodeErr(
+                [{ message: "Missing boolean `success`", path: ["success"] }],
+                "envelope",
+            );
+        }
+
+        if (envelope.success) {
+            const checked = validateSync(schemas.deserialize.ok, envelope.data);
+            return checked.issues
+                ? decodeErr(checked.issues, "ok")
+                : ok(checked.value);
+        }
+
+        const checked = validateSync(schemas.deserialize.err, envelope.error);
+        return checked.issues
+            ? decodeErr(checked.issues, "err")
+            : err(checked.value);
+    };
+
     return {
         serialize,
         serializeUnsafe: (result) => serialize(result).unwrapOrThrow(),
+        deserialize,
+        deserializeUnsafe: (input) => {
+            const r = deserialize(input);
+            if (r.isFailure() && DecodeError.is(r.error)) throw r.error;
+            return r as Result<Out<DOk>, Out<DErr>>;
+        },
     };
 }
