@@ -83,6 +83,11 @@ test("uno schema asincrono lancia un TypeError", () => {
 });
 
 test("uno schema che restituisce un thenable non nativo lancia comunque un TypeError", () => {
+    // Deliberatamente fuori dal tipo dichiarato: e' il caso che il codec deve
+    // sopravvivere a runtime — un thenable non nativo che `instanceof Promise`
+    // non riconoscerebbe. Il cast vive qui, al punto di costruzione dello
+    // schema, non nell'asserzione: `assert.throws` sotto continua a provare
+    // esattamente cio' che deve provare.
     const thenableSchema = {
         "~standard": {
             version: 1 as const,
@@ -96,7 +101,7 @@ test("uno schema che restituisce un thenable non nativo lancia comunque un TypeE
                 },
             }),
         },
-    };
+    } as unknown as StandardSchemaV1<number, number>;
     const c = codec({
         serialize: { ok: thenableSchema, err: ErrSchema },
         deserialize: { ok: thenableSchema, err: ErrSchema },
