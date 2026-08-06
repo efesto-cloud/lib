@@ -1,4 +1,4 @@
-import { TaggedError } from "./index.js";
+import { matchError, matchErrorPartial, TaggedError } from "./index.js";
 
 class CartNotFound extends TaggedError("CartNotFound") {}
 class EmptyCart extends TaggedError("EmptyCart") {}
@@ -39,3 +39,26 @@ void _narrowed;
 void _mixed;
 void _incomplete;
 void _extraKey;
+
+const _fn: number = matchError(error, {
+    CartNotFound: () => 404,
+    EmptyCart: () => 400,
+    OutOfStock: (e) => e.sku.length,
+});
+
+// @ts-expect-error - handler mancante anche nella forma data-last
+const _fnIncomplete = matchError(error, { CartNotFound: () => 404 });
+
+const _partial: number = matchErrorPartial(error, {
+    CartNotFound: () => 404,
+    OutOfStock: (e) => e.sku.length,
+    otherwise: () => 500,
+});
+
+// @ts-expect-error - otherwise e obbligatorio
+const _noOtherwise = matchErrorPartial(error, { CartNotFound: () => 404 });
+
+void _fn;
+void _fnIncomplete;
+void _partial;
+void _noOtherwise;

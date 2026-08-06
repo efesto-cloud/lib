@@ -46,6 +46,40 @@ export interface TaggedErrorCtor<Tag extends string> {
     is(u: unknown): u is TaggedErrorBase & { readonly _tag: Tag };
 }
 
+export type PartialTagHandlers<Self extends { readonly _tag: string }> =
+    Partial<TagHandlers<Self, unknown>> & {
+        otherwise: (error: Self) => unknown;
+    };
+
+export function matchError<
+    Self extends AnyTaggedError,
+    H extends TagHandlers<Self, unknown>,
+>(
+    error: Self,
+    handlers: H & Record<Exclude<keyof H, Self["_tag"]>, never>,
+): ReturnType<H[keyof H]> {
+    const table = handlers as unknown as Record<
+        string,
+        (e: Self) => ReturnType<H[keyof H]>
+    >;
+    return table[error._tag](error);
+}
+
+export function matchErrorPartial<
+    Self extends AnyTaggedError,
+    H extends PartialTagHandlers<Self>,
+>(error: Self, handlers: H): ReturnType<NonNullable<H[keyof H]>> {
+    const table = handlers as unknown as Record<
+        string,
+        ((e: Self) => ReturnType<NonNullable<H[keyof H]>>) | undefined
+    >;
+    const handler = table[error._tag] ?? table.otherwise;
+    if (handler === undefined) {
+        throw new TypeError(`No handler for tag "${error._tag}"`);
+    }
+    return handler(error);
+}
+
 const RESERVED = new Set(["_tag", "name", "message", "cause", "stack"]);
 
 export function TaggedError<Tag extends string>(

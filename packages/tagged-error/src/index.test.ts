@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { AnyTaggedError } from "./index.js";
-import { TaggedError } from "./index.js";
+import { matchError, matchErrorPartial, TaggedError } from "./index.js";
 
 test("il package espone il tipo AnyTaggedError", () => {
     const e: AnyTaggedError = Object.assign(new Error("x"), {
@@ -102,4 +102,48 @@ test("match funziona anche su un errore concreto singolo", () => {
         OutOfStock: (e) => e.sku,
     });
     assert.equal(out, "X");
+});
+
+test("matchError instrada come il metodo", () => {
+    // Il cast esplicito e necessario: senza, TypeScript restringe il tipo di
+    // `err` al tipo del valore assegnato (OutOfStock) tramite control-flow
+    // narrowing, nonostante l'annotazione union — vedi il commento su "match
+    // instrada sul tag corretto" sopra.
+    const err: CartNotFound | OutOfStock = new OutOfStock({
+        sku: "ABC-1",
+    }) as CartNotFound | OutOfStock;
+    assert.equal(
+        matchError(err, {
+            CartNotFound: () => "no",
+            OutOfStock: (e) => e.sku,
+        }),
+        "ABC-1",
+    );
+});
+
+test("matchErrorPartial cade su otherwise per i tag non gestiti", () => {
+    // Stesso difetto di narrowing del test precedente: senza il cast, `err`
+    // si restringe a CartNotFound e l'handler OutOfStock perde il tipo del
+    // suo parametro.
+    const err: CartNotFound | OutOfStock = new CartNotFound() as
+        | CartNotFound
+        | OutOfStock;
+    assert.equal(
+        matchErrorPartial(err, {
+            OutOfStock: (e) => e.sku,
+            otherwise: () => "fallback",
+        }),
+        "fallback",
+    );
+});
+
+test("matchErrorPartial preferisce l'handler specifico a otherwise", () => {
+    const err: CartNotFound | OutOfStock = new OutOfStock({ sku: "S" });
+    assert.equal(
+        matchErrorPartial(err, {
+            OutOfStock: (e) => e.sku,
+            otherwise: () => "fallback",
+        }),
+        "S",
+    );
 });
