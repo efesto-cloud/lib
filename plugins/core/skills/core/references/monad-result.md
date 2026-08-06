@@ -127,6 +127,14 @@ const reconstructed = Result.fromObject(obj);
 Useful when sending Results across the wire (rare — most boundaries
 serialise the DTO directly, not the Result).
 
+`toObject`/`fromObject` round-trip the *shape* only — nothing validates
+that `fromObject`'s input actually matches `T`/`E`, and a tagged domain
+error comes back as a plain object, not the original class instance. When
+the boundary is a real network hop that needs the reconstructed side
+validated and matchable — a React Router loader/action response reaching
+the client is the common case — use `@efesto-cloud/result-codec` instead;
+see `references/result-codec.md`.
+
 ## Zod integration
 
 `Result.fromZod(zodParseResult)` converts a Zod `SafeParseReturnType`:

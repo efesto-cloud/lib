@@ -197,6 +197,8 @@ A full end-to-end trace with code at every step is in
 |-----------|----------------|
 | `references/monad-result.md` | `Result<T, E>` from `@efesto-cloud/result`: construction, branching, transforms, serialisation. |
 | `references/monad-maybe.md` | `Maybe<T>` from `@efesto-cloud/maybe`: when to prefer over `null`. |
+| `references/tagged-error.md` | `TaggedError`/`matchError`/`taggedErrorSchema` from `@efesto-cloud/tagged-error`: `_tag`-discriminated errors that survive a serialized boundary — when local `DomainError` (`references/errors.md`) is enough and when it isn't. |
+| `references/result-codec.md` | `codec(...)` from `@efesto-cloud/result-codec`: validating a `Result` across the loader/action → client hop, one `matchError` for domain and transport failures together. |
 
 ### Reactive primitives
 
