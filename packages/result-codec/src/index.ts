@@ -31,17 +31,59 @@ const isThenable = (value: unknown): value is PromiseLike<unknown> =>
     typeof (value as { then?: unknown } | null | undefined)?.then ===
     "function";
 
+/**
+ * Il `TypeError` deliberato del ramo thenable, con un'identita' riconoscibile.
+ *
+ * Resta un `TypeError` (quindi `assert.throws(..., TypeError)` continua a
+ * valere), ma il `catch` difensivo di `deserialize` puo' rilanciarlo
+ * SELETTIVAMENTE invece di dipendere dalla posizione fisica del `try`: e' un
+ * errore di programmazione da correggere, non una condizione di dato da
+ * mascherare. Privata al modulo: non fa parte dell'API pubblica.
+ */
+class SyncValidatorRequiredError extends TypeError {}
+
+const describeThrown = (caught: unknown): string => {
+    try {
+        return caught instanceof Error ? caught.message : String(caught);
+    } catch {
+        return "errore non descrivibile";
+    }
+};
+
 const validateSync = <S extends StandardSchemaV1>(
     schema: S,
     value: unknown,
 ): StandardSchemaV1.Result<Out<S>> => {
-    const out = schema["~standard"].validate(value);
+    // Uno schema puo' lanciare in modo sincrono (un `transform`/`refine` non
+    // difensivo di un validatore non-zod, o uno schema che legge le proprieta'
+    // dell'input a mano su un payload ostile). Il throw diventa un issue: un
+    // DecodeError/EncodeError, non un'eccezione che attraversa il render.
+    let out: StandardSchemaV1.Result<Out<S>> | PromiseLike<unknown>;
+    try {
+        out = schema["~standard"].validate(value) as
+            | StandardSchemaV1.Result<Out<S>>
+            | PromiseLike<unknown>;
+    } catch (caught) {
+        return {
+            issues: [
+                {
+                    message: `Lo schema ha lanciato durante la validazione: ${describeThrown(caught)}`,
+                },
+            ],
+        };
+    }
     if (isThenable(out)) {
-        throw new TypeError(
-            "result-codec richiede validatori sincroni: il client deserializza durante il render",
+        // Zod converte QUALSIASI throw dello schema in una Promise (il
+        // fallback `safeParseAsync` nel suo `~standard.validate`): quella
+        // Promise puo' essere gia' rifiutata e, senza handler, la unhandled
+        // rejection porta giu' il processo Node. In un loader non e' un 500,
+        // e' il server che cade. La neutralizziamo prima di lanciare.
+        Promise.resolve(out).catch(() => {});
+        throw new SyncValidatorRequiredError(
+            "result-codec richiede validatori sincroni (il client deserializza durante il render): lo schema ha restituito un thenable. Con zod questo accade sia quando la validazione e' davvero asincrona, sia quando uno schema sincrono ha lanciato — zod converte il throw in una Promise, e i due casi sono indistinguibili a valle: controlla anche i transform/refine sincroni.",
         );
     }
-    return out as StandardSchemaV1.Result<Out<S>>;
+    return out;
 };
 
 export interface CodecSchemas<
@@ -107,57 +149,77 @@ export function codec<
     const deserialize = (
         input: unknown,
     ): Result<Out<DOk>, Out<DErr> | DecodeError> => {
-        if (
-            typeof input !== "object" ||
-            input === null ||
-            Array.isArray(input)
-        ) {
-            return decodeErr([{ message: "Expected an object" }], "envelope");
-        }
-        // Le tre letture sotto sono accessi a proprieta su un valore
-        // tipizzato `unknown`: possono essere un getter o un trap `get` di
-        // Proxy che lancia. Isolarle in un `try` che copre SOLO la lettura
-        // (non la validazione) le trasforma in un DecodeError invece di
-        // lasciar attraversare `deserialize` un'eccezione arbitraria — il
-        // `TypeError` deliberato di `validateSync` sul ramo thenable resta
-        // fuori da questo blocco e continua a propagarsi.
-        let success: unknown;
-        let data: unknown;
-        let errorField: unknown;
+        // `deserialize` non deve MAI lanciare su input malformato: l'intera
+        // decodifica sta dentro il `try`. `input` e tipizzato `unknown` e
+        // arriva dal filo, quindi ogni operazione su di esso e ostile —
+        // `Array.isArray` su un Proxy revocato lancia, i getter e i trap
+        // `get` lanciano, uno schema che legge le proprieta a mano lancia.
+        //
+        // La protezione NON si regge sulla posizione fisica del `try`: il
+        // `TypeError` deliberato del ramo thenable ha un'identita propria
+        // (`SyncValidatorRequiredError`) e viene rilanciato selettivamente
+        // dal `catch`.
+        //
+        // `branch` traccia dove eravamo, cosi il DecodeError riporta il ramo
+        // effettivo e non un generico "envelope".
+        let branch: "envelope" | "ok" | "err" = "envelope";
         try {
+            if (
+                typeof input !== "object" ||
+                input === null ||
+                Array.isArray(input)
+            ) {
+                return decodeErr(
+                    [{ message: "Expected an object" }],
+                    "envelope",
+                );
+            }
+
             const envelope = input as {
                 success?: unknown;
                 data?: unknown;
                 error?: unknown;
             };
-            success = envelope.success;
-            data = envelope.data;
-            errorField = envelope.error;
-        } catch {
-            return decodeErr(
-                [{ message: "Reading the envelope threw" }],
-                "envelope",
-            );
-        }
+            const success = envelope.success;
+            const data = envelope.data;
+            const errorField = envelope.error;
 
-        if (typeof success !== "boolean") {
-            return decodeErr(
-                [{ message: "Missing boolean `success`", path: ["success"] }],
-                "envelope",
-            );
-        }
+            if (typeof success !== "boolean") {
+                return decodeErr(
+                    [
+                        {
+                            message: "Missing boolean `success`",
+                            path: ["success"],
+                        },
+                    ],
+                    "envelope",
+                );
+            }
 
-        if (success) {
-            const checked = validateSync(schemas.deserialize.ok, data);
+            if (success) {
+                branch = "ok";
+                const checked = validateSync(schemas.deserialize.ok, data);
+                return checked.issues
+                    ? decodeErr(checked.issues, "ok")
+                    : ok(checked.value);
+            }
+
+            branch = "err";
+            const checked = validateSync(schemas.deserialize.err, errorField);
             return checked.issues
-                ? decodeErr(checked.issues, "ok")
-                : ok(checked.value);
+                ? decodeErr(checked.issues, "err")
+                : err(checked.value);
+        } catch (caught) {
+            if (caught instanceof SyncValidatorRequiredError) throw caught;
+            return decodeErr(
+                [
+                    {
+                        message: `La decodifica ha lanciato: ${describeThrown(caught)}`,
+                    },
+                ],
+                branch,
+            );
         }
-
-        const checked = validateSync(schemas.deserialize.err, errorField);
-        return checked.issues
-            ? decodeErr(checked.issues, "err")
-            : err(checked.value);
     };
 
     return {

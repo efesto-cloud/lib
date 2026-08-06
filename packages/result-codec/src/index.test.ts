@@ -327,6 +327,188 @@ test("il TypeError deliberato sul ramo thenable continua a propagarsi intatto", 
     assert.throws(() => c.deserialize({ success: true, data: 1 }), TypeError);
 });
 
+// ---------------------------------------------------------------------------
+// Uno schema zod che lancia. Zod converte QUALSIASI throw in una Promise (il
+// fallback `safeParseAsync` nel suo `~standard.validate`): a valle il codec
+// vede un thenable, identico al caso «validatore davvero asincrono».
+// ---------------------------------------------------------------------------
+
+const UrlSchema = z.object({
+    href: z.string().transform((s) => new URL(s)),
+});
+const UrlCodec = codec({
+    serialize: { ok: UrlSchema, err: ErrSchema },
+    deserialize: { ok: UrlSchema, err: ErrSchema },
+});
+
+test("uno schema zod che lancia non lascia una Promise rifiutata senza handler", async () => {
+    // Senza `.catch()` la Promise rifiutata da zod diventa una unhandled
+    // rejection e porta giu' il processo Node: in un loader non e' un 500,
+    // e' il server che cade su un payload malformato.
+    const rejections: unknown[] = [];
+    const onRejection = (reason: unknown) => {
+        rejections.push(reason);
+    };
+    process.on("unhandledRejection", onRejection);
+    try {
+        assert.throws(
+            () =>
+                UrlCodec.deserialize(
+                    JSON.parse('{"success":true,"data":{"href":"non-un-url"}}'),
+                ),
+            TypeError,
+        );
+        assert.throws(
+            () => UrlCodec.serialize(Result.ok({ href: "non-un-url" })),
+            TypeError,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 50));
+    } finally {
+        process.off("unhandledRejection", onRejection);
+    }
+    assert.deepEqual(rejections, []);
+});
+
+test("il messaggio del ramo thenable non diagnostica solo l'asincronia", () => {
+    // Diagnosi falsa: lo schema sopra e' sincrono. Il messaggio deve nominare
+    // anche il caso «lo schema ha lanciato», altrimenti manda lo sviluppatore
+    // nella direzione sbagliata.
+    assert.throws(
+        () =>
+            UrlCodec.deserialize(
+                JSON.parse('{"success":true,"data":{"href":"non-un-url"}}'),
+            ),
+        (e: unknown) =>
+            e instanceof TypeError && /ha lanciato|lanci/i.test(e.message),
+    );
+});
+
+test("uno schema che lancia in modo sincrono da DecodeError, non un'eccezione grezza", () => {
+    const throwingSchema = {
+        "~standard": {
+            version: 1 as const,
+            vendor: "test",
+            validate: () => {
+                throw new Error("boom-schema");
+            },
+        },
+    } as unknown as StandardSchemaV1<unknown, { id: string }>;
+    const c = codec({
+        serialize: { ok: throwingSchema, err: ErrSchema },
+        deserialize: { ok: throwingSchema, err: ErrSchema },
+    });
+    const out = c.deserialize({ success: true, data: { id: "1" } });
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.equal(out.error.branch, "ok");
+    assert.match(out.error.issues[0].message, /boom-schema/);
+    assert.throws(
+        () => c.deserializeUnsafe({ success: true, data: { id: "1" } }),
+        (e: unknown) => e instanceof DecodeError,
+    );
+});
+
+test("uno schema che lancia in modo sincrono da EncodeError su serialize", () => {
+    const throwingSchema = {
+        "~standard": {
+            version: 1 as const,
+            vendor: "test",
+            validate: () => {
+                throw new Error("boom-schema");
+            },
+        },
+    } as unknown as StandardSchemaV1<{ id: string }, { id: string }>;
+    const c = codec({
+        serialize: { ok: throwingSchema, err: ErrSchema },
+        deserialize: { ok: throwingSchema, err: ErrSchema },
+    });
+    const out = c.serialize(Result.ok({ id: "1" }));
+    assert.ok(out.isFailure());
+    assert.ok(EncodeError.is(out.error));
+    assert.equal(out.error.branch, "ok");
+    assert.match(out.error.issues[0].message, /boom-schema/);
+});
+
+test("deserialize non lancia se la validazione del ramo err incontra un payload ostile", () => {
+    // `taggedErrorSchema` legge `value._tag` direttamente: un Proxy ostile
+    // fa lanciare la validazione del RAMO, non la lettura della busta.
+    const evil = new Proxy(
+        {},
+        {
+            get() {
+                throw new Error("boom-inner");
+            },
+        },
+    );
+    const out = UserCodec.deserialize({ success: false, error: evil });
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.throws(
+        () => UserCodec.deserializeUnsafe({ success: false, error: evil }),
+        (e: unknown) => e instanceof DecodeError,
+    );
+});
+
+test("se leggere il risultato della validazione lancia, il DecodeError riporta il ramo", () => {
+    // Uno schema puo' restituire un oggetto risultato ostile: qui a lanciare
+    // non e' `validate` ma la lettura di `.issues` a valle. Il DecodeError
+    // deve riportare il ramo su cui eravamo, non un generico "envelope".
+    const hostileResultSchema = {
+        "~standard": {
+            version: 1 as const,
+            vendor: "test",
+            validate: () =>
+                new Proxy(
+                    {},
+                    {
+                        get(_target, prop) {
+                            if (prop === "then") return undefined;
+                            throw new Error("boom-result");
+                        },
+                    },
+                ),
+        },
+    } as unknown as StandardSchemaV1<unknown, { id: string }>;
+    const c = codec({
+        serialize: { ok: UserSchema, err: ErrSchema },
+        deserialize: { ok: hostileResultSchema, err: ErrSchema },
+    });
+    const out = c.deserialize({ success: true, data: { id: "1" } });
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.equal(out.error.branch, "ok");
+    assert.match(out.error.issues[0].message, /boom-result/);
+});
+
+test("deserialize non lancia su un Proxy revocato", () => {
+    // `Array.isArray` su un Proxy revocato lancia: e' la stessa classe di
+    // raggiungibilita' dei getter che lanciano, e sta fuori dal `try`.
+    const { proxy, revoke } = Proxy.revocable({}, {});
+    revoke();
+    const out = UserCodec.deserialize(proxy);
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.equal(out.error.branch, "envelope");
+    assert.throws(
+        () => UserCodec.deserializeUnsafe(proxy),
+        (e: unknown) => e instanceof DecodeError,
+    );
+});
+
+test("un array con i campi della busta e' comunque una busta malformata", () => {
+    // Morde il guard `Array.isArray`: senza di esso questo payload
+    // decodificherebbe come un successo, perche' `success` e' un boolean
+    // valido e `data` rispetta lo schema.
+    const arrayBusta = Object.assign([], {
+        success: true,
+        data: { id: "1", nome: "ada" },
+    });
+    const out = UserCodec.deserialize(arrayBusta);
+    assert.ok(out.isFailure());
+    assert.ok(DecodeError.is(out.error));
+    assert.equal(out.error.branch, "envelope");
+});
+
 class FooForbidden extends TaggedError("FooForbidden")<{ motivo: string }> {}
 
 const FullErrSchema = taggedErrorSchema(FooNotFound, FooForbidden);
