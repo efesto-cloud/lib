@@ -10,8 +10,23 @@ argument-hint: 'Name and fields of the value object (e.g. "EmailAddress wrapping
 Generates or refactors **immutable TypeScript value objects** — domain primitives that encapsulate validation, normalization, and conversion logic.
 
 **Note:** This skill focuses on patterns for creating value objects and does not require specific npm packages. However, if you're integrating with @efesto-cloud packages, install `@efesto-cloud/entity` for the mapper interfaces:
-- `IValueObjectMapper<VO, Raw>` — use this for value object mappers (preferred)
-- `IEntityMapper<Entity, Doc>` — use this for entity mappers (handled by the persistence skill)
+- `IValueObjectMapper<E extends object, RAW>` — use this for value object mappers (preferred)
+- `IEntityMapper<E extends IEntity, RAW>` — use this for entity mappers (handled by the persistence skill)
+
+Both are type-only default exports re-exported as named types from `@efesto-cloud/entity`:
+
+```ts
+import type { IValueObjectMapper } from "@efesto-cloud/entity";
+```
+
+Each interface declares two **instance** methods:
+
+```ts
+interface IValueObjectMapper<E extends object, RAW> {
+    from(dto: RAW): E;
+    to<P extends keyof RAW = keyof RAW>(entity: E, options?: { pick?: P[] }): Pick<RAW, P>;
+}
+```
 
 ## Decision: what to generate
 
@@ -58,7 +73,9 @@ See [./references/value-object-templates.md](./references/value-object-templates
 
 ## Mapper (persistence / transport only)
 
-- Separate class: `FooMapper.fromRaw(raw) → Foo`, `FooMapper.toRaw(foo) → RawType`
+- Implement `@efesto-cloud/entity`'s `IValueObjectMapper<Foo, IFoo>` with instance methods:
+  - `from(dto) → Foo` (builds the value object from the raw shape)
+  - `to(vo, options?) → Pick<IFoo, …>` (returns the raw shape; `options.pick` selects fields)
 - Do **not** put database or transport concerns inside the value object itself
 
 ## Validation
@@ -78,12 +95,12 @@ See [./references/value-object-templates.md](./references/value-object-templates
 | Money / Currency | `amount` as integer cents + `currency` as ISO string; never use floats |
 | Date range | Validate `start < end`; expose computed helpers (`duration()`, `contains(d)`) if useful |
 | Color | Validate hex or RGB; normalize to one canonical format |
-| Nullable wrapping | Accept `null` in `fromRaw()`; return `null` from `toRaw()` if value is absent |
+| Nullable wrapping | Handle `null` in the mapper's `from(dto)`; return `null` from `toRaw()` if value is absent |
 
 ## If improving existing code
 
 1. Keep existing names (`IEmailAddress`, `EmailAddress`, `EmailAddressRaw`, etc.)
-2. Add missing `create()` / `fromRaw()` factory with validation
+2. Add missing `create()` factory with validation (and a `from()` mapper method if persisting)
 3. Make constructor `private` if it is not already
 4. Add `toRaw()` / `toJSON()` if absent
 5. Do not restructure unrelated logic or rename symbols

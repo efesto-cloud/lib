@@ -21,7 +21,7 @@ ports-and-adapters pattern. This skill is DB-agnostic; it covers the shared conc
 apply regardless of whether the backing store is MongoDB, Prisma, or anything else.
 
 **Installation:** Add the core packages used by all persistence layers:
-- `pnpm add @efesto-cloud/database-context` (for `IDatabaseContext` interface)
+- `pnpm add @efesto-cloud/unit-of-work` (for the `IUnitOfWork` transaction-coordination interface)
 - `pnpm add @efesto-cloud/entity` (for `IEntityMapper` interface)
 - `pnpm add @efesto-cloud/maybe` (for nullable results)
 
@@ -39,7 +39,6 @@ any driver.
 
 ```typescript
 // src/repo/IFooRepo.ts
-import type IDatabaseContext from "@efesto-cloud/database-context";
 import Maybe from "@efesto-cloud/maybe";
 import Foo from "~/entity/Foo.js";
 
@@ -67,11 +66,11 @@ export default IFooRepo;
 | Count | `Promise<number>` |
 | Large result set | `Readable` (stream) |
 
-**When population will be added** — declare an `Options` namespace with a `populate` field.
-The population skill handles everything else; the interface just exposes the hook:
+**When expansion (eager-loading) will be added** — declare an `Options` namespace with an
+`expand` field. The expand skill handles everything else; the interface just exposes the hook:
 
 ```typescript
-import type { Populate } from "@efesto-cloud/population";
+import type { Expand } from "@efesto-cloud/expand";
 import type { FooShape } from "./shape/FooShape.js";
 
 interface IFooRepo {
@@ -82,7 +81,7 @@ interface IFooRepo {
 
 namespace IFooRepo {
     export type Options = {
-        populate?: Populate<FooShape>;
+        expand?: Expand<FooShape>;
     };
 }
 ```
@@ -107,7 +106,7 @@ const FooMapper: IEntityMapper<Foo, FooStorageModel> = {
      */
     from: (row: FooStorageModel): Foo => {
         const entity = new Foo({ name: row.name }, row.id);
-        // If population is in use, patch in populated sub-entities here (check for presence):
+        // If expansion is in use, patch in expanded sub-entities here (check for presence):
         // if (row.bar) entity.props.bar = BarMapper.from(row.bar);
         return entity;
     },
@@ -159,7 +158,7 @@ For the implementation class (`FooRepoImpl`) and any DB-specific constructor arg
 - [ ] Read the entity + DTO before writing anything
 - [ ] `IFooRepo.ts` created with interface + exported search query type
 - [ ] Return types follow the guide above (Maybe for single nullable, array for many)
-- [ ] `Options` namespace added if population will be needed
+- [ ] `Options` namespace added if expansion will be needed
 - [ ] `Symbols.Repo.FooRepo` added
 - [ ] Container binding added (implementation class comes from DB-specific skill)
 - [ ] Typecheck passes

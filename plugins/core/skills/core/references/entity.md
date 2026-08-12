@@ -335,10 +335,13 @@ failure because a corrupt DB is an ops issue), and pass the VO to
 
 ## Cross-layer: how the mapper reconstructs an entity
 
-See `prisma-persistence.md` for the full Prisma mapper, but in
-essence:
+See `references/persistence-adapter.md` for the full mapper (and the
+DB's dedicated skill for concrete driver code), but in essence — where
+`FooRow` is whatever the chosen database returns for this entity:
 
 ```ts
+import type { IEntityMapper } from "@efesto-cloud/entity";
+
 const FooMapper: IEntityMapper<Foo, FooRow> = {
     from: (row) => {
         const name = FooName.create(row.name);

@@ -18,7 +18,7 @@ description: >
 **Installation:** If not already installed, add the required packages:
 - `pnpm add @efesto-cloud/entity` (for `IEntityMapper` interface)
 - `pnpm add @efesto-cloud/maybe` (for nullable results)
-- `pnpm add @efesto-cloud/mongodb-database-context` (for transaction support)
+- `pnpm add @efesto-cloud/mongodb-unit-of-work` (for transaction support)
 
 Helps you build the persistence layer — document type, repository interface, implementation, and mapper — for a hexagonal architecture TypeScript/MongoDB project following the ports-and-adapters pattern.
 
@@ -118,10 +118,10 @@ export default IFooRepo;
 | Count | `Promise<number>` |
 | Large result set | `Readable` (stream) |
 
-**When population is needed** — declare an `options` parameter and a namespace with an `Options` type. The population skill handles everything else; the interface just exposes the hook:
+**When population is needed** — declare an `options` parameter and a namespace with an `Options` type. The expand (eager-loading) skill handles everything else; the interface just exposes the hook:
 
 ```typescript
-import type { Populate } from '@efesto-cloud/population';
+import type { Expand } from '@efesto-cloud/expand';
 import type { FooShape } from './shape/FooShape.js';
 
 interface IFooRepo {
@@ -132,7 +132,7 @@ interface IFooRepo {
 
 namespace IFooRepo {
     export type Options = {
-        populate?: Populate<FooShape>; // Populate + FooShape come from the population system
+        expand?: Expand<FooShape>; // Expand + FooShape come from the expand (eager-loading) system
     };
 }
 ```
@@ -144,9 +144,9 @@ namespace IFooRepo {
 ```typescript
 // src/repo/impl/FooRepoImpl.ts
 import Maybe from "@efesto-cloud/maybe";
+import type { IMongoDBUnitOfWork } from "@efesto-cloud/mongodb-unit-of-work";
 import { inject, injectable } from "inversify";
 import { Collection, Filter, ObjectId } from "mongodb";
-import type IDatabaseContext from "~/db/Context/IDatabaseContext.js";
 import FooDocument from "~/db/Documents/FooDocument.js";
 import Symbols from "~/di/Symbols.js";
 import Foo from "~/entity/Foo.js";
@@ -157,7 +157,7 @@ import IFooRepo, { SearchFoo } from "../IFooRepo.js";
 export default class FooRepoImpl implements IFooRepo {
     constructor(
         @inject(Symbols.Collections.foo) private readonly coll: Collection<FooDocument>,
-        @inject(Symbols.DatabaseContext) private readonly db: IDatabaseContext,
+        @inject(Symbols.UnitOfWork) private readonly uow: IMongoDBUnitOfWork,
     ) {}
 
     async search(query: SearchFoo): Promise<Foo[]> {
@@ -166,14 +166,14 @@ export default class FooRepoImpl implements IFooRepo {
         if (!query.include_deleted) filter.deleted_at = null;
 
         const docs = await this.coll
-            .find(filter, { session: this.db.session }) // session is required — wires into transactions
+            .find(filter, { session: this.uow.session }) // session is required — wires into transactions
             .sort({ name: 1 })
             .toArray();
         return docs.map(FooMapper.from);
     }
 
     async get(id: ObjectId): Promise<Maybe<Foo>> {
-        const doc = await this.coll.findOne({ _id: id }, { session: this.db.session });
+        const doc = await this.coll.findOne({ _id: id }, { session: this.uow.session });
         return Maybe.maybe(doc).map(FooMapper.from);
     }
 
@@ -182,13 +182,13 @@ export default class FooRepoImpl implements IFooRepo {
         await this.coll.updateOne(
             { _id: raw._id },
             { $set: raw },
-            { upsert: true, session: this.db.session },
+            { upsert: true, session: this.uow.session },
         );
     }
 }
 ```
 
-**The session rule** — every MongoDB driver call must include `{ session: this.db.session }`. Without it, the call silently runs outside any active transaction. `IDatabaseContext` exposes `session` as `undefined` when there's no transaction; the MongoDB driver ignores `undefined` gracefully, so it's always safe to pass.
+**The session rule** — every MongoDB driver call must include `{ session: this.uow.session }`. Without it, the call silently runs outside any active transaction. `IMongoDBUnitOfWork` exposes `session` as `undefined` when there's no transaction; the MongoDB driver ignores `undefined` gracefully, so it's always safe to pass.
 
 **Simple vs. aggregate reads:**
 - Use `.find()`/`.findOne()` for straightforward queries with no population.
@@ -276,10 +276,10 @@ if (entity.isDeleted()) {
     await this.coll.updateOne(
         { _id: raw._id },
         { $set: { deleted_at: entity.deleted_at!.toJSDate() } },
-        { session: this.db.session },
+        { session: this.uow.session },
     );
 } else {
-    await this.coll.updateOne({ _id: raw._id }, { $set: raw }, { upsert: true, session: this.db.session });
+    await this.coll.updateOne({ _id: raw._id }, { $set: raw }, { upsert: true, session: this.uow.session });
 }
 
 // In search() filter:
@@ -290,9 +290,9 @@ if (!query.include_deleted) filter.deleted_at = null;
 
 ```typescript
 if (entity.isDeleted()) {
-    await this.coll.deleteOne({ _id: raw._id }, { session: this.db.session });
+    await this.coll.deleteOne({ _id: raw._id }, { session: this.uow.session });
 } else {
-    await this.coll.updateOne({ _id: raw._id }, { $set: raw }, { upsert: true, session: this.db.session });
+    await this.coll.updateOne({ _id: raw._id }, { $set: raw }, { upsert: true, session: this.uow.session });
 }
 ```
 
@@ -304,7 +304,7 @@ import prepareBulkOps from "~/db/prepareBulkOps.js";
 async saveMany(entities: Foo[]): Promise<void> {
     const ops = prepareBulkOps(entities, FooMapper);
     if (!ops.length) return;
-    await this.coll.bulkWrite(ops, { session: this.db.session });
+    await this.coll.bulkWrite(ops, { session: this.uow.session });
 }
 ```
 
@@ -316,12 +316,12 @@ When a parent's `save()` must also persist child entities in their own collectio
 constructor(
     @inject(Symbols.Collections.foo) private readonly coll: Collection<FooDocument>,
     @inject(Symbols.Repo.BarRepo) private readonly barRepo: IBarRepo,  // inject child repo
-    @inject(Symbols.DatabaseContext) private readonly db: IDatabaseContext,
+    @inject(Symbols.UnitOfWork) private readonly uow: IMongoDBUnitOfWork,
 ) {}
 
 async save(entity: Foo): Promise<void> {
     const raw = FooMapper.to(entity);
-    await this.coll.updateOne({ _id: raw._id }, { $set: raw }, { upsert: true, session: this.db.session });
+    await this.coll.updateOne({ _id: raw._id }, { $set: raw }, { upsert: true, session: this.uow.session });
     await this.barRepo.saveMany(entity.bars); // delegate to child repo — same transaction session
 }
 ```
@@ -353,7 +353,7 @@ Use a `Readable` with cursor iteration rather than `.toArray()` to avoid loading
 - [ ] Read the entity + DTO before writing anything
 - [ ] `FooDocument.ts` created with `Overwrite<IFoo, {_id: ObjectId; ...}>`
 - [ ] `IFooRepo.ts` created with interface + exported search type
-- [ ] `FooRepoImpl.ts` created — `@injectable()`, every call passes `{ session: this.db.session }`
+- [ ] `FooRepoImpl.ts` created — `@injectable()`, every call passes `{ session: this.uow.session }`
 - [ ] `FooMapper.ts` created — `from()` handles optional populated fields; `to()` only own stored scalars
 - [ ] `CollectionNameEnum` updated
 - [ ] `ICollectionsDocument` updated

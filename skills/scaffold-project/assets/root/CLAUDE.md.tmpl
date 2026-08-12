@@ -7,7 +7,7 @@ This file provides guidance to **Claude Code** and other AI agents working on th
 This is an hexagonal architecture with a strict package dependency chain:
 
 ```text
-@efesto-cloud/* (shared libraries — Entity, Maybe, Result, Population, MongoDBContext, …)
+@efesto-cloud/* (shared libraries — Entity, Maybe, Result, Expand, MongoDBUnitOfWork, …)
     ↓
 {{ns}}/core       domain model + use cases (ports)
     ↓

@@ -61,9 +61,9 @@ export default IFooRepo;
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Maybe from "@efesto-cloud/maybe";
+import type { IMongoDBUnitOfWork } from "@efesto-cloud/mongodb-unit-of-work";
 import { inject, injectable } from "inversify";
 import { Collection, Filter, ObjectId } from "mongodb";
-import type IDatabaseContext from "~/db/Context/IDatabaseContext.js";
 import FooDocument from "~/db/Documents/FooDocument.js";
 import Symbols from "~/di/Symbols.js";
 import Foo from "~/entity/Foo.js";
@@ -76,9 +76,9 @@ export default class FooRepoImpl implements IFooRepo {
         // Injected as Collection<FooDocument> — typed by the ICollectionsDocument mapping.
         // The symbol key must match the collection name string exactly.
         @inject(Symbols.Collections.foo) private readonly coll: Collection<FooDocument>,
-        // IDatabaseContext carries the current MongoDB ClientSession.
+        // IMongoDBUnitOfWork carries the current MongoDB ClientSession.
         // It is undefined when no transaction is active; the driver ignores undefined sessions.
-        @inject(Symbols.DatabaseContext) private readonly db: IDatabaseContext,
+        @inject(Symbols.UnitOfWork) private readonly uow: IMongoDBUnitOfWork,
     ) {}
 
     async search(query: SearchFoo): Promise<Foo[]> {
@@ -89,14 +89,14 @@ export default class FooRepoImpl implements IFooRepo {
         const docs = await this.coll
             // Pass session on every call — this wires the operation into any active transaction.
             // Without it the call runs outside the transaction and can't be rolled back.
-            .find(filter, { session: this.db.session })
+            .find(filter, { session: this.uow.session })
             .sort({ name: 1 })
             .toArray();
         return docs.map(FooMapper.from);
     }
 
     async get(id: ObjectId): Promise<Maybe<Foo>> {
-        const doc = await this.coll.findOne({ _id: id }, { session: this.db.session });
+        const doc = await this.coll.findOne({ _id: id }, { session: this.uow.session });
         // Maybe.maybe(null) → Maybe.none(); Maybe.maybe(doc) → Maybe.some(doc)
         return Maybe.maybe(doc).map(FooMapper.from);
     }
@@ -105,13 +105,13 @@ export default class FooRepoImpl implements IFooRepo {
         // Nested field access: "email.address" for embedded value objects
         const doc = await this.coll.findOne(
             { "email.address": email },
-            { session: this.db.session },
+            { session: this.uow.session },
         );
         return Maybe.maybe(doc).map(FooMapper.from);
     }
 
     async count(): Promise<number> {
-        return this.coll.countDocuments({ deleted_at: null }, { session: this.db.session });
+        return this.coll.countDocuments({ deleted_at: null }, { session: this.uow.session });
     }
 
     async save(entity: Foo): Promise<void> {
@@ -123,14 +123,14 @@ export default class FooRepoImpl implements IFooRepo {
             await this.coll.updateOne(
                 { _id: raw._id },
                 { $set: { deleted_at: entity.deleted_at!.toJSDate() } },
-                { session: this.db.session },
+                { session: this.uow.session },
             );
         } else {
             // Upsert: insert if new, replace fields if existing.
             await this.coll.updateOne(
                 { _id: raw._id },
                 { $set: raw },
-                { upsert: true, session: this.db.session },
+                { upsert: true, session: this.uow.session },
             );
         }
     }

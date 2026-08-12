@@ -7,7 +7,12 @@ that points to a concrete file in `task-planning` that demonstrates
 the pattern live.
 
 The story: we're adding a `Foo` aggregate with three operations —
-`CreateFoo`, `GetFoo`, `UpdateFooName` — backed by Prisma.
+`CreateFoo`, `GetFoo`, `UpdateFooName` — backed by the project's
+persistence adapter (`@*/persistence-adapter`). The concrete adapter is
+whatever database the project chose (`@*/prisma-adapter`,
+`@*/mongodb-adapter`, `@*/drizzle-adapter`, …); the walkthrough keeps the
+adapter step DB-neutral and points to the database's dedicated skill for
+driver code.
 
 For full per-layer detail open the relevant per-layer reference; this
 file is the orchestrating narrative.
@@ -462,7 +467,7 @@ export default UseCaseSymbols;
 ```ts
 // core/src/di/InternalSymbols.ts
 const InternalSymbols = {
-    DatabaseContext: Symbol.for("DatabaseContext"),
+    UnitOfWork: Symbol.for("UnitOfWork"), // typed as IUnitOfWork; bound by the adapter
     Repo: {
         // ...
         Foo: Symbol.for("Repo.Foo"),
@@ -506,86 +511,35 @@ Full details: `references/di-layer.md`.
 
 ## Step 11 — Adapter: repo impl + mapper + installer edit
 
-```ts
-// prisma/src/repository/FooRepoImpl.ts
-import type { IPrismaContext } from "@efesto-cloud/prisma-database-context";
-import {
-    type Foo,
-    type IFooRepository,
-    InternalSymbols,
-    type TFooStatus,
-} from "@task-management/core";
-import type { PrismaClient } from "@task-management/prisma-client";
-import { inject, injectable } from "inversify";
-import FooMapper from "../mapper/FooMapper.js";
+This step lives in the **persistence adapter package**
+(`@*/persistence-adapter` — concretely `@*/prisma-adapter`,
+`@*/mongodb-adapter`, `@*/drizzle-adapter`, …), never in core. The shape
+below is **database-agnostic**: the mapper implements
+`IEntityMapper<Foo, FooRow>`, the repo injects `IUnitOfWork` and delegates
+row ↔ entity translation to the mapper, and the driver calls are left as
+DB-neutral pseudocode. For the concrete driver code (Prisma `findFirst` /
+`upsert`, MongoDB `Collection` queries, …) defer to the database's
+dedicated skill — `prisma-persistence` / `mongodb-persistence`.
 
-@injectable()
-export default class FooRepoImpl implements IFooRepository {
-    constructor(
-        @inject(InternalSymbols.DatabaseContext)
-        private readonly db: IPrismaContext<PrismaClient>,
-    ) {}
-
-    async findById(
-        id: string,
-        options?: { includeDeleted?: boolean },
-    ): Promise<Foo | null> {
-        const row = await this.db.client.foo.findFirst({
-            where: options?.includeDeleted ? { id } : { id, deleted_at: null },
-        });
-        return row ? FooMapper.from(row) : null;
-    }
-
-    async list(filter: {
-        status?: TFooStatus;
-        q?: string;
-        includeDeleted: boolean;
-        limit: number;
-        offset: number;
-    }): Promise<{ items: Foo[]; total: number }> {
-        const where = {
-            ...(filter.status ? { status: filter.status } : {}),
-            ...(filter.includeDeleted ? {} : { deleted_at: null }),
-            ...(filter.q?.trim()
-                ? { name: { contains: filter.q.trim(), mode: "insensitive" as const } }
-                : {}),
-        };
-        const [rows, total] = await Promise.all([
-            this.db.client.foo.findMany({
-                where,
-                orderBy: { created_at: "desc" },
-                skip: filter.offset,
-                take: filter.limit,
-            }),
-            this.db.client.foo.count({ where }),
-        ]);
-        return { items: rows.map(FooMapper.from), total };
-    }
-
-    async save(foo: Foo): Promise<void> {
-        const data = FooMapper.to(foo);
-        await this.db.client.foo.upsert({
-            where: { id: data.id },
-            create: data,
-            update: data,
-        });
-    }
-}
-```
+**The mapper** (`@*/persistence-adapter/src/mapper/FooMapper.ts`) — the
+only place that knows the stored record's shape. `FooRow` is whatever the
+driver returns (a Prisma generated payload, a hand-written MongoDB
+`FooDocument`, a Drizzle inferred row, …):
 
 ```ts
-// prisma/src/mapper/FooMapper.ts
+// @*/persistence-adapter/src/mapper/FooMapper.ts
 import type { IEntityMapper } from "@efesto-cloud/entity";
-import { Foo, FooName, type TFooStatus } from "@task-management/core";
-import type { Prisma } from "@task-management/prisma-client";
+import { Foo, FooName, type TFooStatus } from "@my-app/core";
 import { DateTime } from "luxon";
 
-type FooRow = Prisma.FooGetPayload<object>;
+// RAW = the database's native record type for this entity.
+type FooRow = { /* …driver-specific shape… */ };
 
 const FooMapper: IEntityMapper<Foo, FooRow> = {
     from: (row: FooRow): Foo => {
         const name = FooName.create(row.name);
         if (name.isFailure()) {
+            // Corrupt DB row: throw with a row-identifying message.
             throw new Error(`Invalid name in database for Foo ${row.id}: ${row.name}`);
         }
         return new Foo(
@@ -602,7 +556,7 @@ const FooMapper: IEntityMapper<Foo, FooRow> = {
         );
     },
 
-    to: (foo: Foo) => ({
+    to: (foo: Foo): FooRow => ({
         id: foo._id,
         name: foo.name.toRaw(),
         status: foo.status,
@@ -615,34 +569,108 @@ const FooMapper: IEntityMapper<Foo, FooRow> = {
 export default FooMapper;
 ```
 
-Edit `prisma/src/install.ts`:
+**The repo impl**
+(`@*/persistence-adapter/src/repository/FooRepoImpl.ts`) — `@injectable()`,
+implements the core port, injects the unit-of-work (transaction) port,
+and delegates to the mapper. Only the driver calls inside each method are
+database-specific:
 
 ```ts
+// @*/persistence-adapter/src/repository/FooRepoImpl.ts
+import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
+import {
+    type Foo,
+    type IFooRepository,
+    InternalSymbols,
+    type TFooStatus,
+} from "@my-app/core";
+import { inject, injectable } from "inversify";
+import FooMapper from "../mapper/FooMapper.js";
+
+@injectable()
+export default class FooRepoImpl implements IFooRepository {
+    constructor(
+        // The transaction coordinator (IUnitOfWork-backed DB handle).
+        @inject(InternalSymbols.UnitOfWork)
+        private readonly uow: IUnitOfWork,
+    ) {}
+
+    async findById(
+        id: string,
+        options?: { includeDeleted?: boolean },
+    ): Promise<Foo | null> {
+        // driver-specific read by id, filtering deleted_at: null unless includeDeleted
+        const row = await /* …query by id… */;
+        return row ? FooMapper.from(row) : null;
+    }
+
+    async list(filter: {
+        status?: TFooStatus;
+        q?: string;
+        includeDeleted: boolean;
+        limit: number;
+        offset: number;
+    }): Promise<{ items: Foo[]; total: number }> {
+        // driver-specific paged read + count (run in parallel), applying:
+        //   - status filter when filter.status is set
+        //   - deleted_at: null unless filter.includeDeleted
+        //   - case-insensitive name match when filter.q is set
+        //   - skip filter.offset / take filter.limit
+        const { rows, total } = await /* … */;
+        return { items: rows.map(FooMapper.from), total };
+    }
+
+    async save(foo: Foo): Promise<void> {
+        const data = FooMapper.to(foo);
+        await /* driver-specific upsert by data.id */;
+    }
+}
+```
+
+`save` is an upsert (one method for insert + update); every read filters
+`deleted_at IS NULL` unless `{ includeDeleted: true }`; `list` returns
+`{ items, total }`. These invariants hold for every adapter — see
+`references/persistence-adapter.md`.
+
+**Transactions.** A multi-write use case stays DB-agnostic by going
+through `IUnitOfWork.runWithTransaction` (from
+`@efesto-cloud/unit-of-work`); the adapter binds `InternalSymbols.UnitOfWork`
+to the database's implementation — `@efesto-cloud/prisma-unit-of-work` or
+`@efesto-cloud/mongodb-unit-of-work`.
+
+**The installer** — edit `@*/persistence-adapter/src/install.ts` to bind
+the new repo port to its impl:
+
+```ts
+// @*/persistence-adapter/src/install.ts
 import {
     // ...
     type IFooRepository,
     InternalSymbols,
-} from "@task-management/core";
+} from "@my-app/core";
 import FooRepoImpl from "./repository/FooRepoImpl.js";
 // ...
 
 return new ContainerModule((bind) => {
-    // ... existing bindings
+    // ... existing bindings (DB client, unit-of-work, other repos)
     bind<IFooRepository>(InternalSymbols.Repo.Foo)
         .to(FooRepoImpl)
         .inRequestScope();
 });
 ```
 
-If a stub adapter exists, mirror the binding there with the
-in-memory impl.
+If a `@*/stub` adapter exists, mirror the binding there with the
+in-memory impl, so use cases run unchanged under tests/mocks.
 
 > **Seen in the wild:**
-> `packages/prisma/src/repository/MemberRepoImpl.ts`,
-> `packages/prisma/src/mapper/MemberMapper.ts`,
-> `packages/prisma/src/install.ts`.
+> the adapter package's
+> `src/repository/MemberRepoImpl.ts`,
+> `src/mapper/MemberMapper.ts`,
+> `src/install.ts`.
 
-Full details: `references/prisma-persistence.md`.
+Full details: `references/persistence-adapter.md` (+ the database's
+dedicated skill: `prisma-persistence` / `mongodb-persistence` for
+concrete driver code).
 
 ---
 

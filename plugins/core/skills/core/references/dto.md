@@ -191,8 +191,10 @@ The DTO is **not** the same as the DB row.
 
 - **DTO** — public, ISO strings for dates, value objects serialised,
   used in JSON.
-- **DB row** — Prisma's generated type, JS `Date` for dates, raw
-  primitives, used in storage.
+- **DB row** — the chosen database's native record type (a Prisma
+  generated payload, a hand-written MongoDB `Document`, a Drizzle
+  inferred row, …), JS `Date` for dates, raw primitives, used in
+  storage.
 
 The mapper sits between them:
 

@@ -1,4 +1,4 @@
-import MongoDBContext from "@efesto-cloud/mongodb-database-context/MongoDBContext";
+import MongoDBUnitOfWork from "@efesto-cloud/mongodb-unit-of-work";
 import Symbols from "{{ns}}/core/di/Symbols";
 import { ContainerModule } from "inversify";
 import MongoSymbols from "./di/MongoSymbols.js";
@@ -14,7 +14,7 @@ export default function install() {
     return new ContainerModule((bind) => {
         bind(MongoSymbols.MongoClient).toConstantValue(client);
 
-        bind(Symbols.DatabaseContext).to(MongoDBContext).inRequestScope();
+        bind(Symbols.DatabaseContext).to(MongoDBUnitOfWork).inRequestScope();
 
         // ── Repositories (populated by the `persistence` skill) ─────────────
         // Example:
