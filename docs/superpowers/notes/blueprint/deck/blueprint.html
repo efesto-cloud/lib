@@ -43,6 +43,38 @@
 .deck table.compact { font-size: 21px; }
 .deck table.compact td { padding: 8px 18px 8px 0; }
 .deck .open { margin-top: 18px; padding: 14px 20px; border-left: 3px dashed var(--signal); background: var(--surface); font-size: 22px; }
+
+/* Gradini: un'unica figura che cresce (Auto-Animate, data-id condivisi). */
+.deck section.rung h2 { margin-bottom: 22px; }
+.deck .rung-body { display: grid; grid-template-columns: 620px 1fr; gap: 52px; }
+.deck .stage { position: relative; width: 620px; height: 440px; }
+.deck .stage .b, .deck .stage .t { position: absolute; box-sizing: border-box; margin: 0; font-size: 18px; line-height: 1.3; color: var(--text); }
+.deck .stage .b { padding: 12px 16px; background: var(--light); border: 1.5px solid var(--stone); }
+.deck .stage .b b { display: block; font-family: var(--font-voice); font-size: 21px; font-weight: 600; color: var(--heading); }
+.deck .stage .b span { display: block; margin-top: 2px; color: var(--dust-ink); }
+.deck .stage .b.dark { background: var(--coal); border-color: var(--coal); }
+.deck .stage .b.dark b { color: var(--paper); }
+.deck .stage .t.on-dark { color: var(--warm); }
+.deck .stage .t.spark { color: var(--spark); }
+.deck .stage .b.hot { border: 2.5px solid var(--forge); background: var(--paper); }
+.deck .stage .b.hot b { color: var(--forge-ink); }
+.deck .stage .b.fill { background: var(--forge); border-color: var(--forge); }
+.deck .stage .b.fill2 { background: var(--forge-ink); border-color: var(--forge-ink); padding-top: 9px; }
+.deck .stage .b.fill b, .deck .stage .b.fill span, .deck .stage .b.fill2 b { color: var(--paper); }
+.deck .stage .b.frame { background: transparent; border: 1.5px dashed var(--steel); }
+.deck .stage .b.frame b { color: var(--steel); }
+.deck .stage .b.frame > span { margin: 0; }
+.deck .stage .b.solid { background: transparent; }
+.deck .stage .b.hot:not(.fill) { padding-top: 9px; }
+.deck .stage .b.sm { padding: 0 8px; display: flex; align-items: center; justify-content: center; background: var(--paper); color: var(--heading); text-align: center; }
+.deck .stage .b.db { border-radius: 50% / 18%; text-align: center; padding-top: 24px; }
+.deck .stage svg.ar { position: absolute; left: 0; top: 0; width: 620px; height: 440px; overflow: visible; }
+.deck .stage svg.ar path { stroke: var(--stone); stroke-width: 1.8; fill: none; }
+.deck .stage svg.ar path.sep { stroke: var(--rule); stroke-dasharray: 5 4; }
+.deck .stage svg.ar marker path { fill: var(--stone); stroke: none; }
+.deck .stage svg.ar text { font-family: var(--font-text); font-size: 18px; fill: var(--dust-ink); }
+.deck .rung .points { margin-top: 0; }
+.deck .stage [data-id="app"] b, .deck .stage [data-id="web2"] b, .deck .stage [data-id="client3"] b { font-size: 19px; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -177,111 +209,142 @@
   <aside class="notes">Ogni gradino aggiunge pacchetti a quello prima. Le caselle fuori percorso sono possibili ma rare. Nei diagrammi dei gradini le frecce indicano «importa».</aside>
 </section>
 
-<!-- ═══ GRADINO 0 ══════════════════════════════════════════════════════ -->
-<section>
+<!-- ═══ GRADINO 0 ═══ -->
+<section class="rung" data-auto-animate data-auto-animate-id="gradini" data-auto-animate-duration="0.6">
   <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
   <p class="kicker">Gradino 0</p>
   <h2>Un pacchetto: tutto sta <em>nell'app</em></h2>
-  <div class="cols narrow-left">
-    <pre><code>// app/routes/expenses.$id.tsx
-export async function loader({ params }) {
-    const expense =
-        await db.expense.findUnique({
-            where: { id: params.id },
-        });
-    if (!expense) throw notFound();
-    return { expense };
-}</code></pre>
+  <div class="rung-body">
+    <div class="stage">
+      <svg class="ar" viewBox="0 0 620 440" aria-hidden="true" data-auto-animate-delay="0.4"><defs><marker id="ar-0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="sep" d="M14,145 H406"/><path class="sep" d="M14,235 H406"/><path d="M422,290 H476" marker-end="url(#ar-0)"/></svg>
+      <div class="b" data-id="app" style="left:0px;top:0px;width:420px;height:330px"><b>app</b><span>un deploy</span></div>
+      <div class="t" data-id="route" style="left:20px;top:92px;width:380px;height:28px">route e componenti</div>
+      <div class="t" data-id="logica" style="left:20px;top:182px;width:380px;height:28px">logica</div>
+      <div class="t" data-id="query" style="left:20px;top:272px;width:380px;height:28px">query al database</div>
+      <div class="b db" data-id="db" style="left:480px;top:250px;width:140px;height:80px"><b>database</b></div>
+    </div>
     <ul class="points small">
       <li><b>Per:</b> proof of concept, applicativi piccoli e autocontenuti.</li>
-      <li><b>Pacchetti:</b> uno. Route, logica e query nello stesso posto.</li>
+      <li><b>Pacchetti:</b> uno.</li>
       <li><b>Limite:</b> la logica non si riusa e non si testa senza database.</li>
     </ul>
   </div>
+  <aside class="notes">Route, logica e accesso ai dati nello stesso posto: il loader fa la query (db.expense.findUnique) e applica le regole. Nei diagrammi dei gradini le frecce indicano «importa».</aside>
 </section>
 
-<!-- ═══ GRADINO 1 ══════════════════════════════════════════════════════ -->
-<section>
+<!-- ═══ GRADINO 1 ═══ -->
+<section class="rung" data-auto-animate data-auto-animate-id="gradini" data-auto-animate-duration="0.6">
   <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
   <p class="kicker">Gradino 1</p>
-  <h2>La logica esce dall'app ed entra nel <em>core</em></h2>
-  <div class="cols narrow-left">
-    <pre><code>// webapp: il loader chiama lo use case
-const result = await context
-    .resolveUseCase("expenses.GetExpense")
-    .execute({ expense_id: params.id },
-             { actor: context.actor });
-return toResponse(result);</code></pre>
+  <h2>La logica entra nel <em>core</em></h2>
+  <div class="rung-body">
+    <div class="stage">
+      <svg class="ar" viewBox="0 0 620 440" aria-hidden="true" data-auto-animate-delay="0.4"><defs><marker id="ar-1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs><path d="M150,112 V166" marker-end="url(#ar-1)"/><path d="M422,290 H476" marker-end="url(#ar-1)"/></svg>
+      <div class="b" data-id="app" style="left:0px;top:0px;width:300px;height:110px"><b>app</b></div>
+      <div class="t" data-id="route" style="left:16px;top:52px;width:270px;height:28px">route, componenti</div>
+      <div class="b dark" data-id="core" style="left:0px;top:170px;width:420px;height:160px"><b>core</b></div>
+      <div class="t on-dark" data-id="logica" style="left:16px;top:212px;width:390px;height:28px">use case, entity, porte</div>
+      <div class="t on-dark" data-id="query" style="left:16px;top:248px;width:390px;height:28px">implementazioni delle porte</div>
+      <div class="t spark" data-id="core-note" style="left:16px;top:288px;width:390px;height:28px">dipende ancora dall'ORM</div>
+      <div class="b db" data-id="db" style="left:480px;top:250px;width:140px;height:80px"><b>database</b></div>
+    </div>
     <ul class="points small">
       <li><b>Segnale:</b> la logica serve a un secondo consumatore (un job, una CLI) o supera la prima schermata.</li>
       <li><b>Mossa:</b> la logica passa per intero in core; i loader chiamano use case.</li>
-      <li><b>Limite:</b> le implementazioni delle porte stanno nel core e si portano dietro l'ORM.</li>
+      <li><b>Limite:</b> le porte sono implementate nel core, che si porta dietro l'ORM.</li>
     </ul>
   </div>
-  <aside class="notes">È la forma della maggior parte delle applicazioni. Due pacchetti: core e webapp. Il limite: niente stub, niente test isolati.</aside>
+  <aside class="notes">La forma della maggior parte delle applicazioni. Due pacchetti. Nel loader: context.resolveUseCase("expenses.GetExpense").execute({ expense_id: params.id }, { actor: context.actor }). Il limite: niente stub, niente test isolati.</aside>
 </section>
 
-<!-- ═══ GRADINO 2·A ════════════════════════════════════════════════════ -->
-<section>
+<!-- ═══ GRADINO 2·A ═══ -->
+<section class="rung" data-auto-animate data-auto-animate-id="gradini" data-auto-animate-duration="0.6">
   <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
   <p class="kicker">Gradino 2·A</p>
-  <h2>Ogni porta ha un adapter reale e uno <em>stub</em></h2>
-  <div class="cols narrow-left">
-    <pre><code>// webapp/app/container.server.ts
-container.load(
-    env.MOCK
-        ? installStub()
-        : installDb({ db: env.DB }),
-    installMail({ from: env.MAIL_FROM }),
-);</code></pre>
+  <h2>Ogni porta, un adapter e uno <em>stub</em></h2>
+  <div class="rung-body">
+    <div class="stage">
+      <svg class="ar" viewBox="0 0 620 440" aria-hidden="true" data-auto-animate-delay="0.4"><defs><marker id="ar-2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs><path d="M150,112 V206" marker-end="url(#ar-2)"/><path d="M302,56 H336 V96" marker-end="url(#ar-2)"/><path d="M338,300 H304" marker-end="url(#ar-2)"/><text x="304" y="290">porte</text></svg>
+      <div class="b" data-id="app" style="left:0px;top:0px;width:300px;height:110px"><b>app</b></div>
+      <div class="t" data-id="route" style="left:16px;top:52px;width:270px;height:28px">route + composition root</div>
+      <div class="b dark" data-id="core" style="left:0px;top:210px;width:300px;height:130px"><b>core</b></div>
+      <div class="t on-dark" data-id="logica" style="left:16px;top:252px;width:270px;height:28px">use case, entity, porte</div>
+      <div class="t spark" data-id="core-note" style="left:16px;top:292px;width:270px;height:28px">nessuna tecnologia</div>
+      <div class="b frame" data-id="adapters" style="left:340px;top:100px;width:280px;height:240px"><b>adapters/</b></div>
+      <div class="b sm" data-id="query" style="left:356px;top:146px;width:248px;height:52px">db-adapter</div>
+      <div class="b sm" data-id="stub" style="left:356px;top:208px;width:248px;height:52px">stub-adapter</div>
+      <div class="b sm" data-id="mail" style="left:356px;top:270px;width:248px;height:52px">mail-adapter, …</div>
+    </div>
     <ul class="points small">
-      <li><b>Segnale:</b> test senza infrastruttura, un mock navigabile prima del backend, un fornitore da poter cambiare.</li>
-      <li><b>Mossa:</b> le implementazioni vanno in <code>adapters/*</code>, si aggiunge lo stub, l'app sceglie cosa caricare.</li>
+      <li><b>Segnale:</b> test senza infrastruttura, un mock navigabile, un fornitore da poter cambiare.</li>
+      <li><b>Mossa:</b> le implementazioni vanno in adapters/*, si aggiunge lo stub, l'app sceglie cosa caricare.</li>
       <li><b>Limite:</b> il wiring vive nell'app; un secondo processo dovrebbe ricopiarlo.</li>
     </ul>
   </div>
-  <aside class="notes">Il core non contiene più nessuna tecnologia. Pacchetti: due, più uno per adapter.</aside>
+  <aside class="notes">Pacchetti: due, più uno per adapter. Nel composition root: container.load(env.MOCK ? installStub() : installDb({ db: env.DB }), installMail({ from: env.MAIL_FROM })).</aside>
 </section>
 
-<!-- ═══ GRADINO 2·B ════════════════════════════════════════════════════ -->
-<section>
+<!-- ═══ GRADINO 2·B ═══ -->
+<section class="rung" data-auto-animate data-auto-animate-id="gradini" data-auto-animate-duration="0.6">
   <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
   <p class="kicker">Gradino 2·B</p>
-  <h2>Più processi, un <em>bootstrap</em> con un profilo ciascuno</h2>
-  <div class="cols narrow-left">
-    <pre><code>// webapp-admin/workers/app.ts
-const resolveUseCase =
-    await bootstrapAdmin(env, {
-        mock: env.MOCK === "1",
-        requires: ["DB", "MAIL_FROM"],
-    });</code></pre>
+  <h2>Più processi, un <em>bootstrap</em> condiviso</h2>
+  <div class="rung-body">
+    <div class="stage">
+      <svg class="ar" viewBox="0 0 620 440" aria-hidden="true" data-auto-animate-delay="0.4"><defs><marker id="ar-3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs><path d="M95,58 L200,100" marker-end="url(#ar-3)"/><path d="M310,58 V100" marker-end="url(#ar-3)"/><path d="M525,58 L420,100" marker-end="url(#ar-3)"/><path d="M200,188 L150,236" marker-end="url(#ar-3)"/><path d="M420,188 L470,236" marker-end="url(#ar-3)"/></svg>
+      <div class="b" data-id="app" style="left:0px;top:0px;width:190px;height:56px"><b>webapp 1</b></div>
+      <div class="b" data-id="web2" style="left:215px;top:0px;width:190px;height:56px"><b>webapp 2</b></div>
+      <div class="b" data-id="client3" style="left:430px;top:0px;width:190px;height:56px"><b>consumer · cron</b></div>
+      <div class="b hot" data-id="bootstrap" style="left:110px;top:104px;width:400px;height:82px"><b>bootstrap</b><span>carica core e adapter, mock o reale</span></div>
+      <div class="b dark" data-id="core" style="left:0px;top:240px;width:300px;height:150px"><b>core</b></div>
+      <div class="t on-dark" data-id="logica" style="left:16px;top:282px;width:270px;height:28px">use case, entity, porte</div>
+      <div class="t spark" data-id="core-note" style="left:16px;top:322px;width:270px;height:28px">nessuna tecnologia</div>
+      <div class="b frame" data-id="adapters" style="left:320px;top:240px;width:300px;height:150px"><b>adapters/</b></div>
+      <div class="b sm" data-id="query" style="left:334px;top:282px;width:132px;height:44px">db</div>
+      <div class="b sm" data-id="stub" style="left:474px;top:282px;width:132px;height:44px">stub</div>
+      <div class="b sm" data-id="mail" style="left:334px;top:334px;width:132px;height:44px">mail</div>
+      <div class="b sm" data-id="coda" style="left:474px;top:334px;width:132px;height:44px">coda</div>
+    </div>
     <ul class="points small">
       <li><b>Segnale:</b> un'altra webapp, un consumer di code, un cron sullo stesso core.</li>
-      <li><b>Mossa:</b> il composition root diventa il pacchetto <code>bootstrap</code>. Un binding mancante è un errore con nome.</li>
+      <li><b>Mossa:</b> il composition root diventa il pacchetto bootstrap, con un profilo per processo.</li>
       <li><b>Limite:</b> ogni processo controlla i permessi per conto suo: le stesse regole, scritte più volte.</li>
     </ul>
   </div>
-  <aside class="notes">Il profilo carica solo gli adapter che servono a quel processo: le dipendenze pesanti (per esempio un adapter per le immagini) restano fuori dalle webapp che non le usano. Una porta senza binding fa fallire solo lo use case che la usa, con un errore esplicito.</aside>
+  <aside class="notes">Un binding mancante è un errore con nome. Ogni profilo carica solo i suoi adapter: le dipendenze pesanti restano fuori dalle webapp che non le usano. Nella webapp: await bootstrapAdmin(env, { mock: env.MOCK === "1", requires: ["DB", "MAIL_FROM"] }).</aside>
 </section>
 
-<!-- ═══ GRADINO 2·C ════════════════════════════════════════════════════ -->
-<section>
+<!-- ═══ GRADINO 2·C ═══ -->
+<section class="rung" data-auto-animate data-auto-animate-id="gradini" data-auto-animate-duration="0.6">
   <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
   <p class="kicker">Gradino 2·C</p>
-  <h2>Gli use case esposti diventano <em>comandi</em></h2>
-  <div class="cols narrow-left">
-    <pre><code>// webapp: chiama il bus, non il core
-const result = await bus.dispatch(
-    "approveExpense",
-    { expense_id },
-);</code></pre>
+  <h2>Gli use case diventano <em>comandi</em></h2>
+  <div class="rung-body">
+    <div class="stage">
+      <svg class="ar" viewBox="0 0 620 440" aria-hidden="true" data-auto-animate-delay="0.4"><defs><marker id="ar-4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs><path d="M95,52 V62" marker-end="url(#ar-4)"/><path d="M310,52 V62" marker-end="url(#ar-4)"/><path d="M525,52 V62" marker-end="url(#ar-4)"/><path d="M560,190 V196" marker-end="url(#ar-4)"/></svg>
+      <div class="b" data-id="app" style="left:0px;top:0px;width:190px;height:50px"><b>webapp 1</b></div>
+      <div class="b" data-id="web2" style="left:215px;top:0px;width:190px;height:50px"><b>webapp 2</b></div>
+      <div class="b" data-id="client3" style="left:430px;top:0px;width:190px;height:50px"><b>CLI · MCP</b></div>
+      <div class="b fill" data-id="commands" style="left:0px;top:66px;width:620px;height:70px"><b>commands</b><span>contratto: Schema + core/client, niente use case né adapter</span></div>
+      <div class="b frame" data-id="canale" style="left:0px;top:148px;width:620px;height:40px"><span>canale remoto: Workers RPC · HTTP</span></div>
+      <div class="b solid" data-id="busserver" style="left:0px;top:200px;width:620px;height:140px"><b>bus-server</b></div>
+      <div class="b fill2" data-id="bus" style="left:16px;top:236px;width:588px;height:44px"><b>bus · handler, middleware, policy</b></div>
+      <div class="b hot" data-id="bootstrap" style="left:16px;top:288px;width:588px;height:44px"><b>bootstrap → core, adapters/</b></div>
+      <div class="b dark" data-id="core" style="left:0px;top:352px;width:300px;height:88px"><b>core</b></div>
+      <div class="t on-dark" data-id="logica" style="left:16px;top:392px;width:270px;height:28px">use case, entity, porte</div>
+      <div class="b frame" data-id="adapters" style="left:320px;top:352px;width:300px;height:88px"><b>adapters/</b></div>
+      <div class="b sm" data-id="query" style="left:333px;top:394px;width:64px;height:38px">db</div>
+      <div class="b sm" data-id="stub" style="left:403px;top:394px;width:64px;height:38px">stub</div>
+      <div class="b sm" data-id="mail" style="left:473px;top:394px;width:64px;height:38px">mail</div>
+      <div class="b sm" data-id="coda" style="left:543px;top:394px;width:64px;height:38px">coda</div>
+    </div>
     <ul class="points small">
       <li><b>Segnale:</b> client che non ospitano il core (CLI, MCP, agenti); regole d'accesso da riscrivere in ogni webapp.</li>
       <li><b>Mossa:</b> per ogni use case esposto, un comando con la policy e un handler.</li>
       <li><b>Costo:</b> un salto di rete, un token che lo attraversa, un contratto da tenere compatibile.</li>
     </ul>
   </div>
-  <aside class="notes">Altri segnali: dati e segreti in un solo deploy; dipendenze pesanti fuori dalle webapp quando i profili non bastano. Il gradino nasce col canale remoto (Workers RPC, HTTP). Il canale in-process non è un gradino a sé: serve alla mock mode e al test di contratto sullo stub. Pacchetti: commands, bus, più il deployable bus-server.</aside>
+  <aside class="notes">Altri segnali: dati e segreti in un solo deploy; dipendenze pesanti fuori dalle webapp quando i profili non bastano. Il gradino nasce col canale remoto. Il canale in-process non è un gradino a sé: serve alla mock mode e al test di contratto sullo stub. Pacchetti: commands, bus, più il deployable bus-server. Nella webapp: await bus.dispatch("approveExpense", { expense_id }).</aside>
 </section>
 
 <!-- ═══ STRATI ═════════════════════════════════════════════════════════ -->
@@ -410,19 +473,22 @@ const result = await bus.dispatch(
   <p class="kicker">Command bus</p>
   <h2>Il comando è il <em>contratto</em> fra client e bus</h2>
   <div class="cols narrow-left">
-    <pre><code>// commands/src/approveExpense.ts
-export default command({
-    input: z.object({
-        expense_id: z.string(),
-    }),
-    output: expenseDto,
+    <pre><code>// commands/src/expenses.ts
+export const approveExpense = command({
     kind: "mutation",
     description: "Approva una nota spese",
-    policy: can("expenses.approve"),
+    input: Schema.Struct({
+        expense_id: Schema.String,
+    }),
+    output: ExpenseDto,
+    errors: Schema.Union([
+        ExpenseNotFound,
+        InvalidTransition,
+    ]),
 });</code></pre>
     <ul class="points small">
       <li><b>Schema:</b> il client può validare prima di inviare; fa fede il controllo del dispatcher.</li>
-      <li><b>Errori:</b> con nome, dichiarati nell'output. Il resto arriva come errore interno generico.</li>
+      <li><b>Errori:</b> con nome, dichiarati in <code>errors</code>. Il resto arriva come errore interno generico.</li>
       <li><b>Client:</b> importano <code>commands</code> e <code>core/client</code>; mai use case, container, adapter.</li>
     </ul>
   </div>
@@ -500,7 +566,7 @@ export default command({
       <tr><td>Il core non dipende dal runtime</td><td>Cloudflare Workers, D1</td><td>container, Postgres</td></tr>
       <tr><td>Porte iniettate nel costruttore</td><td>Inversify</td><td>tsyringe, TypeDI</td></tr>
       <tr><td>Result con errori con nome</td><td>valori di Effect 4</td><td>libreria propria, stessa forma</td></tr>
-      <tr><td>Input validato al bordo</td><td>zod</td><td>Schema di Effect</td></tr>
+      <tr><td>Input validato al bordo</td><td>Schema di Effect 4</td><td>zod</td></tr>
       <tr><td>Canale sostituibile</td><td>Workers RPC</td><td>HTTP, altro RPC</td></tr>
       <tr><td>Coda e scheduler dietro una porta</td><td>Cloudflare Queues, Cron Trigger</td><td>pg-boss, croner</td></tr>
     </tbody>
@@ -577,18 +643,18 @@ diff -r example/2b-bootstrap \
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/notes/notes.js" integrity="sha384-zaxVZlTGBPySa6IWC61g+1BgKaWp4jQ7Qcm/TrxRPMAziaAmE0ZbNGwRAGI2vmkk" crossorigin="anonymous"></script>
 <script>
   (() => {
-    const fogli = new URLSearchParams(location.search).has("fogli")
-      || document.documentElement.dataset.mode === "fogli";
-    if (fogli || !window.Reveal) return;
-    document.querySelector(".deck").classList.add("reveal");
-    Reveal.initialize({
-      width: 1280, height: 720, margin: 0.04, center: false,
-      hash: true, slideNumber: "c/t", progress: true,
-      controlsTutorial: false, transition: "slide", backgroundTransition: "fade",
-      pdfSeparateFragments: false,
-      plugins: window.RevealNotes ? [RevealNotes] : [],
-    });
-  })();
+      const fogli = new URLSearchParams(location.search).has("fogli")
+        || document.documentElement.dataset.mode === "fogli";
+      if (fogli || !window.Reveal) return;
+      document.querySelector(".deck").classList.add("reveal");
+      Reveal.initialize({
+        width: 1280, height: 720, margin: 0.04, center: false,
+        hash: true, slideNumber: "c/t", progress: true,
+        controlsTutorial: false, transition: "slide", backgroundTransition: "fade",
+        pdfSeparateFragments: false,
+        plugins: window.RevealNotes ? [RevealNotes] : [],
+      });
+    })();
 </script>
 <script id="slide-deck-vista">
 // Il passaggio fra le due viste. Nella vista deck un rimando discreto alla

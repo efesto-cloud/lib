@@ -533,7 +533,7 @@ adapters/
     </g>
     <rect x="20" y="80" width="440" height="44" fill="#B84A1E"/>
     <text x="36" y="101" font-size="14" font-weight="650" fill="#FAF7F1">commands</text>
-    <text x="36" y="117" font-size="12" fill="#FAF7F1">contratto · zod + core/client · niente use case né adapter</text>
+    <text x="36" y="117" font-size="12" fill="#FAF7F1">contratto · Schema + core/client · niente use case né adapter</text>
     <rect x="20" y="136" width="440" height="30" fill="none" stroke="#5A5C60" stroke-dasharray="5 4"/>
     <text x="36" y="156" font-size="12" fill="#5A5C60">canale remoto: Workers RPC · HTTP</text>
     <line x1="240" y1="168" x2="240" y2="186" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
@@ -547,7 +547,7 @@ adapters/
 </svg></div>
       <div><span class="lbl">Struttura</span><pre class="tree">packages/
   core/  bootstrap/
-  commands/src/              <span class="c">contratto: zod + core/client</span>
+  commands/src/              <span class="c">contratto: Schema + core/client</span>
     approveExpense.ts        <span class="c">comando + policy</span>
     index.ts                 <span class="c">mappa, tipo del bus</span>
   bus/src/
@@ -802,22 +802,23 @@ adapters/ …</pre></div>
       (§7).</figcaption>
   </figure>
   <div class="two">
-<pre><span class="c">// commands/src/approveExpense.ts</span>
-<span class="k">export default</span> command({
-    input: z.object({ expense_id: z.string() }),
-    output: expenseDto,
+<pre><span class="c">// commands/src/expenses.ts (da example/2c-bus)</span>
+<span class="k">export const</span> approveExpense = command({
     kind: <span class="s">"mutation"</span>,
-    description: <span class="s">"Approva una nota spese inviata"</span>,
-    policy: can(<span class="s">"expenses.approve"</span>),
+    description: <span class="s">"Approva una nota spese inviata e avvisa l'autore"</span>,
+    input: Schema.Struct({ expense_id: Schema.String }),
+    output: ExpenseDto,
+    errors: Schema.Union([ExpenseNotFound, InvalidTransition]),
 });</pre>
-<pre><span class="c">// bus/src/handlers/approveExpense.ts</span>
-<span class="k">export default</span> handler(commands.approveExpense, {
+<pre><span class="c">// bus/src/handlers/index.ts</span>
+approveExpense: handler(<span class="s">"approveExpense"</span>, {
     useCase: <span class="s">"expenses.ApproveExpense"</span>,
-    toUseCase: (input) =&gt; input,
-});
+    toUseCase: byId,
+}),
 
-<span class="c">// handlers: { [K in keyof Commands]: Handler&lt;Commands[K]&gt; }</span>
-<span class="c">// un comando senza handler non compila</span></pre>
+<span class="c">// handlers: { [K in CommandName]: Handler&lt;K&gt; }</span>
+<span class="c">// un comando senza handler non compila; nemmeno un handler</span>
+<span class="c">// il cui use case ritorna ciò che il comando non dichiara</span></pre>
   </div>
   <h3 style="margin-top:2rem">Dove si valida l'input</h3>
   <p>Lo schema sta nel comando, perché è contratto condiviso: il client può usarlo per validare prima di
