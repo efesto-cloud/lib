@@ -65,7 +65,8 @@ If chaining is repetitive, the functional helpers (below) help.
 | `.map(fn)` | `Result<T, E>.map(t -> u): Result<U, E>` | Transform the success value; pass through on failure. |
 | `.flatMap(fn)` | `Result<T, E>.flatMap(t -> Result<U, E>): Result<U, E>` | Same but the function itself returns a `Result`. |
 | `.mapError(fn)` | `Result<T, E>.mapError(e -> e2): Result<T, E2>` | Transform the error; pass through on success. |
-| `.fold(onSuccess, onFailure)` | Both branches return the same type | Collapse to a single value. |
+| `.match({ ok, err })` | Both branches return the same type | Collapse to a single value. Recommended. |
+| `.fold(onErr, onOk)` | Both branches return the same type | **Deprecated** — use `.match({ ok, err })` instead. Note the argument order: the *error* handler comes first. |
 
 `flatMap` is the workhorse for chaining Result-returning steps:
 
@@ -126,29 +127,59 @@ const reconstructed = Result.fromObject(obj);
 Useful when sending Results across the wire (rare — most boundaries
 serialise the DTO directly, not the Result).
 
-## Zod integration
+`toObject`/`fromObject` round-trip the *shape* only — nothing validates
+that `fromObject`'s input actually matches `T`/`E`, and a tagged domain
+error comes back as a plain object, not the original class instance. When
+the boundary is a real network hop that needs the reconstructed side
+validated and matchable — a React Router loader/action response reaching
+the client is the common case — use `@efesto-cloud/result-codec` instead;
+see `references/result-codec.md`.
 
-`Result.fromZod(zodParseResult)` converts a Zod `SafeParseReturnType`:
+## Schema validation
+
+`Result.fromSchema(schema, input)` accepts any validator implementing
+[Standard Schema](https://standardschema.dev) — zod 4, Valibot, ArkType —
+and returns `Result<Output, readonly StandardSchemaV1.Issue[]>`. There is
+no zod-specific constructor: this package does not depend on zod.
 
 ```ts
 import { z } from "zod";
 
 const InputSchema = z.object({ name: z.string().min(1) });
 
-const parsed = Result.fromZod(InputSchema.safeParse(rawInput));
+const parsed = Result.fromSchema(InputSchema, rawInput);
 if (parsed.isFailure()) {
-    // parsed.error is a Zod issue array
+    // parsed.error is a readonly Issue[]
     return Result.err(new ValidationError(parsed.error));
 }
 // parsed.data is the typed object
 ```
 
+`fromSchema` is synchronous: a schema whose `validate` returns a thenable
+throws a `TypeError`. Note that zod turns *any* throw inside validation
+into a Promise, so a `transform` that throws surfaces here as that same
+`TypeError` — keep schemas free of throwing transforms.
+
 Used in route loaders/actions for input shaping. The use case's
 input type is then the parsed-and-typed object.
 
+## Static guards
+
+`Result.isOk(result)` / `Result.isErr(result)` (also available as the
+named exports `isOk` / `isErr`) narrow a `Result` from outside a method
+chain — handy as an `Array.prototype.filter` predicate:
+
+```ts
+const results: Result<Foo, DomainError>[] = items.map(tryBuildFoo);
+const successes = results.filter(Result.isOk); // Foo[]-narrowed Success[]
+```
+
 ## Anti-patterns
 
-- **`isErr()`** — not part of the API. Use `isFailure()`.
+- **`result.isErr()`** as an instance method — not part of the API. Use
+  `.isFailure()`. (The standalone `Result.isErr(result)` / `isErr(result)`
+  guard *does* exist and is useful as an `Array.prototype.filter`
+  predicate — see "Static guards" below.)
 - **`unwrap()`** — not part of the API. Use `unwrapOrThrow()`.
 - **`getOr()`** — not part of the API. Use `.else(() => default).data`
   or `.unwrapOrThrow()` plus an outer try/catch.
@@ -202,17 +233,25 @@ result.error;       // available after isFailure() narrowed
 result.map((t) => u);
 result.flatMap((t) => Result.ok(u));
 result.mapError((e) => e2);
+result.match({
+    ok: (t) => /* on success */,
+    err: (e) => /* on failure */,
+});
 result.fold(
+    (e) => /* on failure — error handler comes FIRST, deprecated */,
     (t) => /* on success */,
-    (e) => /* on failure */,
 );
 
 // Fallback / unwrap
 result.else(() => fallback).data;
 result.unwrapOrThrow();
 
+// Static guards
+Result.isOk(result);
+Result.isErr(result);
+
 // Serialise
 result.toObject();
 Result.fromObject(obj);
-Result.fromZod(zodParseResult);
+Result.fromSchema(schema, input);
 ```

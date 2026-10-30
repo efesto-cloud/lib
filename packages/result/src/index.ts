@@ -1,4 +1,4 @@
-import type { ZodError, ZodSafeParseResult } from "zod";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 
 // ---------------------------------------------------------------------------
 // Plain-object shapes — preserved for backwards compatibility.
@@ -59,14 +59,21 @@ export class Success<T, E = never> {
     orElse<F>(_: (e: E) => Result<T, F>): Result<T, F> {
         return ok(this.data);
     }
-    match<A, B = A>(onOk: (data: T) => A, _onErr: (e: E) => B): A | B {
-        return onOk(this.data);
+    match<A, B = A>(handlers: { ok: (data: T) => A; err: (e: E) => B }): A | B {
+        return handlers.ok(this.data);
     }
     tap(fn: (data: T) => void): Result<T, E> {
         fn(this.data);
         return this;
     }
     tapError(_: (e: E) => void): Result<T, E> {
+        return this;
+    }
+    tapBoth(handlers: {
+        ok?: (data: T) => void;
+        err?: (e: E) => void;
+    }): Result<T, E> {
+        handlers.ok?.(this.data);
         return this;
     }
     unwrapOr<U>(_: U): T | U {
@@ -77,6 +84,7 @@ export class Success<T, E = never> {
     }
 
     // -- compat aliases (pre-existing API) ----------------------------------
+    /** @deprecated Usa `match({ ok, err })`. `fold` ha gli argomenti in ordine inverso. */
     fold<A, B = A>(_onErr: (e: E) => A, onOk: (data: T) => B): A | B {
         return onOk(this.data);
     }
@@ -123,14 +131,21 @@ export class Failure<T = never, E = unknown> {
     orElse<F>(fn: (e: E) => Result<T, F>): Result<T, F> {
         return fn(this.error);
     }
-    match<A, B = A>(_onOk: (data: T) => A, onErr: (e: E) => B): A | B {
-        return onErr(this.error);
+    match<A, B = A>(handlers: { ok: (data: T) => A; err: (e: E) => B }): A | B {
+        return handlers.err(this.error);
     }
     tap(_: (data: T) => void): Result<T, E> {
         return this;
     }
     tapError(fn: (e: E) => void): Result<T, E> {
         fn(this.error);
+        return this;
+    }
+    tapBoth(handlers: {
+        ok?: (data: T) => void;
+        err?: (e: E) => void;
+    }): Result<T, E> {
+        handlers.err?.(this.error);
         return this;
     }
     unwrapOr<U>(fallback: U): T | U {
@@ -141,6 +156,7 @@ export class Failure<T = never, E = unknown> {
     }
 
     // -- compat aliases (pre-existing API) ----------------------------------
+    /** @deprecated Usa `match({ ok, err })`. `fold` ha gli argomenti in ordine inverso. */
     fold<A, B = A>(onErr: (e: E) => A, _onOk: (data: T) => B): A | B {
         return onErr(this.error);
     }
@@ -160,6 +176,32 @@ export class Failure<T = never, E = unknown> {
 }
 
 type Result<T, E> = Success<T, E> | Failure<T, E>;
+
+// ---------------------------------------------------------------------------
+// Type helpers for collection combinators.
+// `OkOf`/`ErrOf` are distributive conditional types over `R`: since `Result`
+// is the union `Success | Failure`, both branches must be spelled out
+// explicitly, or inference fails on the non-matching member.
+// ---------------------------------------------------------------------------
+
+export type OkOf<R> =
+    R extends Success<infer T, infer _E>
+        ? T
+        : R extends Failure<infer T, infer _E>
+          ? T
+          : never;
+
+export type ErrOf<R> =
+    R extends Success<infer _T, infer E>
+        ? E
+        : R extends Failure<infer _T, infer E>
+          ? E
+          : never;
+
+type OkTuple<T extends readonly unknown[]> = { [K in keyof T]: OkOf<T[K]> };
+type ErrUnion<T extends readonly unknown[]> = {
+    [K in keyof T]: ErrOf<T[K]>;
+}[number];
 
 // ---------------------------------------------------------------------------
 // Single-source factory implementations. Both module-level exports and the
@@ -185,12 +227,111 @@ const _fromThrowable = <Args extends unknown[], T, E>(
         }
     };
 };
+const _isThenable = (value: unknown): value is PromiseLike<unknown> =>
+    typeof (value as { then?: unknown } | null | undefined)?.then ===
+    "function";
 const _fromObject = <T, E>(obj: IResult<T, E>): Result<T, E> =>
     obj.success ? new Success<T, E>(obj.data) : new Failure<T, E>(obj.error);
-const _fromZod = <Output>(
-    res: ZodSafeParseResult<Output>,
-): Result<Output, ZodError<Output>> =>
-    res.success ? _ok(res.data) : _err(res.error);
+const _describeThrown = (caught: unknown): string => {
+    try {
+        return caught instanceof Error ? caught.message : String(caught);
+    } catch {
+        return "errore non descrivibile";
+    }
+};
+/**
+ * Il `TypeError` deliberato del ramo thenable, con un'identita' riconoscibile
+ * cosi' che il `catch` difensivo possa rilanciarlo SELETTIVAMENTE. Resta un
+ * `TypeError`, quindi `assert.throws(..., TypeError)` continua a valere.
+ * Privata al modulo: non fa parte dell'API pubblica.
+ */
+class _SyncValidationRequiredError extends TypeError {}
+
+const _fromSchema = <S extends StandardSchemaV1>(
+    schema: S,
+    input: unknown,
+): Result<
+    StandardSchemaV1.InferOutput<S>,
+    readonly StandardSchemaV1.Issue[]
+> => {
+    // Uno schema puo' lanciare in modo sincrono (un `transform`/`refine` non
+    // difensivo di un validatore non-zod), oppure restituire un risultato
+    // ostile le cui proprieta' lanciano in lettura. `fromSchema` resta totale
+    // sui dati: il throw diventa un issue, come ogni altro fallimento. Il
+    // `try` copre percio' anche il test sul thenable e la lettura di
+    // `issues`/`value`, non la sola chiamata a `validate`.
+    try {
+        const out = schema["~standard"].validate(input) as ReturnType<
+            S["~standard"]["validate"]
+        >;
+        if (_isThenable(out)) {
+            // Zod converte QUALSIASI throw dello schema in una Promise (il
+            // fallback `safeParseAsync` nel suo `~standard.validate`): quella
+            // Promise puo' essere gia' rifiutata e, senza handler, porta giu'
+            // il processo Node. La neutralizziamo prima di lanciare.
+            Promise.resolve(out).catch(() => {});
+            throw new _SyncValidationRequiredError(
+                "fromSchema richiede una validazione sincrona: lo schema ha restituito un thenable. Con zod questo accade sia quando la validazione e' davvero asincrona, sia quando uno schema sincrono ha lanciato (zod converte il throw in una Promise): controlla anche i transform/refine sincroni.",
+            );
+        }
+        return out.issues
+            ? _err<
+                  readonly StandardSchemaV1.Issue[],
+                  StandardSchemaV1.InferOutput<S>
+              >([...out.issues])
+            : _ok(out.value);
+    } catch (caught) {
+        // Il thenable e' un errore di programmazione da correggere, non una
+        // condizione di dato: si rilancia selettivamente invece di dipendere
+        // da dove sta scritto il `try`.
+        if (caught instanceof _SyncValidationRequiredError) throw caught;
+        return _err<
+            readonly StandardSchemaV1.Issue[],
+            StandardSchemaV1.InferOutput<S>
+        >([
+            {
+                message: `Lo schema ha lanciato durante la validazione: ${_describeThrown(caught)}`,
+            },
+        ]);
+    }
+};
+
+// ---------------------------------------------------------------------------
+// Collection combinators.
+// ---------------------------------------------------------------------------
+
+const _all = <T extends readonly Result<unknown, unknown>[]>(
+    results: readonly [...T],
+): Result<OkTuple<T>, ErrUnion<T>> => {
+    const values: unknown[] = [];
+    for (const r of results) {
+        if (r.isFailure()) return _err(r.error as ErrUnion<T>);
+        values.push(r.data);
+    }
+    return _ok(values as OkTuple<T>);
+};
+
+const _partition = <T, E>(results: readonly Result<T, E>[]): [T[], E[]] => {
+    const oks: T[] = [];
+    const errs: E[] = [];
+    for (const r of results) {
+        if (r.isSuccess()) oks.push(r.data);
+        else errs.push(r.error);
+    }
+    return [oks, errs];
+};
+
+const _flatten = <T, E, F>(
+    nested: Result<Result<T, E>, F>,
+): Result<T, E | F> =>
+    nested.isFailure() ? _err<E | F, T>(nested.error) : nested.data;
+
+// ---------------------------------------------------------------------------
+// Static type guards.
+// ---------------------------------------------------------------------------
+
+const _isOk = <T, E>(r: Result<T, E>): r is Success<T, E> => r.isSuccess();
+const _isErr = <T, E>(r: Result<T, E>): r is Failure<T, E> => r.isFailure();
 
 // ---------------------------------------------------------------------------
 // Module-level factories (neverthrow-style).
@@ -200,12 +341,17 @@ export const ok = _ok;
 export const err = _err;
 export const fromThrowable = _fromThrowable;
 export const fromObject = _fromObject;
-export const fromZod = _fromZod;
+export const fromSchema = _fromSchema;
+export const all = _all;
+export const partition = _partition;
+export const flatten = _flatten;
+export const isOk = _isOk;
+export const isErr = _isErr;
 
 // ---------------------------------------------------------------------------
 // `Result` namespace — declaration-merged with the `Result<T, E>` type so
 // existing `Result.ok(...)`, `Result.err(...)`, `Result.fromObject(...)`,
-// `Result.fromZod(...)` and `import Result from "..."` keep working.
+// `Result.fromSchema(...)` and `import Result from "..."` keep working.
 // ---------------------------------------------------------------------------
 
 namespace Result {
@@ -213,7 +359,12 @@ namespace Result {
     export const err = _err;
     export const fromThrowable = _fromThrowable;
     export const fromObject = _fromObject;
-    export const fromZod = _fromZod;
+    export const fromSchema = _fromSchema;
+    export const all = _all;
+    export const partition = _partition;
+    export const flatten = _flatten;
+    export const isOk = _isOk;
+    export const isErr = _isErr;
 }
 
 export default Result;

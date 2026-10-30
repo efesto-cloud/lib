@@ -17,11 +17,11 @@ Use this skill to keep `Maybe<T>` usage simple and predictable.
 - Check state with `isSome()` / `isNone()`.
 - Provide fallback with `else(() => defaultValue)`.
 - Convert to `Result` when needed with `toResult()` — returns `Result<T, NoneError>`.
-- Pattern match with `fold(onNone, onSome)` when both branches need to return the same type.
+- Pattern match with `match({ some, none })` when both branches need to return the same type. `fold(onNone, onSome)` still exists but is deprecated.
 - Execute side effects with `run(fn => {...})` — Some runs the function, None does nothing.
 - Serialize to plain object with `toObject()` — returns `ISome<T> | INone`.
 - Deserialize with `Maybe.fromObject(obj)` — reconstructs from `{ some: boolean, data: T | null }`.
-- Combine two Maybes with `Maybe.combine(m1, m2)` — returns `Maybe<[T1, T2]>`.
+- Combine multiple Maybes with `Maybe.all([m1, m2, ...])` — variadic, tuple-typed, returns `Maybe<[T1, T2, ...]>`, `none` as soon as one is `none`.
 
 ## Common Mistakes To Avoid
 - Do not treat `Maybe` like `Result`.
@@ -33,7 +33,7 @@ Use this skill to keep `Maybe<T>` usage simple and predictable.
 2. Convert early to `Maybe` (`Maybe.maybe(value)`).
 3. Use one handling style consistently:
    - Branching: `if (m.isNone()) ... else m.data`
-   - Functional: `map`, `flatMap`, `filter`, `fold`
+   - Functional: `map`, `flatMap`, `filter`, `match({ some, none })`
    - Fallback: `m.else(() => defaultValue)`
 4. If caller expects `Result<T, E>`, convert once with `toResult()` and continue in Result flow.
 

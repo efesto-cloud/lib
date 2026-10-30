@@ -1,6 +1,19 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
-import Result, { err, fromObject, fromThrowable, ok } from "./index.js";
+import { describe, it, test } from "node:test";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+import { z } from "zod";
+import Result, {
+    all,
+    err,
+    flatten,
+    fromObject,
+    fromSchema,
+    fromThrowable,
+    isErr,
+    isOk,
+    ok,
+    partition,
+} from "./index.js";
 
 describe("Success", () => {
     it("is a success and not a failure", () => {
@@ -46,10 +59,10 @@ describe("Success", () => {
             5,
         );
         assert.equal(
-            ok(5).match(
-                (n) => `ok:${n}`,
-                () => "err",
-            ),
+            ok(5).match({
+                ok: (n) => `ok:${n}`,
+                err: () => "err",
+            }),
             "ok:5",
         );
         assert.equal(
@@ -83,6 +96,14 @@ describe("Success", () => {
             error: undefined,
         });
     });
+
+    test("match instrada sul ramo ok", () => {
+        const r = ok<number, string>(2);
+        assert.equal(
+            r.match({ ok: (d) => `ok:${d}`, err: (e) => `err:${e}` }),
+            "ok:2",
+        );
+    });
 });
 
 describe("Failure", () => {
@@ -103,10 +124,10 @@ describe("Failure", () => {
         assert.equal(
             err<string>("e")
                 .mapError((e) => `${e}!`)
-                .match(
-                    () => "ok",
-                    (e) => e,
-                ),
+                .match({
+                    ok: () => "ok",
+                    err: (e) => e,
+                }),
             "e!",
         );
     });
@@ -119,10 +140,10 @@ describe("Failure", () => {
             42,
         );
         assert.equal(
-            err<string>("e").match(
-                () => "ok",
-                (e) => `err:${e}`,
-            ),
+            err<string>("e").match({
+                ok: () => "ok",
+                err: (e) => `err:${e}`,
+            }),
             "err:e",
         );
         assert.equal(
@@ -152,6 +173,14 @@ describe("Failure", () => {
     it("throws the raw error on unwrapOrThrow", () => {
         assert.throws(() => err(new Error("boom")).unwrapOrThrow(), /boom/);
     });
+
+    test("match instrada sul ramo err", () => {
+        const r = err<string, number>("boom");
+        assert.equal(
+            r.match({ ok: (d) => `ok:${d}`, err: (e) => `err:${e}` }),
+            "err:boom",
+        );
+    });
 });
 
 describe("factories", () => {
@@ -172,5 +201,210 @@ describe("factories", () => {
     it("namespace and named exports share one implementation", () => {
         assert.equal(Result.ok, ok);
         assert.equal(Result.err, err);
+    });
+});
+
+describe("combinators", () => {
+    test("all raccoglie tutti i successi in tupla", () => {
+        const r = all([ok(1), ok("due"), ok(true)] as const);
+        assert.ok(r.isSuccess());
+        assert.deepEqual(r.data, [1, "due", true]);
+    });
+
+    test("all ritorna il primo errore in ordine di iterazione", () => {
+        const r = all([ok(1), err("primo"), err("secondo")]);
+        assert.ok(r.isFailure());
+        assert.equal(r.error, "primo");
+    });
+
+    test("all su lista vuota e un successo con tupla vuota", () => {
+        const r = all([]);
+        assert.ok(r.isSuccess());
+        assert.deepEqual(r.data, []);
+    });
+
+    test("partition non corto-circuita e preserva l'ordine", () => {
+        const [oks, errs] = partition([
+            ok<number, string>(1),
+            err<string, number>("a"),
+            ok<number, string>(2),
+            err<string, number>("b"),
+        ]);
+        assert.deepEqual(oks, [1, 2]);
+        assert.deepEqual(errs, ["a", "b"]);
+    });
+
+    test("flatten appiattisce un Result annidato", () => {
+        assert.equal(flatten(ok(ok(5))).unwrapOr(0), 5);
+        assert.equal(flatten(ok(err<string, number>("dentro"))).unwrapOr(0), 0);
+        assert.equal(
+            flatten(err<string, Result<number, string>>("fuori")).unwrapOr(0),
+            0,
+        );
+    });
+});
+
+describe("tapBoth e guard statici", () => {
+    test("tapBoth osserva il ramo giusto e restituisce il Result", () => {
+        const visti: string[] = [];
+        const r = ok<number, string>(1).tapBoth({
+            ok: (d) => visti.push(`ok:${d}`),
+            err: (e) => visti.push(`err:${e}`),
+        });
+        assert.deepEqual(visti, ["ok:1"]);
+        assert.ok(r.isSuccess());
+
+        const r2 = err<string, number>("x").tapBoth({
+            err: (e) => visti.push(`err:${e}`),
+        });
+        assert.deepEqual(visti, ["ok:1", "err:x"]);
+        assert.ok(r2.isFailure());
+    });
+
+    test("i guard statici filtrano una lista", () => {
+        const list = [
+            ok<number, string>(1),
+            err<string, number>("a"),
+            ok<number, string>(2),
+        ];
+        assert.equal(list.filter(isOk).length, 2);
+        assert.equal(list.filter(isErr).length, 1);
+    });
+});
+
+describe("fromSchema", () => {
+    test("fromSchema restituisce ok sull'input valido", () => {
+        const schema = z.object({ nome: z.string() });
+        const r = fromSchema(schema, { nome: "ada" });
+        assert.ok(r.isSuccess());
+        assert.deepEqual(r.data, { nome: "ada" });
+    });
+
+    test("fromSchema restituisce gli issue sull'input invalido", () => {
+        const schema = z.object({ nome: z.string() });
+        const r = fromSchema(schema, { nome: 42 });
+        assert.ok(r.isFailure());
+        assert.ok(Array.isArray(r.error));
+        assert.ok(r.error.length > 0);
+        assert.equal(typeof r.error[0].message, "string");
+    });
+
+    test("fromSchema lancia se la validazione e asincrona", () => {
+        const asyncSchema = {
+            "~standard": {
+                version: 1 as const,
+                vendor: "test",
+                validate: () => Promise.resolve({ value: 1 }),
+            },
+        };
+        assert.throws(() => fromSchema(asyncSchema, 1), TypeError);
+    });
+
+    test("fromSchema lancia anche su un thenable non nativo (cross-realm)", () => {
+        // Deliberatamente fuori dal tipo dichiarato: e' il caso che
+        // `fromSchema` deve sopravvivere a runtime — un thenable non nativo
+        // che `instanceof Promise` non riconoscerebbe. Il cast vive qui, al
+        // punto di costruzione dello schema, non nell'asserzione:
+        // `assert.throws` sotto continua a provare esattamente cio' che deve
+        // provare.
+        const foreignThenableSchema = {
+            "~standard": {
+                version: 1 as const,
+                vendor: "test",
+                validate: () => ({
+                    // biome-ignore lint/suspicious/noThenProperty: il test verifica proprio il rilevamento di un thenable non nativo.
+                    then(resolve: (value: { value: number }) => void) {
+                        resolve({ value: 1 });
+                    },
+                }),
+            },
+        } as unknown as StandardSchemaV1<number, number>;
+        assert.throws(() => fromSchema(foreignThenableSchema, 1), TypeError);
+    });
+
+    test("fromSchema non lascia sfuggire un errore grezzo se il risultato dello schema e' ostile", () => {
+        // Non e' il `validate` a lanciare: e' la LETTURA di `then` sul suo
+        // risultato. Se il test sul thenable sta fuori dal blocco difensivo,
+        // l'eccezione grezza esce da `fromSchema`, che invece resta totale.
+        const hostileResultSchema = {
+            "~standard": {
+                version: 1 as const,
+                vendor: "test",
+                validate: () => {
+                    const out = {};
+                    // biome-ignore lint/suspicious/noThenProperty: il test verifica proprio cosa succede quando leggere `then` lancia.
+                    Object.defineProperty(out, "then", {
+                        get() {
+                            throw new Error("lettura di then esplode");
+                        },
+                        enumerable: true,
+                        configurable: true,
+                    });
+                    return out;
+                },
+            },
+        } as unknown as StandardSchemaV1<number, number>;
+        const r = fromSchema(hostileResultSchema, 1);
+        assert.ok(r.isFailure());
+        assert.match(r.error[0]?.message ?? "", /lettura di then esplode/);
+    });
+
+    test("fromSchema restituisce gli issue se lo schema lancia in modo sincrono", () => {
+        // Un validatore non-zod che lancia: senza protezione l'eccezione
+        // grezza esce da `fromSchema`, che invece deve restare totale sui
+        // dati e riportare il fallimento nel canale errori.
+        const throwingSchema = {
+            "~standard": {
+                version: 1 as const,
+                vendor: "test",
+                validate: () => {
+                    throw new Error("boom-schema");
+                },
+            },
+        } as unknown as StandardSchemaV1<number, number>;
+        const r = fromSchema(throwingSchema, 1);
+        assert.ok(r.isFailure());
+        assert.ok(Array.isArray(r.error));
+        assert.equal(r.error.length, 1);
+        assert.match(r.error[0].message, /boom-schema/);
+    });
+
+    test("fromSchema non lascia una Promise rifiutata senza handler quando lo schema lancia", async () => {
+        // Zod converte QUALSIASI throw dello schema in una Promise (vedi
+        // `safeParseAsync` nel fallback di `~standard.validate`): senza un
+        // `.catch()` quella Promise diventa una unhandled rejection e porta
+        // giu' il processo Node.
+        const schema = z.object({
+            href: z.string().transform((s) => new URL(s)),
+        });
+        const rejections: unknown[] = [];
+        const onRejection = (reason: unknown) => {
+            rejections.push(reason);
+        };
+        process.on("unhandledRejection", onRejection);
+        try {
+            assert.throws(
+                () => fromSchema(schema, { href: "non-un-url" }),
+                TypeError,
+            );
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        } finally {
+            process.off("unhandledRejection", onRejection);
+        }
+        assert.deepEqual(rejections, []);
+    });
+
+    test("il messaggio del thenable non diagnostica solo l'asincronia", () => {
+        // Con zod il caso «validatore asincrono» e il caso «lo schema ha
+        // lanciato» sono indistinguibili a valle: il messaggio deve dirlo,
+        // altrimenti manda lo sviluppatore nella direzione sbagliata.
+        const schema = z.object({
+            href: z.string().transform((s) => new URL(s)),
+        });
+        assert.throws(
+            () => fromSchema(schema, { href: "non-un-url" }),
+            (e: unknown) =>
+                e instanceof TypeError && /ha lanciato|lanci/i.test(e.message),
+        );
     });
 });

@@ -65,8 +65,8 @@ export class ToastSuccess<T, E = never> implements IToastSuccess<T, E> {
     orElse<F>(_: (e: E) => Toast<T, F>): Toast<T, F> {
         return new ToastSuccess<T, F>(this.message, this.data);
     }
-    match<A, B = A>(onOk: (data: T) => A, _onErr: (e: E) => B): A | B {
-        return onOk(this.data);
+    match<A, B = A>(handlers: { ok: (data: T) => A; err: (e: E) => B }): A | B {
+        return handlers.ok(this.data);
     }
     tap(fn: (data: T) => void): Toast<T, E> {
         fn(this.data);
@@ -83,6 +83,7 @@ export class ToastSuccess<T, E = never> implements IToastSuccess<T, E> {
     }
 
     // -- compat aliases (pre-existing API) ----------------------------------
+    /** @deprecated Usa `match({ ok, err })`. `fold` ha gli argomenti in ordine inverso. */
     fold<R1, R2>(_: (error: E) => R1, onSuccess: (data: T) => R2): R1 | R2 {
         return onSuccess(this.data);
     }
@@ -141,8 +142,8 @@ export class ToastFailure<T = never, E = unknown>
     orElse<F>(fn: (e: E) => Toast<T, F>): Toast<T, F> {
         return fn(this.error);
     }
-    match<A, B = A>(_onOk: (data: T) => A, onErr: (e: E) => B): A | B {
-        return onErr(this.error);
+    match<A, B = A>(handlers: { ok: (data: T) => A; err: (e: E) => B }): A | B {
+        return handlers.err(this.error);
     }
     tap(_: (data: T) => void): Toast<T, E> {
         return this;
@@ -159,6 +160,7 @@ export class ToastFailure<T = never, E = unknown>
     }
 
     // -- compat aliases (pre-existing API) ----------------------------------
+    /** @deprecated Usa `match({ ok, err })`. `fold` ha gli argomenti in ordine inverso. */
     fold<R1, R2>(onFailure: (error: E) => R1, _: (data: T) => R2): R1 | R2 {
         return onFailure(this.error);
     }

@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, test } from "node:test";
+import Result from "@efesto-cloud/result";
 import Maybe, {
-    combine,
+    all,
+    flatten,
     fromObject,
+    fromResult,
     fromThrowable,
     maybe,
     NoneError,
@@ -55,11 +58,11 @@ describe("Some", () => {
         );
     });
 
-    it("runs the some branch of match/fold and taps the value", () => {
+    it("runs the some branch of fold and taps the value", () => {
         assert.equal(
-            some(5).match(
-                (n) => `some:${n}`,
+            some(5).fold(
                 () => "none",
+                (n) => `some:${n}`,
             ),
             "some:5",
         );
@@ -107,11 +110,11 @@ describe("None", () => {
         );
     });
 
-    it("runs the none branch of match/fold and tapNone", () => {
+    it("runs the none branch of fold and tapNone", () => {
         assert.equal(
-            none<number>().match(
-                (n) => `some:${n}`,
+            none<number>().fold(
                 () => "none",
+                (n) => `some:${n}`,
             ),
             "none",
         );
@@ -161,13 +164,58 @@ describe("factories", () => {
         assert.equal(head([]).isNone(), true);
     });
 
-    it("combine joins two somes and collapses on any none", () => {
-        assert.deepEqual(combine(some(1), some("a")).unwrapOrThrow(), [1, "a"]);
-        assert.equal(combine(some(1), none<string>()).isNone(), true);
-    });
-
     it("namespace and named exports share one implementation", () => {
         assert.equal(Maybe.some, some);
         assert.equal(Maybe.none, none);
     });
+});
+
+test("match a oggetto instrada su entrambi i rami", () => {
+    assert.equal(
+        some(3).match({ some: (v) => `v:${v}`, none: () => "vuoto" }),
+        "v:3",
+    );
+    assert.equal(
+        none<number>().match({ some: (v) => `v:${v}`, none: () => "vuoto" }),
+        "vuoto",
+    );
+});
+
+test("all raccoglie in tupla e propaga il None", () => {
+    const r = all([some(1), some("due")] as const);
+    assert.ok(r.isSome());
+    assert.deepEqual(r.data, [1, "due"]);
+    assert.ok(all([some(1), none<string>()] as const).isNone());
+    assert.ok(all([]).isSome());
+});
+
+test("toResult accetta un errore custom", () => {
+    class MioErrore extends Error {}
+    const r = none<number>().toResult(() => new MioErrore());
+    assert.ok(r.isFailure());
+    assert.ok(r.error instanceof MioErrore);
+    assert.ok(none<number>().toResult().error instanceof NoneError);
+    assert.equal(
+        some(5)
+            .toResult(() => new MioErrore())
+            .unwrapOr(0),
+        5,
+    );
+});
+
+test("or ripiega su un altro Maybe", () => {
+    assert.equal(some(1).or(some(2)).unwrapOr(0), 1);
+    assert.equal(none<number>().or(some(2)).unwrapOr(0), 2);
+    assert.ok(none<number>().or(none<number>()).isNone());
+});
+
+test("flatten appiattisce un Maybe annidato", () => {
+    assert.equal(flatten(some(some(5))).unwrapOr(0), 5);
+    assert.ok(flatten(some(none<number>())).isNone());
+    assert.ok(flatten(none<Maybe<number>>()).isNone());
+});
+
+test("fromResult converte un Result", () => {
+    assert.equal(fromResult(Result.ok(3)).unwrapOr(0), 3);
+    assert.ok(fromResult(Result.err("x")).isNone());
 });

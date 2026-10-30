@@ -87,14 +87,12 @@ export default IGetPublicFoo;
 
 ---
 
-## Implementation — CREATE (with audit + transaction)
+## Implementation — CREATE (single write — no transaction)
 
 ```ts
 import Result from "@efesto-cloud/result";
 import { type IExecutionContext } from "@efesto-cloud/usecase";
 import { inject, injectable } from "inversify";
-import audit from "~/decorator/audit.js";
-import withTransaction from "~/decorator/withTransaction.js";
 import Symbols from "~/di/Symbols.js";
 import Foo from "~/entity/Foo.js";
 import type IFooRepo from "~/repo/IFooRepo.js";
@@ -103,15 +101,6 @@ import { WithOperatorAuth } from "~/service/IOperatorAuthService.js";
 import ICreateFoo from "../ICreateFoo.js";
 
 @injectable()
-@withTransaction<ICreateFoo>()
-@audit<ICreateFoo>({
-  entity: Foo,
-  title: "New Foo",
-  verb: "CREATE",
-  onOutput: (output, context) => {
-    if (output.isSuccess()) context.setEntityId(output.data._id);
-  },
-})
 export default class CreateFoo implements ICreateFoo {
   readonly name = this.constructor.name;
 
@@ -132,14 +121,12 @@ export default class CreateFoo implements ICreateFoo {
 
 ---
 
-## Implementation — UPDATE (load → mutate → save)
+## Implementation — UPDATE (load → mutate → save, single write)
 
 ```ts
 import Result from "@efesto-cloud/result";
 import { type IExecutionContext } from "@efesto-cloud/usecase";
 import { inject, injectable } from "inversify";
-import audit from "~/decorator/audit.js";
-import withTransaction from "~/decorator/withTransaction.js";
 import Symbols from "~/di/Symbols.js";
 import Foo from "~/entity/Foo.js";
 import type IFooRepo from "~/repo/IFooRepo.js";
@@ -149,15 +136,6 @@ import NotFoundError from "~/errors/NotFoundError.js";
 import IUpdateFoo from "../IUpdateFoo.js";
 
 @injectable()
-@withTransaction<IUpdateFoo>()
-@audit<IUpdateFoo>({
-  entity: Foo,
-  title: "Update Foo",
-  verb: "UPDATE",
-  onInput: (input, context) => {
-    context.setEntityId(input._id);
-  },
-})
 export default class UpdateFoo implements IUpdateFoo {
   readonly name = this.constructor.name;
 
@@ -181,14 +159,12 @@ export default class UpdateFoo implements IUpdateFoo {
 
 ---
 
-## Implementation — DELETE (soft delete pattern)
+## Implementation — DELETE (soft delete, single write)
 
 ```ts
 import Result from "@efesto-cloud/result";
 import { type IExecutionContext } from "@efesto-cloud/usecase";
 import { inject, injectable } from "inversify";
-import audit from "~/decorator/audit.js";
-import withTransaction from "~/decorator/withTransaction.js";
 import Symbols from "~/di/Symbols.js";
 import Foo from "~/entity/Foo.js";
 import type IFooRepo from "~/repo/IFooRepo.js";
@@ -198,15 +174,6 @@ import NotFoundError from "~/errors/NotFoundError.js";
 import IDeleteFoo from "../IDeleteFoo.js";
 
 @injectable()
-@withTransaction<IDeleteFoo>()
-@audit<IDeleteFoo>({
-  entity: Foo,
-  title: "Delete Foo",
-  verb: "DELETE",
-  onInput: (input, context) => {
-    context.setEntityId(input._id);
-  },
-})
 export default class DeleteFoo implements IDeleteFoo {
   readonly name = this.constructor.name;
 
@@ -227,6 +194,81 @@ export default class DeleteFoo implements IDeleteFoo {
   }
 }
 ```
+
+---
+
+## Implementation — MULTI-WRITE (this is where a transaction belongs)
+
+A transaction is warranted when the operation performs **two or more writes that
+must land or fail together**. Around a single `repo.save()` it buys nothing: the
+write is already atomic, and the wrapper only adds a connection held open and a
+layer to read past.
+
+Inject `IUnitOfWork` and wrap **only** the writes — validation and lookups stay
+outside, so the transaction is open for as short a time as possible.
+
+```ts
+import Result from "@efesto-cloud/result";
+import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
+import { type IExecutionContext } from "@efesto-cloud/usecase";
+import { inject, injectable } from "inversify";
+import Symbols from "~/di/Symbols.js";
+import Foo from "~/entity/Foo.js";
+import FooStatusChange from "~/entity/FooStatusChange.js";
+import NotFoundError from "~/errors/NotFoundError.js";
+import type IFooRepo from "~/repo/IFooRepo.js";
+import type IFooStatusChangeRepo from "~/repo/IFooStatusChangeRepo.js";
+import type IOperatorAuthService from "~/service/IOperatorAuthService.js";
+import { WithOperatorAuth } from "~/service/IOperatorAuthService.js";
+import ITransitionFoo from "../ITransitionFoo.js";
+
+@injectable()
+export default class TransitionFoo implements ITransitionFoo {
+  readonly name = this.constructor.name;
+
+  constructor(
+    @inject(Symbols.DatabaseContext) readonly db: IUnitOfWork,
+    @inject(Symbols.Repo.FooRepo) readonly repo: IFooRepo,
+    @inject(Symbols.Repo.FooStatusChangeRepo) readonly history: IFooStatusChangeRepo,
+    @inject(Symbols.DomainService.OperatorAuthService) readonly auth: IOperatorAuthService,
+  ) {}
+
+  async execute(input: WithOperatorAuth<{ _id: string; to: FooStatus }>, _context: IExecutionContext) {
+    return this.auth.flatRun(async () => {
+      // Load and validate OUTSIDE the transaction.
+      const found = await this.repo.get(input._id);
+      if (!found.isSome()) return Result.err(new NotFoundError(Foo));
+
+      const from = found.data.status;
+      const moved = found.data.applyTransition(input.to);
+      if (moved.isFailure()) return Result.err(moved.error);
+
+      // Two writes that must agree: the new state and the history row that
+      // records it. Half of this pair landing is a corrupt audit trail.
+      await this.db.runWithTransaction(async () => {
+        await this.repo.save(found.data);
+        await this.history.append(
+          FooStatusChange.record({ foo_id: found.data._id, from, to: input.to }),
+        );
+      });
+
+      return Result.ok(found.data.toDTO());
+    }, input);
+  }
+}
+```
+
+Notes:
+
+- `IUnitOfWork` comes from `@efesto-cloud/unit-of-work` and is a one-method port:
+  `runWithTransaction<T>(fn: () => Promise<T>): Promise<T>`. The adapter binds the
+  concrete implementation (Mongo session, Prisma interactive transaction…) — core
+  never knows which.
+- The DI symbol is `Symbols.DatabaseContext` here to match the rest of this file;
+  projects that have split their symbols call it `InternalSymbols.DatabaseContext`.
+- Some backends have no transactions at all — Cloudflare D1, for one. There
+  `IUnitOfWork` may be absent entirely; order the writes so the one that matters
+  most lands first, and say so in a comment.
 
 ---
 

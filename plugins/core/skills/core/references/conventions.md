@@ -45,7 +45,7 @@ The exceptions are:
 - A service-port method whose absence value carries meaning (e.g.
   "this member has no active session") returns `Maybe<T>` so the call
   site is forced to handle both cases via `isSome()`/`isNone()` or
-  `fold(...)`.
+  `match({ some, none })`.
 - Anything inside the domain that's optional **and** has invariants
   attached uses `Maybe<T>`.
 

@@ -22,8 +22,16 @@ Two things matter:
   concrete error subclasses this.
 - **`this.name = new.target.name`** — instances report their class
   name (`"MemberNotFoundError"`, not `"Error"`). That makes
-  `error.name === "MemberNotFoundError"` a reliable discriminator at
-  the route loader / action layer.
+  `error.name === "MemberNotFoundError"` a reliable discriminator
+  **within the same process** — a loader switching on the error right
+  after calling a use case, before anything is returned. It stops being
+  reliable the moment the error has to reach the client as data: a
+  serialized round trip drops the prototype chain (`instanceof` is gone),
+  and whether `.name` itself survives depends on incidental details of
+  how it was assigned, not on a declared contract. Never rely on `.name`
+  once an error crosses that boundary — see `references/tagged-error.md`
+  for `_tag`, which is declared as literal string data for exactly this
+  case.
 
 ## One class per condition
 
@@ -147,11 +155,31 @@ shaping. It's not the right tool for domain rules ("a Member can't
 have a duplicate code"), which need entity- or repo-level state.
 
 Typed-errors libraries (`ts-results`, `effect-ts`) usually require
-heavy wrapping. The repo already has `@efesto-cloud/result`; layering
-another library on top adds friction.
+heavy wrapping, and this org already publishes a lightweight one —
+`@efesto-cloud/tagged-error` — so "heavy wrapping" is no longer the
+argument against reaching for one. The real question is where the
+error's life ends:
 
-The simple `DomainError` base + class-per-condition pattern stays
-out of the way and works with the `Result` monad already in use.
+- **Never leaves the process** (a VO factory's error, an entity
+  mutator's invariant, a use case's error consumed by its own loader
+  before translating to a `Response`/HTTP shape) — the plain
+  `DomainError` base + class-per-condition pattern here is enough.
+  Nothing about `_tag`, `matchError`, or schema rehydration earns its
+  keep when `.name`/`instanceof` never has to survive a serialized
+  boundary.
+- **Has to cross a serialized boundary and be handled as data on the
+  other side** (a loader/action response reaching the client component,
+  a queue message, anything that needs the concrete error class back,
+  not just an HTTP status already decided server-side) — that's what
+  `.name`/`instanceof` cannot do reliably (see "The base class" above),
+  and exactly the case `@efesto-cloud/tagged-error` (`TaggedError`,
+  `matchError`, `taggedErrorSchema`) and `@efesto-cloud/result-codec`
+  exist for. See `references/tagged-error.md` and
+  `references/result-codec.md`.
+
+Both patterns build on the same `Result` monad already in use; picking
+one over the other is about whether the error's identity needs to
+survive past this process, not about parsing vs. domain rules.
 
 ## Cross-layer: how to choose the right error
 

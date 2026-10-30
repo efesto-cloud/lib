@@ -1,5 +1,6 @@
 import type Result from "@efesto-cloud/result";
-import { err, ok } from "@efesto-cloud/result";
+import type { ErrOf, OkOf } from "@efesto-cloud/result";
+import { all, err, ok, partition } from "@efesto-cloud/result";
 
 // ---------------------------------------------------------------------------
 // ResultAsync<T, E> — companion to Result<T, E> for asynchronous workflows.
@@ -79,12 +80,12 @@ class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
         );
     }
 
-    match<A, B = A>(
-        onOk: (data: T) => A | Promise<A>,
-        onErr: (e: E) => B | Promise<B>,
-    ): Promise<A | B> {
+    match<A, B = A>(handlers: {
+        ok: (data: T) => A | Promise<A>;
+        err: (e: E) => B | Promise<B>;
+    }): Promise<A | B> {
         return this._promise.then((r) =>
-            r.isSuccess() ? onOk(r.data) : onErr(r.error),
+            r.isSuccess() ? handlers.ok(r.data) : handlers.err(r.error),
         );
     }
 
@@ -101,6 +102,19 @@ class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
         return new ResultAsync(
             this._promise.then(async (r) => {
                 if (r.isFailure()) await fn(r.error);
+                return r;
+            }),
+        );
+    }
+
+    tapBoth(handlers: {
+        ok?: (data: T) => void | Promise<void>;
+        err?: (e: E) => void | Promise<void>;
+    }): ResultAsync<T, E> {
+        return new ResultAsync(
+            this._promise.then(async (r) => {
+                if (r.isSuccess()) await handlers.ok?.(r.data);
+                else await handlers.err?.(r.error);
                 return r;
             }),
         );
@@ -126,6 +140,10 @@ class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
                 (caught: unknown) => err<E, T>(errorMapper(caught)),
             ),
         );
+    }
+
+    static fromResult<T, E>(result: Result<T, E>): ResultAsync<T, E> {
+        return new ResultAsync<T, E>(Promise.resolve(result));
     }
 
     static fromSafePromise<T, E = never>(
@@ -166,7 +184,33 @@ export function errAsync<E, T = never>(error: E): ResultAsync<T, E> {
 }
 
 export const fromPromise = ResultAsync.fromPromise;
+export const fromResult = ResultAsync.fromResult;
 export const fromSafePromise = ResultAsync.fromSafePromise;
 export const fromThrowable = ResultAsync.fromThrowable;
+
+// ---------------------------------------------------------------------------
+// Async combinators — await concurrently, then delegate to the sync
+// combinators from @efesto-cloud/result.
+// ---------------------------------------------------------------------------
+
+export async function allAsync<
+    T extends readonly PromiseLike<Result<unknown, unknown>>[],
+>(
+    inputs: readonly [...T],
+): Promise<
+    Result<{ [K in keyof T]: OkOf<Awaited<T[K]>> }, ErrOf<Awaited<T[number]>>>
+> {
+    const settled = await Promise.all(inputs);
+    return all(settled) as Result<
+        { [K in keyof T]: OkOf<Awaited<T[K]>> },
+        ErrOf<Awaited<T[number]>>
+    >;
+}
+
+export async function partitionAsync<T, E>(
+    inputs: readonly PromiseLike<Result<T, E>>[],
+): Promise<[T[], E[]]> {
+    return partition(await Promise.all(inputs));
+}
 
 export default ResultAsync;

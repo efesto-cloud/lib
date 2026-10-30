@@ -63,7 +63,8 @@ the runtime would also misbehave because `none()` carries no data.
 | `.map(fn)` | Apply `fn` to the value if `some`; stay `none` otherwise. |
 | `.flatMap(fn)` | Same but `fn` returns a `Maybe`. |
 | `.filter(pred)` | Stay `some` only if `pred(value)` holds. |
-| `.fold(onNone, onSome)` | Collapse to a single value. |
+| `.match({ some, none })` | Collapse to a single value. Recommended. |
+| `.fold(onNone, onSome)` | **Deprecated** — use `.match({ some, none })` instead. |
 
 ```ts
 const displayName = Maybe.maybe(user.nickname)
@@ -110,14 +111,15 @@ const emailResult = Maybe.maybe(input.email)
 
 ## Combining
 
-`Maybe.combine(m1, m2)` returns `Maybe<[T1, T2]>` — `some` only if
-both are `some`:
+`Maybe.all([...])` is variadic and tuple-typed: it returns
+`Maybe<[T1, T2, ...]>` — `some` only if every element is `some`,
+`none` as soon as one is `none`:
 
 ```ts
-const both = Maybe.combine(
+const both = Maybe.all([
     Maybe.maybe(input.email),
     Maybe.maybe(input.name),
-);
+]);
 if (both.isNone()) return Result.err(new MissingFieldsError());
 const [email, name] = both.data;
 ```
@@ -169,7 +171,7 @@ caching or message-bus payloads.
 2. Convert early to `Maybe` via `Maybe.maybe(v)`.
 3. Pick one handling style:
    - **Branching**: `if (m.isNone()) return ...; m.data`
-   - **Functional**: `.map`, `.flatMap`, `.filter`, `.fold`
+   - **Functional**: `.map`, `.flatMap`, `.filter`, `.match({ some, none })`
    - **Fallback**: `.else(() => default).data`
 4. If the caller expects a `Result`, convert with `.toResult()` and
    `.mapError(...)`.
@@ -193,7 +195,8 @@ m.data;            // after isSome() narrowed
 m.map((t) => u);
 m.flatMap((t) => Maybe.some(u));
 m.filter((t) => predicate);
-m.fold(() => onNone, (t) => onSome);
+m.match({ some: (t) => onSome, none: () => onNone });
+m.fold(() => onNone, (t) => onSome); // deprecated, same as match above
 
 // Side effect
 m.run((t) => { /* ... */ });
@@ -206,7 +209,7 @@ m.toResult();
 m.toResult().mapError(() => new DomainError());
 
 // Combine
-Maybe.combine(m1, m2);
+Maybe.all([m1, m2]);
 
 // Serialise
 m.toObject();

@@ -79,12 +79,12 @@ class MaybeAsync<T extends NonNullable<unknown>>
         );
     }
 
-    match<A, B = A>(
-        onSome: (value: T) => A | Promise<A>,
-        onNone: () => B | Promise<B>,
-    ): Promise<A | B> {
+    match<A, B = A>(handlers: {
+        some: (value: T) => A | Promise<A>;
+        none: () => B | Promise<B>;
+    }): Promise<A | B> {
         return this._promise.then((m) =>
-            m.isSome() ? onSome(m.data) : onNone(),
+            m.isSome() ? handlers.some(m.data) : handlers.none(),
         );
     }
 
