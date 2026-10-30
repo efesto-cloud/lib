@@ -34,7 +34,13 @@ Gather context if the user hasn't already provided it:
 
 - **What does it do?** Understand the operation in plain language (create / update / delete / fetch / search / export…)
 - **Authentication:** Does it require a logged-in actor? Which auth type? (operator only, business entity only, dual/both, public/no auth)
-- **Mutation vs read:** Does it write data? If yes → needs `@withTransaction` and `@audit`. If no → neither.
+- **Mutation vs read:** Does it write data? If yes, it may need a transaction (see
+  *Transactions* below). If no, it needs neither.
+- **Does the change need a history?** If the business has to answer *who changed
+  this, when, and from what to what*, that history is a **domain artifact** — an
+  entity (`FooStatusChange`, appended by the use case) or an outbox event — with
+  its own schema, queryable by the app. It is not a cross-cutting decorator. Decide
+  this now, because it adds a repository and a write to the use case body.
 - **Existing repos/services:** What persistence or services does it need? Are they already defined? If a new repo method is needed, use the `/persistence` skill first.
 - **New entity needed?** If the domain entity doesn't exist yet, use the `/entity` skill first.
 - **Return type:** What does the caller get back on success, and which errors can it return?
@@ -71,22 +77,67 @@ The shape depends on whether the use case mutates data:
 
 ### Mutating (CREATE / UPDATE / DELETE / ADD / REMOVE / PUBLISH…)
 
-Add `@withTransaction` and `@audit` decorators. Wrap the body with `auth.flatRun(async () => { … }, input)`.
+Wrap the body with the project's auth mechanism. Whether it also needs a
+transaction is a separate question — answer it with the test below, not by habit.
 
 ### Read-only (GET / SEARCH / EXPORT…)
 
-No `@audit`, no `@withTransaction` (unless the operation has side effects or needs a consistent snapshot).
+No transaction, unless the operation has side effects or needs a consistent snapshot.
 
-### Decorator order
+### Transactions — ask first, wrap second
 
-When using both decorators, always put `@withTransaction` before (outer) `@audit` (inner):
+**The test: does this use case perform two or more writes that must land or fail
+together?**
+
+- **No** (one `repo.save()`, however much validation precedes it) → **no
+  transaction**. A single write is already atomic. Wrapping it buys nothing and
+  costs a connection held open plus a layer of indirection to read past. Most
+  CREATE / UPDATE / DELETE use cases are in this bucket.
+- **Yes** (entity + its history row, parent + children, two aggregates that must
+  agree) → inject `IUnitOfWork` from `@efesto-cloud/unit-of-work` and wrap **only
+  the writes**:
 
 ```ts
-@injectable()
-@withTransaction<IFoo>()
-@audit<IFoo>({ ... })
-export default class Foo implements IFoo { ... }
+constructor(
+  @inject(InternalSymbols.DatabaseContext) readonly db: IUnitOfWork,
+  // …repos
+) {}
+
+// …load and validate out here, where nothing is holding a transaction open…
+
+await this.db.runWithTransaction(async () => {
+  await this.fooRepo.save(foo);
+  await this.historyRepo.append(change);
+});
 ```
+
+`IUnitOfWork` is a one-method port — `runWithTransaction<T>(fn) => Promise<T>` —
+so core never learns whether the adapter behind it is a Mongo session, a Prisma
+interactive transaction, or nothing at all. See the MULTI-WRITE template in
+[references/templates.md](./references/templates.md).
+
+**On `@withTransaction`.** Some older projects hoist the whole body into a
+`@withTransaction<IFoo>()` class decorator. Do not reach for it: it is not shipped
+by any `@efesto-cloud` package (each project copy-pastes its own into
+`decorator/withTransaction.ts`), it transacts the entire method including the
+lookups and validation that have no business being inside a transaction, and being
+attached to the class it makes the answer to the test above invisible at the point
+where the writes happen. Leave it where it already is; use `IUnitOfWork` in new
+code.
+
+Some backends have no transactions at all — Cloudflare D1, for one. There
+`IUnitOfWork` may not be bound: order the writes so the one that matters most lands
+first, and say so in a comment.
+
+### Audit trails are not a decorator
+
+There is no `@audit` step here, and there is no audit package to install. A generic
+audit decorator was tried, shipped as `@efesto-cloud/audit`, and retired in August
+2026 after two years and zero uses across 604 use cases in five projects. What
+teams actually build, when they need a trail, is the domain artifact described in
+*Before You Start*: `PraticaStatusChange`-style entities appended by the use case,
+or outbox events. Those carry the domain's own schema and can be queried by the
+app; a generic execution trace cannot.
 
 ### Auth service API
 
@@ -159,8 +210,9 @@ Before finishing, verify:
 
 - [ ] Interface file created and re-exported (type-only) from `useCase/{domain}/index.ts`
 - [ ] Implementation file created with `@injectable()`
-- [ ] `@audit` present for all mutating operations (CREATE / UPDATE / DELETE / ADD / REMOVE…)
-- [ ] `@withTransaction` present on all mutating operations
+- [ ] Transaction question answered: two-or-more-writes-that-must-agree → `IUnitOfWork.runWithTransaction` around the writes only; otherwise no transaction
+- [ ] If the change needs a history, the domain artifact (status-change entity or
+      outbox event) is written by the use case — not delegated to a decorator
 - [ ] Auth service injected and `flatRun` / `run` used to wrap the body
 - [ ] All repo and service deps declared in constructor with `@inject(Symbols.…)`
 - [ ] Symbol name added to both the union type and the enum object in `Symbols.ts`

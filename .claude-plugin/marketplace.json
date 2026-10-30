@@ -9,9 +9,9 @@
     },
     "plugins": [
         {
-            "name": "Core",
-            "description": "",
-            "source": "./plugins/core",
+            "name": "blueprint",
+            "description": "How Efesto builds an application: hexagonal core, adapters, and the rungs it climbs as it grows",
+            "source": "./plugins/blueprint",
             "strict": false
         },
         {

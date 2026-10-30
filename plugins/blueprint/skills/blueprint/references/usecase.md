@@ -215,8 +215,10 @@ Sharing behaviour goes through three channels:
 
 If you find yourself wanting to inject one use case into another, the
 shared behaviour belongs on the entity or in a domain service. Use
-cases composing peers makes the audit chain opaque and double-wraps
-transactions when one is in play.
+cases composing peers double-wraps transactions when one is in play,
+and makes the call graph — hence any history the operation writes —
+harder to follow. Measured incidence: 23 cases across two of the five
+reference projects, none in the three most recent ones.
 
 ## Transaction handling
 
@@ -241,13 +243,29 @@ async execute(input): Promise<Result<FooDto, DomainError>> {
 transaction client inside the callback. Inject it via
 `@inject(InternalSymbols.DatabaseContext)`.
 
-For projects that have moved to attribute-style decorators
-(`@withTransaction`, `@audit`), the use case body wraps with a
-single decorator call instead of the explicit
-`runWithTransaction`. The decorators exist in
-`@efesto-cloud/usecase` but are not yet enabled in `task-planning`;
-this section describes the explicit form, which works without
-decorators.
+First decide whether a transaction is warranted at all: it is, when
+the use case performs **two or more writes that must land or fail
+together**. Around a single `repo.save()` it buys nothing — that
+write is already atomic — and costs a connection held open plus a
+layer to read past. Wrap the writes only; keep lookups and
+validation outside the callback.
+
+Some older projects hoist the whole body into a
+`@withTransaction<IFoo>()` class decorator instead. Don't reach for
+it in new code: it isn't shipped by any `@efesto-cloud` package (each
+project copy-pastes its own into `decorator/withTransaction.ts`), it
+transacts the lookups and validation along with the writes, and being
+attached to the class it hides the decision at the point where the
+writes actually happen. `IUnitOfWork` is the tool; the decorator is a
+thing some codebases have.
+
+There is no audit decorator to pair with it. A generic `@audit` was
+tried and is dead — zero uses across 604 use cases in five projects.
+When an operation needs a trail, write it as a domain artifact: a
+`FooStatusChange` entity appended by the use case (as
+`task-planning` does for pratiche), or an outbox event (as `dav`
+does). Those are queryable with the domain's own schema; a trace is
+not.
 
 ## Validating input
 
