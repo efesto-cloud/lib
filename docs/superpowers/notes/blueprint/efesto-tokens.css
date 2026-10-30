@@ -1,0 +1,127 @@
+/* ============================================================================
+   Efesto — token di brand
+   Fonte di verità leggibile dalle macchine per ogni valore del sistema.
+   Framework-agnostica: importala da sola, oppure lascia che sia efesto.css
+   a farlo.
+
+   Origine: efesto.io. Dove questi valori divergono dal sito, la divergenza è
+   deliberata e motivata in ../references/fonti.md.
+   ========================================================================== */
+
+:root {
+  /* ── Fuoco ──────────────────────────────────────────────────────────────
+     Un solo accento, in tre temperature. --forge è il colore di brand;
+     --ember e --spark vivono sul buio. */
+  --forge: #B84A1E;   /* accento primario — riempimenti, filetti, bordi, display */
+  --ember: #E8722A;   /* fuoco vivo — solo su superficie scura */
+  --spark: #FAC775;   /* scintilla — solo su superficie scura */
+
+  /* ── Fucina ─────────────────────────────────────────────────────────────
+     Le superfici scure e gli inchiostri. */
+  --coal: #14110E;    /* nero caldo — superficie notturna, testo su chiaro */
+  --ash: #2A2622;     /* cenere — bordi e superfici di secondo livello sul buio */
+  --stone: #4A453F;   /* pietra — testo corrente su chiaro */
+  --dust: #8A8178;    /* polvere — testo attenuato, SOLO su --coal */
+
+  /* ── Officina ───────────────────────────────────────────────────────────
+     Le superfici chiare, dalla più fredda alla più calda. */
+  --paper: #FAF7F1;   /* carta — superficie di default */
+  --light: #F8F4ED;   /* card e riquadri su --paper */
+  --warm: #EFE8DC;    /* sabbia — fasce e chiusure di sezione */
+
+  /* ── Metalli ────────────────────────────────────────────────────────────
+     Non sono accenti alternativi: l'accento resta uno solo. */
+  --gold: #C8963C;    /* ottone — dati e onorificenze, SOLO su scuro */
+  --steel: #5A5C60;   /* acciaio — la voce fredda: «lo fai tu», stati neutri */
+
+  /* ── Inchiostri accessibili ─────────────────────────────────────────────
+     Stessi colori, corretti per reggere il testo su fondo chiaro.
+     Usa questi quando il colore FA testo; usa quelli sopra quando il colore
+     È superficie, filetto o bordo. */
+  --forge-ink: #A8481F;  /* --forge come testo: 5.44 su paper, 4.78 su warm */
+  --dust-ink: #6A6259;   /* --dust come testo: 5.60 su paper, 4.92 su warm */
+
+  /* ── Tipografia ─────────────────────────────────────────────────────────
+     Due famiglie, nessun monospaziato. La Voce dichiara (Bricolage
+     Grotesque), il Testo porta (Public Sans). Il monospaziato esiste solo
+     dentro il codice, dove è funzionale. */
+  --font-voice: 'Bricolage Grotesque', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-text: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-code: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Alias deprecato: il ruolo che si chiamava «Materia» ora è il Testo.
+     Resta agganciato per non rompere i fogli di stile già scritti. */
+  --font-matter: var(--font-text);
+
+  /* Pesi in uso. La Voce sta fra 400 e 600; l'accento — e solo l'accento —
+     arriva a 800. Il Testo non supera 600. */
+  --w-voice: 400;         /* display e titoli di sezione */
+  --w-voice-strong: 500;  /* titoli di colonna */
+  --w-voice-title: 600;   /* titoli di fase, titoli corti */
+  --w-accent: 800;        /* la parola accesa dentro un titolo. Una sola. */
+  --w-text-light: 300;    /* occhiello lungo */
+  --w-text: 400;          /* corpo del testo */
+  --w-text-strong: 600;   /* enfasi dentro il corpo */
+  --w-label: 650;         /* etichette: portano peso, non maiuscolo */
+
+  /* Alias deprecati dei pesi. */
+  --w-voice-light: var(--w-voice);
+  --w-voice-regular: var(--w-voice);
+  --w-voice-medium: var(--w-voice-strong);
+  --w-matter-light: var(--w-text-light);
+  --w-matter-regular: var(--w-text);
+  --w-matter-medium: var(--w-text-strong);
+  --w-matter-semibold: 700;
+
+  /* Scala della Voce — fluida. Bricolage ha un'altezza x generosa: le stesse
+     dimensioni pesano di più di un serif, e le misure qui ne tengono conto. */
+  --t-display: clamp(2.5rem, 5.4vw, 4.75rem);   /*  40 →  76px  hero */
+  --t-h2: clamp(2rem, 4.8vw, 3.75rem);          /*  32 →  60px  titolo di sezione */
+  --t-h3: clamp(1.375rem, 2.4vw, 1.875rem);     /*  22 →  30px  titolo di colonna */
+  --t-h4: 1.25rem;                               /*  20px        titolo di fase */
+  --t-lead: clamp(1.125rem, 1.9vw, 1.4375rem);  /*  18 →  23px  occhiello lungo */
+
+  /* Scala del Testo — il pavimento del corpo è 1rem, quello delle etichette
+     0.75rem. Senza il maiuscolo le etichette hanno bisogno di un filo di
+     corpo in più per tenere il loro gradino di gerarchia. */
+  --t-body: 1rem;        /* 16px — corpo del testo */
+  --t-small: 0.875rem;   /* 14px — note, didascalie */
+  --t-label: 0.8125rem;  /* 13px — etichette */
+  --t-micro: 0.75rem;    /* 12px — nav, piede, meta: il minimo assoluto */
+
+  --lh-voice: 1.08;
+  --lh-display: 1;
+  --lh-lead: 1.5;
+  --lh-body: 1.62;
+
+  --ls-display: -0.032em;
+  --ls-h: -0.025em;
+  /* Le etichette non sono più maiuscole spaziate: portano peso e colore.
+     La spaziatura resta quasi a zero — serve solo a scongiurare l'impasto. */
+  --ls-label: 0.005em;
+  --ls-micro: 0.01em;
+  --tt-label: none;      /* niente maiuscolo: le etichette sono in stile frase */
+
+  /* Misura: il testo proporzionale regge più caratteri per riga di quanti ne
+     reggesse il monospaziato. */
+  --measure-body: 70ch;
+  --measure-lead: 58ch;
+
+  /* ── Spazio ─────────────────────────────────────────────────────────────── */
+  --maxw: 1240px;
+  --gutter: clamp(1.25rem, 5vw, 5rem);
+  --section-y: clamp(4.5rem, 10vw, 7.5rem);
+
+  /* ── Superficie ─────────────────────────────────────────────────────────
+     Il brand è a spigolo vivo: niente raggi, tranne il cerchio delle fasi. */
+  --radius: 0;
+  --hairline: 0.5px solid rgba(74, 69, 63, 0.18);
+  --hairline-dark: 0.5px solid rgba(250, 247, 241, 0.14);
+  --shadow-lift: 0 1rem 2.5rem rgba(20, 17, 14, 0.08);
+
+  /* ── Movimento ──────────────────────────────────────────────────────────── */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 0.2s;
+  --dur: 0.4s;
+  --dur-slow: 0.9s;
+}

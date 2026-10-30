@@ -1,0 +1,640 @@
+/* ============================================================================
+   Efesto — design system
+   Reset, tipografia, temi e componenti pronti all'uso.
+
+   Uso:  <link rel="stylesheet" href="efesto.css">
+   Tieni `efesto-tokens.css` accanto a questo file: viene importato da qui.
+
+   Tutte le classi hanno prefisso `ef-`. Gli elementi nudi (h1…h4, p, a)
+   ricevono solo la base tipografica, così il file convive con altro CSS.
+   ========================================================================== */
+
+@import url('efesto-tokens.css');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Public+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
+/* ─────────────────────────────────────────────────────────── reset ───── */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+body,
+h1, h2, h3, h4, h5, h6,
+p, figure, blockquote, dl, dd { margin: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-text);
+  font-weight: var(--w-text);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: var(--stone);
+  background: var(--paper);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  /* I numeri restano incolonnati anche senza monospaziato. */
+  font-variant-numeric: tabular-nums;
+}
+
+img, svg { max-width: 100%; height: auto; display: block; }
+
+/* ───────────────────────────────────────────────── accessibilità ───── */
+
+/* Il focus da tastiera è sempre visibile e sempre in --forge. */
+:focus-visible {
+  outline: 2px solid var(--forge);
+  outline-offset: 3px;
+}
+.ef-dark :focus-visible,
+.ef-footer :focus-visible { outline-color: var(--ember); }
+
+.ef-skip {
+  position: absolute;
+  left: var(--gutter);
+  top: -4rem;
+  z-index: 200;
+  padding: 0.75rem 1.25rem;
+  background: var(--coal);
+  color: var(--paper);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: var(--ls-label);
+  text-decoration: none;
+  transition: top var(--dur-fast) var(--ease);
+}
+.ef-skip:focus { top: 1rem; }
+
+.ef-visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Chi ha chiesto meno movimento riceve il contenuto già a posto. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .ef-reveal { opacity: 1 !important; transform: none !important; }
+}
+
+/* ───────────────────────────────────────────────────── impianto ───── */
+
+.ef-container {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  position: relative;
+  z-index: 2;
+}
+
+.ef-section {
+  padding-block: var(--section-y);
+  position: relative;
+}
+
+/* La grana: il segno che tiene insieme le superfici. Decorativa, mai sopra
+   il contenuto interattivo. Sta su ::after perché .ef-dark usa ::before: così
+   un <body class="ef-grain ef-dark"> può portarle entrambe. */
+.ef-grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ─────────────────────────────────────────────────────── superfici ───── */
+
+.ef-light { background: var(--light); }
+.ef-warm { background: var(--warm); }
+
+/* Vale su una sezione e sull'intero <body>: `position: relative` ancora la
+   rigatura al blocco che la porta, qualunque sia la sua altezza. */
+.ef-dark {
+  background: var(--coal);
+  color: var(--warm);
+  position: relative;
+}
+/* Rigatura orizzontale appena percettibile: la superficie scura non è piatta. */
+.ef-dark::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(250, 247, 241, 0.018) 0 1px,
+    transparent 1px 5px
+  );
+}
+.ef-dark > * { position: relative; }
+
+/* ────────────────────────────────────────────────────── tipografia ───── */
+
+/* La Voce: grottesco, il peso porta l'accento. */
+h1, h2, h3, h4,
+.ef-display, .ef-h2, .ef-h3, .ef-h4 {
+  font-family: var(--font-voice);
+  font-weight: var(--w-voice);
+  color: var(--coal);
+  letter-spacing: var(--ls-h);
+  line-height: var(--lh-voice);
+  text-wrap: balance;
+}
+.ef-dark h1, .ef-dark h2, .ef-dark h3, .ef-dark h4,
+.ef-dark .ef-display, .ef-dark .ef-h2, .ef-dark .ef-h3, .ef-dark .ef-h4 {
+  color: var(--paper);
+}
+
+.ef-display { font-size: var(--t-display); letter-spacing: var(--ls-display); line-height: var(--lh-display); }
+.ef-h2 { font-size: var(--t-h2); }
+.ef-h3 { font-size: var(--t-h3); font-weight: var(--w-voice-strong); line-height: 1.1; }
+.ef-h4 { font-size: var(--t-h4); font-weight: var(--w-voice-title); line-height: 1.15; }
+
+/* Una sola parola per titolo si accende. Una.
+   L'accento è peso più fuoco: il grottesco non ha corsivo, e un corsivo
+   sintetizzato dal browser è la finta che questo brand non fa. */
+h1 em, h2 em, h3 em, h4 em,
+.ef-display em, .ef-h2 em, .ef-h3 em, .ef-h4 em {
+  font-style: normal;
+  font-weight: var(--w-accent);
+  color: var(--forge);
+}
+.ef-dark h1 em, .ef-dark h2 em, .ef-dark h3 em, .ef-dark h4 em,
+.ef-dark .ef-display em, .ef-dark .ef-h2 em, .ef-dark .ef-h3 em { color: var(--spark); }
+
+/* L'occhiello lungo: la frase che introduce la sezione. Testo in peso leggero
+   e corpo alto — è il respiro fra il titolo e il contenuto. */
+.ef-lead {
+  font-family: var(--font-text);
+  font-size: var(--t-lead);
+  font-weight: var(--w-text-light);
+  line-height: var(--lh-lead);
+  color: var(--stone);
+  max-width: var(--measure-lead);
+}
+.ef-lead b {
+  font-weight: var(--w-text-strong);
+  color: var(--coal);
+}
+.ef-dark .ef-lead { color: var(--warm); }
+.ef-dark .ef-lead b { color: var(--paper); }
+
+/* Il Testo: corpo, dati, tutto ciò che si legge davvero. */
+p { max-width: var(--measure-body); }
+/* La misura vale per i paragrafi che sono testo. Gli elementi d'impianto
+   scritti come <p> — occhielli, etichette, righe del piede — prendono la
+   larghezza che serve loro. */
+.ef-eyebrow,
+.ef-label,
+.ef-sec-num,
+.ef-footer-bottom,
+.ef-figure-num { max-width: none; }
+p b, strong { font-weight: var(--w-text-strong); color: var(--coal); }
+.ef-dark p { color: var(--warm); }
+.ef-dark p b, .ef-dark strong { color: var(--paper); }
+
+/* Il monospaziato è rimasto solo qui, dove serve davvero: nel codice.
+   Fuori dal codice il brand non ha una voce monospaziata. */
+code, kbd, samp {
+  font-family: var(--font-code);
+  font-size: 0.875em;
+  font-weight: var(--w-text);
+  color: var(--coal);
+  background: var(--warm);
+  padding: 0.05em 0.3em;
+}
+.ef-dark code, .ef-dark kbd, .ef-dark samp { color: var(--spark); background: var(--ash); }
+
+.ef-small { font-size: var(--t-small); }
+.ef-muted { color: var(--dust-ink); }
+.ef-dark .ef-muted { color: var(--dust); }
+
+/* L'etichetta: peso e colore, in stile frase. Niente maiuscolo, niente
+   spaziatura larga — segnala il gradino di gerarchia senza mettersi in posa. */
+.ef-label,
+.ef-eyebrow {
+  font-family: var(--font-text);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: var(--ls-label);
+  text-transform: var(--tt-label);
+  color: var(--forge-ink);
+  line-height: 1.4;
+}
+.ef-dark .ef-label,
+.ef-dark .ef-eyebrow { color: var(--ember); }
+
+/* L'occhiello porta il filetto: il tratto che apre ogni sezione. */
+.ef-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+.ef-eyebrow::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 1px;
+  background: var(--forge);
+}
+.ef-dark .ef-eyebrow::before { background: var(--ember); }
+
+/* Numero di sezione: la Voce in peso pieno, poi il filetto. */
+.ef-sec-num {
+  font-family: var(--font-voice);
+  font-weight: var(--w-voice-title);
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
+  letter-spacing: var(--ls-h);
+  color: var(--forge-ink);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.ef-sec-num::after {
+  content: '';
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2px;
+  background: var(--forge);
+}
+.ef-dark .ef-sec-num { color: var(--ember); }
+.ef-dark .ef-sec-num::after { background: var(--ember); }
+
+/* Ritmo verticale dell'intestazione di sezione. */
+.ef-sec-num + .ef-h2,
+.ef-eyebrow + .ef-h2,
+.ef-eyebrow + .ef-display { margin-top: 1.5rem; }
+.ef-h2 + .ef-lead,
+.ef-display + .ef-lead { margin-top: 2rem; }
+.ef-lead + * { margin-top: 3.5rem; }
+
+/* ─────────────────────────────────────────────────────────── link ───── */
+
+a { color: var(--forge-ink); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+a:hover { color: var(--forge); }
+.ef-dark a { color: var(--spark); }
+.ef-dark a:hover { color: var(--ember); }
+
+/* Link di navigazione: il filetto cresce al passaggio. */
+.ef-navlink {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: var(--ls-label);
+  text-transform: var(--tt-label);
+  color: var(--stone);
+  text-decoration: none;
+  position: relative;
+}
+.ef-navlink:hover { color: var(--forge); }
+.ef-navlink::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -0.25rem;
+  width: 0; height: 1px;
+  background: var(--forge);
+  transition: width var(--dur) var(--ease);
+}
+.ef-navlink:hover::after,
+.ef-navlink:focus-visible::after { width: 100%; }
+
+/* Il bottone è un rettangolo bordato che si riempie di fuoco. Testo chiaro
+   sul pieno: --coal su --forge si ferma a 3.62:1 e non va usato. */
+.ef-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+  font-family: var(--font-text);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: var(--ls-label);
+  color: var(--coal);
+  text-decoration: none;
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--forge);
+  border-radius: var(--radius);
+  background: var(--paper);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+              transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.ef-btn::after {
+  content: '→';
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: transform var(--dur) var(--ease);
+}
+.ef-btn:hover {
+  background: var(--forge);
+  color: var(--paper);
+  transform: translateY(-2px);
+  box-shadow: 0 0.75rem 1.75rem rgba(184, 74, 30, 0.18);
+}
+.ef-btn:hover::after { transform: translateX(4px); }
+
+/* ────────────────────────────────────────────────────── componenti ───── */
+
+/* Colonne — «tre cose da chiarire» */
+.ef-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 3.5rem;
+}
+.ef-col > .ef-label {
+  display: block;
+  padding-bottom: 0.875rem;
+  margin-bottom: 1.125rem;
+  border-bottom: 0.5px solid rgba(184, 74, 30, 0.3);
+}
+.ef-col > .ef-h3 { margin-bottom: 1.125rem; }
+
+/* Fasi — la linea del metodo, dal fuoco all'acciaio */
+.ef-phases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1.75rem 0;
+  position: relative;
+  /* I numeri li porta .ef-phase-num: il marcatore di lista va tolto. */
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.ef-phases::before {
+  content: '';
+  position: absolute;
+  top: 1.75rem;
+  left: 1.75rem; right: 1.75rem;
+  height: 1px;
+  background: linear-gradient(to right, var(--forge) 0%, var(--ember) 50%, var(--steel) 100%);
+  opacity: 0.4;
+}
+@media (max-width: 55rem) {
+  .ef-phases::before { display: none; }
+}
+.ef-phase { padding-right: 1.5rem; }
+.ef-phase:last-child { padding-right: 0; }
+.ef-phase-num {
+  width: 3.5rem; height: 3.5rem;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.5px solid var(--forge);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-voice);
+  font-weight: var(--w-voice-strong);
+  font-size: 1.375rem;
+  color: var(--forge-ink);
+  margin-bottom: 1.5rem;
+  position: relative; z-index: 1;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+              transform var(--dur) var(--ease);
+}
+.ef-phase:hover .ef-phase-num {
+  background: var(--forge);
+  color: var(--paper);
+  transform: scale(1.05);
+}
+/* L'ultima fase è l'offload: esce dal fuoco ed entra nell'acciaio. */
+.ef-phase:last-child .ef-phase-num { border-color: var(--steel); color: var(--steel); }
+.ef-phase:last-child:hover .ef-phase-num { background: var(--steel); color: var(--paper); }
+.ef-phase > .ef-h4 { margin-bottom: 0.75rem; }
+
+/* Confronto a due — «strumento ≠ applicazione» */
+.ef-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 2.5rem;
+}
+.ef-split-side {
+  padding: 2.5rem 2.25rem;
+  border-top: 3px solid var(--steel);
+  background: var(--light);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.ef-split-side:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
+.ef-split-side > .ef-label { color: var(--steel); display: block; margin-bottom: 0.875rem; }
+.ef-split-side > .ef-h3 { margin-bottom: 0.5rem; }
+/* Il lato Efesto è quello caldo. */
+.ef-split-side--forge {
+  border-top-color: var(--forge);
+  background: linear-gradient(135deg, var(--light) 0%, rgba(184, 74, 30, 0.06) 100%);
+}
+.ef-split-side--forge > .ef-label { color: var(--forge-ink); }
+.ef-split-side--forge p b { color: var(--forge-ink); }
+.ef-split-by {
+  font-size: var(--t-micro);
+  font-weight: var(--w-label);
+  letter-spacing: var(--ls-micro);
+  text-transform: var(--tt-label);
+  color: var(--dust-ink);
+  margin-bottom: 1.5rem;
+}
+
+/* Righe a due colonne — «cosa non è», i valori */
+.ef-rows { display: grid; list-style: none; padding-left: 0; margin: 0; }
+.ef-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 20rem) 1fr;
+  gap: 3.5rem;
+  padding-block: 2.5rem;
+  border-top: var(--hairline);
+  align-items: baseline;
+  transition: padding-left var(--dur) var(--ease);
+}
+.ef-row:last-child { border-bottom: var(--hairline); }
+.ef-row:hover { padding-left: 1rem; }
+.ef-dark .ef-row { border-top: var(--hairline-dark); }
+.ef-dark .ef-row:last-child { border-bottom: var(--hairline-dark); }
+@media (max-width: 45rem) {
+  .ef-row { grid-template-columns: 1fr; gap: 0.75rem; }
+  .ef-row:hover { padding-left: 0; }
+}
+.ef-row-tag {
+  font-family: var(--font-voice);
+  font-size: clamp(1.375rem, 2.4vw, 1.875rem);
+  font-weight: var(--w-voice);
+  letter-spacing: var(--ls-h);
+  color: var(--stone);
+  line-height: 1.15;
+}
+.ef-row-tag em { font-style: normal; font-weight: var(--w-accent); color: var(--forge); }
+.ef-dark .ef-row-tag { color: var(--warm); }
+
+/* Elenco numerato dei valori — numero e nome nella Voce, glossa nel Testo */
+.ef-values { display: grid; list-style: none; padding-left: 0; margin: 0; }
+.ef-value {
+  display: grid;
+  grid-template-columns: 5rem 12.5rem 1fr;
+  gap: 2rem;
+  padding-block: 2rem;
+  border-top: var(--hairline);
+  align-items: baseline;
+}
+.ef-value:last-child { border-bottom: var(--hairline); }
+.ef-value:hover .ef-value-num { color: var(--forge); transform: translateX(0.5rem); }
+@media (max-width: 45rem) {
+  .ef-value { grid-template-columns: 3.75rem 1fr; gap: 1rem; }
+  .ef-value-desc { grid-column: 1 / 3; padding-left: 4.75rem; }
+}
+.ef-value-num {
+  font-family: var(--font-voice);
+  font-size: 2.125rem;
+  font-weight: var(--w-voice);
+  letter-spacing: var(--ls-h);
+  color: var(--forge-ink);
+  line-height: 1;
+  transition: color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.ef-value-name {
+  font-family: var(--font-voice);
+  font-size: 1.5rem;
+  font-weight: var(--w-voice-title);
+  letter-spacing: var(--ls-h);
+  color: var(--coal);
+  line-height: 1.1;
+}
+.ef-value-desc { font-size: var(--t-small); }
+
+/* Riquadro tratteggiato — il richiamo all'azione */
+.ef-card {
+  border: 0.5px dashed rgba(74, 69, 63, 0.3);
+  padding: clamp(1.5rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3.5rem);
+  background: rgba(184, 74, 30, 0.025);
+}
+
+/* Dato in evidenza — «20% del tempo è protetto» */
+.ef-figure {
+  background: var(--coal);
+  color: var(--paper);
+  padding: 3.5rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+.ef-figure::before {
+  content: '';
+  position: absolute;
+  top: -40%; right: -20%;
+  width: 80%; height: 180%;
+  background: radial-gradient(circle, rgba(184, 74, 30, 0.25) 0%, transparent 60%);
+  pointer-events: none;
+}
+.ef-figure-num {
+  font-family: var(--font-voice);
+  font-size: clamp(6.5rem, 12vw, 10rem);
+  font-weight: var(--w-voice);
+  color: var(--ember);
+  line-height: 0.85;
+  letter-spacing: -0.045em;
+  position: relative;
+}
+.ef-figure-num span { font-size: 0.42em; color: var(--spark); vertical-align: top; margin-left: 0.25rem; }
+.ef-figure-text {
+  font-family: var(--font-text);
+  font-weight: var(--w-text-light);
+  font-size: 1.125rem;
+  color: var(--warm);
+  line-height: 1.55;
+  position: relative;
+  margin-top: 1.5rem;
+}
+.ef-figure-text b { font-weight: var(--w-text-strong); color: var(--spark); }
+
+/* Piede — sempre sulla superficie notturna */
+.ef-footer {
+  background: var(--coal);
+  color: var(--dust);
+  padding: 5rem 0 2.5rem;
+  border-top: 1px solid var(--ash);
+}
+.ef-footer-tag {
+  font-family: var(--font-voice);
+  font-size: clamp(1.625rem, 3.2vw, 2.5rem);
+  font-weight: var(--w-voice);
+  letter-spacing: var(--ls-h);
+  color: var(--paper);
+  line-height: 1.2;
+  max-width: 22ch;
+}
+.ef-footer-tag em { font-style: normal; font-weight: var(--w-accent); color: var(--ember); }
+.ef-footer-meta {
+  font-size: var(--t-micro);
+  letter-spacing: var(--ls-micro);
+  text-transform: var(--tt-label);
+  line-height: 2.1;
+}
+.ef-footer-meta b { color: var(--paper); font-weight: var(--w-label); }
+.ef-footer-meta a { color: var(--dust); text-decoration: none; }
+.ef-footer-meta a:hover { color: var(--spark); }
+/* --stone su --coal dà 1.98:1. Il piede usa --dust (4.92:1). */
+.ef-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: var(--t-micro);
+  letter-spacing: var(--ls-micro);
+  text-transform: var(--tt-label);
+  color: var(--dust);
+}
+
+/* ─────────────────────────────────────── componenti sul notturno ───── */
+/* Tutto ciò che fissa una superficie o un inchiostro chiaro va ribaltato:
+   senza queste regole i componenti spariscono dentro una sezione .ef-dark. */
+
+.ef-dark .ef-value-name { color: var(--paper); }
+.ef-dark .ef-value-num { color: var(--ember); }
+.ef-dark .ef-value-desc { color: var(--warm); }
+.ef-dark .ef-value { border-top: var(--hairline-dark); }
+.ef-dark .ef-value:last-child { border-bottom: var(--hairline-dark); }
+
+.ef-dark .ef-split-side { background: var(--ash); }
+.ef-dark .ef-split-side--forge {
+  background: linear-gradient(135deg, var(--ash) 0%, rgba(232, 114, 42, 0.12) 100%);
+}
+.ef-dark .ef-split-side--forge > .ef-label,
+.ef-dark .ef-split-side--forge p b { color: var(--spark); }
+.ef-dark .ef-split-by { color: var(--dust); }
+/* --steel su --ash dà 2,24:1: sul buio l'etichetta fredda passa a --dust. */
+.ef-dark .ef-split-side > .ef-label { color: var(--dust); }
+.ef-dark .ef-row-tag em { color: var(--ember); }
+
+.ef-dark .ef-phase-num { background: var(--coal); color: var(--ember); border-color: var(--ember); }
+.ef-dark .ef-phase:hover .ef-phase-num { background: var(--ember); color: var(--coal); }
+.ef-dark .ef-phase:last-child .ef-phase-num { border-color: var(--steel); color: var(--dust); }
+.ef-dark .ef-phase:last-child:hover .ef-phase-num { background: var(--steel); color: var(--paper); }
+
+.ef-dark .ef-col > .ef-label { border-bottom-color: rgba(232, 114, 42, 0.35); }
+
+.ef-dark .ef-card {
+  border-color: rgba(250, 247, 241, 0.28);
+  background: rgba(232, 114, 42, 0.05);
+}
+
+.ef-dark .ef-btn { background: transparent; color: var(--paper); border-color: var(--ember); }
+.ef-dark .ef-btn:hover { background: var(--ember); color: var(--coal); }
+
+/* Il dato in evidenza è già notturno: sul buio si stacca con un filetto. */
+.ef-dark .ef-figure { border: var(--hairline-dark); }
+
+/* ────────────────────────────────────────────────────── movimento ───── */
+
+.ef-reveal {
+  opacity: 0;
+  transform: translateY(1.75rem);
+  transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
+}
+.ef-reveal.is-visible { opacity: 1; transform: none; }

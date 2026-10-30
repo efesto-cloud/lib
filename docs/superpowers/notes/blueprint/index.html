@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>blueprint — revisione</title>
+<link rel="stylesheet" href="efesto.css">
+<style>
+    body { font-size: 16px; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 1.5rem; }
+    header.top { padding: 2.5rem 0 1.5rem; border-bottom: 1px solid var(--warm); }
+    h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Helvetica Neue', Arial, sans-serif; color: var(--coal); }
+    h1 { font-weight: 500; font-size: 2rem; letter-spacing: -.02em; margin: 0 0 .5rem; }
+    h2 { font-weight: 500; font-size: 1.6rem; letter-spacing: -.015em; margin: 0 0 .75rem; }
+    h3 { font-weight: 600; font-size: 1.15rem; margin: 0 0 .5rem; }
+    .num { color: var(--forge-ink); font-weight: 650; margin-right: .5rem; }
+    p { max-width: 75ch; color: var(--stone); line-height: 1.6; margin: 0 0 .8rem; }
+    .meta { font-size: .8125rem; color: var(--dust-ink); display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .meta b { color: var(--coal); font-weight: 650; }
+    nav.toc { position: sticky; top: 0; z-index: 5; background: rgb(250 247 241 / .94); border-bottom: 1px solid var(--warm); }
+    nav.toc ol { display: flex; gap: 1.1rem; list-style: none; margin: 0 auto; padding: .6rem 1.5rem;
+        max-width: 1080px; overflow-x: auto; white-space: nowrap; }
+    nav.toc a { font-size: .75rem; font-weight: 650; color: var(--stone); text-decoration: none; }
+    nav.toc a:hover { color: var(--forge-ink); }
+    section.s { padding: 2.5rem 0 2rem; border-bottom: 1px solid var(--warm); }
+    svg { display: block; width: 100%; height: auto; }
+    figure { margin: 1.25rem 0 0; }
+    figcaption { font-size: .875rem; color: var(--dust-ink); margin-top: .5rem; max-width: 75ch; }
+    .chip { display: inline-block; font-size: .75rem; font-weight: 650; padding: .1rem .5rem; border: 1px solid currentColor; }
+    .chip.ok { color: var(--forge-ink); } .chip.open { color: var(--steel); border-style: dashed; } .chip.todo { color: var(--dust-ink); border-style: dotted; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--warm); border: 1px solid var(--warm); margin-top: 1rem; }
+    .grid3 > div { background: var(--paper); padding: 1rem 1.1rem 1.2rem; }
+    .grid3 ul, .col ul { margin: .6rem 0 0; padding-left: 1.1rem; font-size: .9375rem; line-height: 1.55; color: var(--stone); }
+    .grid3 li, .col li { margin-bottom: .25rem; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.25rem; }
+    .col { border-top: 2px solid var(--forge); padding-top: .75rem; }
+    .col.cold { border-top-color: var(--steel); }
+    .lbl { font-size: .8125rem; font-weight: 650; color: var(--forge-ink); }
+    .col.cold .lbl { color: var(--steel); }
+    .rung { display: grid; grid-template-columns: 480px 1fr; gap: 2rem; padding: 1.5rem 0; border-top: 1px solid var(--warm); align-items: start; }
+    .rung:first-of-type { border-top: 0; }
+    .rung svg { background: var(--light); }
+    .rung dl { margin: 0; display: grid; grid-template-columns: 6.5rem 1fr; gap: .45rem 1rem; font-size: .9375rem; }
+    .rung dt { font-weight: 650; color: var(--dust-ink); font-size: .8125rem; padding-top: .15rem; }
+    .rung dd { margin: 0; color: var(--stone); line-height: 1.5; }
+    pre { background: var(--coal); color: var(--paper); padding: .9rem 1.1rem; overflow-x: auto; font-size: .8125rem; line-height: 1.55; margin: 0; }
+    pre .c { color: var(--dust); } pre .k { color: var(--spark); } pre .s { color: var(--ember); }
+    .q { border-left: 3px solid var(--steel); padding: .2rem 0 .2rem 1rem; margin: 1.25rem 0 0; color: var(--stone); max-width: 75ch; }
+    .q b { color: var(--coal); }
+    table.t { border-collapse: collapse; width: 100%; font-size: .9375rem; margin-top: 1rem; }
+    table.t th { text-align: left; font-size: .8125rem; font-weight: 650; color: var(--dust-ink); padding: .4rem .8rem .4rem 0; border-bottom: 1px solid var(--stone); }
+    table.t td { border-top: 1px solid var(--warm); padding: .5rem .8rem .5rem 0; vertical-align: top; color: var(--stone); }
+    table.t td:first-child { color: var(--coal); }
+    .small { font-size: .875rem; color: var(--dust-ink); }
+    .slide { margin: 2rem 0 0; padding: 1.5rem; background: var(--light); border-top: 3px solid var(--forge); }
+    .slide-h { display: flex; gap: 1.25rem; align-items: baseline; margin-bottom: 1.25rem; }
+    .slide-n { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 2.4rem;
+        color: var(--forge-ink); min-width: 3.2rem; line-height: 1; }
+    .slide-h h3 { font-size: 1.4rem; margin: 0 0 .25rem; }
+    .slide-h p { margin: 0; }
+    .slide-g { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.25rem; align-items: start; }
+    .slide-fig svg { background: var(--paper); }
+    .slide pre.tree { background: var(--paper); color: var(--coal); border: 1px solid var(--warm); margin-top: .4rem; }
+    .slide pre.tree .c { color: var(--dust-ink); }
+    .slide pre { margin-top: .4rem; }
+    .slide dl { margin: 0; display: grid; grid-template-columns: 7.5rem 1fr; gap: .45rem 1rem; font-size: .9375rem; }
+    .slide dt { font-weight: 650; color: var(--dust-ink); font-size: .8125rem; padding-top: .15rem; }
+    .slide dd { margin: 0; color: var(--stone); line-height: 1.5; }
+    @media (max-width: 860px) { .slide-g { grid-template-columns: 1fr; } }
+    @media (max-width: 860px) { .grid3, .two, .rung { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="ef-grain">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4A453F"/></marker>
+    <marker id="ahf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B84A1E"/></marker>
+    <symbol id="db" viewBox="0 0 70 72">
+      <path d="M2 12 v46 a33 10 0 0 0 66 0 v-46" fill="#FAF7F1" stroke="#4A453F" stroke-width="1.5"/>
+      <ellipse cx="35" cy="12" rx="33" ry="10" fill="#EFE8DC" stroke="#4A453F" stroke-width="1.5"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="top"><div class="wrap">
+  <h1>Skill <code>blueprint</code>: revisione</h1>
+  <p>Documento di lavoro. Raccoglie il disegno della skill che sostituisce <code>Core:core</code> e le
+    skill figlie del plugin. Si aggiorna a ogni giro; le modifiche sono nel registro (§11).</p>
+  <div class="meta">
+    <span>Aggiornato <b>30/10/2026</b></span>
+    <span>Branch <b><code>docs/32-skill-blueprint</code></b></span>
+    <span>Fonti <b>lib#32</b>, nota del 23/08 sul corpus</span>
+  </div>
+</div></header>
+
+<nav class="toc" aria-label="Indice"><ol>
+  <li><a href="#stato">0 Stato</a></li>
+  <li><a href="#gradini">1 Gradini</a></li>
+  <li><a href="#strati">2 Strati</a></li>
+  <li><a href="#usecase">3 Use case</a></li>
+  <li><a href="#resolve">4 Risoluzione</a></li>
+  <li><a href="#bus">5 Command bus</a></li>
+  <li><a href="#policy">6 Middleware e policy</a></li>
+  <li><a href="#job">7 Job e cron</a></li>
+  <li><a href="#preferenze">8 Principi e preferenze</a></li>
+  <li><a href="#librerie">9 Librerie</a></li>
+  <li><a href="#esempio">10 Progetto esempio</a></li>
+  <li><a href="#registro">11 Registro</a></li>
+  <li><a href="#vocabolario">12 Vocabolario</a></li>
+</ol></nav>
+
+<main>
+
+<!-- 0 -->
+<section class="s" id="stato"><div class="wrap">
+  <h2><span class="num">0</span>Stato</h2>
+  <div class="grid3">
+    <div>
+      <span class="chip ok">Deciso</span>
+      <ul>
+        <li>Nome <code>blueprint</code>; una skill sola, le figlie assorbite; testo in inglese</li>
+        <li>Questo branch è la nuova fonte di verità per skill e librerie</li>
+        <li>Il blueprint dà regole generali; i dettagli li decide la singola applicazione</li>
+        <li>Esempi su dominio neutro; progetto esempio in <code>lib/example</code>, una cartella per gradino</li>
+        <li>Use case senza suffisso; ritornano sempre un <code>Result</code></li>
+        <li>Use case che chiamano use case: consentito, a condizioni (§3)</li>
+        <li>Autorizzazione fuori dagli use case; lo use case si fida del tipo</li>
+        <li>Command bus al gradino 2·C, col canale remoto; si chiama solo <code>bus.dispatch</code></li>
+        <li>Pacchetti <code>commands</code>, <code>bus</code>, <code>bus-server</code></li>
+        <li>L'input si valida dove arriva: route fino al 2·B, dispatcher del bus al 2·C</li>
+        <li>Bus e job queue distinti; job fuori dal blueprint oltre la porta</li>
+        <li>Effect solo per i valori; pacchetti di <code>lib</code> decisi (§9)</li>
+        <li>Inversify e i suoi decoratori restano, per ora</li>
+        <li>Vocabolario in <code>CONTEXT.md</code> di <code>lib</code> e nella skill (§12)</li>
+        <li>Tre regole sui test (§3)</li>
+        <li>Policy se dipende da chi è l'attore, dominio se dipende dallo stato (§2)</li>
+        <li>I client importano <code>core/client</code>; il core è tree-shakeable (§5)</li>
+        <li>Il comando dichiara i suoi errori con nome (§5)</li>
+        <li>Effect 4 per i valori</li>
+        <li>Prima il progetto esempio, poi la skill con gli snippet presi da lì</li>
+        <li>Nessuna guida di migrazione nella skill</li>
+      </ul>
+    </div>
+    <div>
+      <span class="chip open">Da decidere</span>
+      <ul>
+        <li>Dove si dichiara la policy di uno use case (§6)</li>
+              </ul>
+    </div>
+    <div>
+      <span class="chip todo">Da scrivere</span>
+      <ul>
+        <li><code>SKILL.md</code> (bozza da rivedere su questo documento)</li>
+        <li>Nuove: <code>growth.md</code>, <code>command-bus.md</code>, <code>testing.md</code>, <code>stack/*</code></li>
+        <li>Le altre references, riscritte</li>
+        <li><code>lib/example</code></li>
+        <li>Rimozione delle skill figlie</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- 1 -->
+<section class="s" id="gradini"><div class="wrap">
+  <h2><span class="num">1</span>Gradini</h2>
+  <p>Un progetto parte dal gradino più basso che basta e sale quando compare il segnale. Ogni gradino
+    aggiunge pacchetti; la mossa per salire è un refactor, a patto che le regole del §3 valgano dal primo
+    giorno. Nei diagrammi le frecce indicano «importa».</p>
+  <figure><svg viewBox="0 50 960 200" role="img" aria-label="I gradini sui due assi">
+  <g font-family="Public Sans, sans-serif">
+    <g fill="#FAF7F1" stroke="#EFE8DC" stroke-width="2">
+      <rect x="250" y="58" width="200" height="48"/><rect x="450" y="58" width="200" height="48"/><rect x="650" y="58" width="200" height="48"/>
+      <rect x="250" y="106" width="200" height="48"/><rect x="450" y="106" width="200" height="48"/><rect x="650" y="106" width="200" height="48"/>
+      <rect x="250" y="154" width="200" height="48"/><rect x="450" y="154" width="200" height="48"/><rect x="650" y="154" width="200" height="48"/>
+    </g>
+    <g font-size="13" font-weight="650" fill="#14110E" text-anchor="end">
+      <text x="238" y="87">C · command bus</text>
+      <text x="238" y="135">B · bootstrap condiviso</text><text x="238" y="183">A · l'app chiama il core</text>
+    </g>
+    <g font-size="13" font-weight="650" fill="#14110E" text-anchor="middle">
+      <text x="350" y="222">0 · un pacchetto</text><text x="550" y="222">1 · + core</text><text x="750" y="222">2 · + adapter</text>
+    </g>
+    <text x="850" y="244" font-size="12" fill="#6A6259" text-anchor="end">modularità interna →</text>
+    <text x="20" y="244" font-size="12" fill="#6A6259">come gli use case arrivano ai client ↑</text>
+    <g fill="#B84A1E">
+      <circle cx="350" cy="178" r="7"/><circle cx="550" cy="178" r="7"/><circle cx="750" cy="178" r="7"/>
+      <circle cx="750" cy="130" r="7"/><circle cx="750" cy="82" r="7"/>
+    </g>
+    <g stroke="#B84A1E" stroke-width="2" fill="none">
+      <line x1="359" y1="178" x2="539" y2="178" marker-end="url(#ahf)"/>
+      <line x1="559" y1="178" x2="739" y2="178" marker-end="url(#ahf)"/>
+      <line x1="750" y1="169" x2="750" y2="141" marker-end="url(#ahf)"/>
+      <line x1="750" y1="121" x2="750" y2="93" marker-end="url(#ahf)"/>
+    </g>
+    <g font-size="12" fill="#A8481F">
+      <text x="764" y="183">2·A</text><text x="764" y="135">2·B</text><text x="764" y="87">2·C</text>
+    </g>
+  </g>
+</svg>
+    <figcaption>Il percorso sui due assi: prima si separa la logica (0 → 1 → 2), poi si cambia il modo in
+      cui arriva ai client (A → B → C). Le caselle fuori percorso sono possibili ma rare.</figcaption>
+  </figure>
+
+  <article class="slide">
+    <header class="slide-h"><span class="slide-n">0</span><div><h3>Un pacchetto</h3><p>Tutto nell'app: route, logica e accesso ai dati nello stesso posto.</p></div></header>
+    <div class="slide-g">
+      <div class="slide-fig"><svg viewBox="0 0 480 270" role="img" aria-label="Gradino 0">
+  <g font-family="Public Sans, sans-serif">
+    <rect x="30" y="30" width="270" height="210" fill="#FAF7F1" stroke="#4A453F"/>
+    <text x="48" y="56" font-size="14" font-weight="650" fill="#14110E">app</text>
+    <text x="290" y="56" font-size="12" fill="#6A6259" text-anchor="end">un deploy</text>
+    <g font-size="13" fill="#4A453F">
+      <text x="48" y="100">route e componenti</text>
+      <line x1="40" y1="120" x2="290" y2="120" stroke="#EFE8DC" stroke-dasharray="4 3"/>
+      <text x="48" y="152">logica</text>
+      <line x1="40" y1="172" x2="290" y2="172" stroke="#EFE8DC" stroke-dasharray="4 3"/>
+      <text x="48" y="204">query al database</text>
+    </g>
+    <line x1="302" y1="200" x2="368" y2="200" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <use href="#db" x="375" y="165" width="70" height="72"/>
+  </g>
+</svg></div>
+      <div><span class="lbl">Struttura</span><pre class="tree">app/
+  app/routes/
+    expenses.$id.tsx      <span class="c">loader: query + regole</span>
+    expenses.new.tsx
+  app/db.server.ts        <span class="c">client del database</span>
+  package.json</pre></div>
+    </div>
+    <div class="slide-g">
+      <div><span class="lbl">Come si chiama la logica</span><pre><span class="c">// app/routes/expenses.$id.tsx</span>
+<span class="k">export async function</span> loader({ params }) {
+    <span class="k">const</span> expense = <span class="k">await</span> db.expense.findUnique({
+        where: { id: params.id },
+    });
+    <span class="k">if</span> (!expense) <span class="k">throw</span> notFound();
+    <span class="k">return</span> { expense };
+}</pre></div>
+      <dl><dt>Per</dt><dd>Proof of concept, applicativi piccoli e autocontenuti.</dd><dt>Pacchetti</dt><dd>1</dd><dt>Limite</dt><dd>La logica non si riusa e non si testa senza database.</dd></dl>
+    </div>
+  </article>
+  <article class="slide">
+    <header class="slide-h"><span class="slide-n">1</span><div><h3>Core</h3><p>La logica esce dall'app ed entra in <code>core</code>: use case, entity, porte. È la forma della maggior parte delle applicazioni.</p></div></header>
+    <div class="slide-g">
+      <div class="slide-fig"><svg viewBox="0 0 480 270" role="img" aria-label="Gradino 1">
+  <g font-family="Public Sans, sans-serif">
+    <rect x="30" y="25" width="200" height="70" fill="#FAF7F1" stroke="#4A453F"/>
+    <text x="48" y="52" font-size="14" font-weight="650" fill="#14110E">app</text>
+    <text x="48" y="76" font-size="13" fill="#4A453F">route, componenti</text>
+    <line x1="130" y1="97" x2="130" y2="133" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="30" y="138" width="300" height="110" fill="#14110E"/>
+    <text x="48" y="164" font-size="14" font-weight="650" fill="#FAF7F1">core</text>
+    <text x="48" y="190" font-size="13" fill="#FAF7F1">use case, entity, porte</text>
+    <text x="48" y="212" font-size="13" fill="#FAF7F1">implementazioni delle porte</text>
+    <text x="48" y="234" font-size="12" fill="#FAC775">dipende ancora dall'ORM</text>
+    <line x1="332" y1="200" x2="368" y2="200" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <use href="#db" x="375" y="165" width="70" height="72"/>
+  </g>
+</svg></div>
+      <div><span class="lbl">Struttura</span><pre class="tree">packages/
+  core/src/
+    entity/Expense.ts
+    dto/ExpenseDto.ts
+    errors/ExpenseNotFound.ts
+    repo/IExpenseRepository.ts    <span class="c">porta</span>
+    repo/impl/ExpenseRepository.ts <span class="c">usa l'ORM</span>
+    useCase/expenses/
+      IGetExpense.ts
+      impl/GetExpense.ts
+      ExpensesModule.ts           <span class="c">binding + registro</span>
+    di/  client.ts  server.ts
+  webapp/app/
+    routes/expenses.$id.tsx       <span class="c">loader → use case</span>
+    container.server.ts           <span class="c">composition root</span>
+</pre></div>
+    </div>
+    <div class="slide-g">
+      <div><span class="lbl">Come si chiama la logica</span><pre><span class="c">// webapp: il loader chiama lo use case</span>
+<span class="k">export async function</span> loader({ params, context }) {
+    <span class="k">const</span> result = <span class="k">await</span> context
+        .resolveUseCase(<span class="s">"expenses.GetExpense"</span>)
+        .execute({ expense_id: params.id },
+                 { actor: context.actor });
+    <span class="k">return</span> toResponse(result);
+}</pre></div>
+      <dl><dt>Segnale</dt><dd>La logica serve a un secondo consumatore (un job, una CLI) o supera la prima schermata.</dd><dt>Mossa</dt><dd>La logica passa per intero in <code>core</code>; i loader chiamano use case.</dd><dt>Pacchetti</dt><dd>2</dd><dt>Limite</dt><dd>Le implementazioni delle porte stanno nel core e si portano dietro l'ORM: niente stub, niente test isolati.</dd></dl>
+    </div>
+  </article>
+  <article class="slide">
+    <header class="slide-h"><span class="slide-n">2·A</span><div><h3>Adapter e stub</h3><p>Le implementazioni escono dal core. Ogni porta ha un adapter reale e uno stub in memoria.</p></div></header>
+    <div class="slide-g">
+      <div class="slide-fig"><svg viewBox="0 0 480 290" role="img" aria-label="Gradino 2 A">
+  <g font-family="Public Sans, sans-serif">
+    <rect x="20" y="20" width="190" height="66" fill="#FAF7F1" stroke="#4A453F"/>
+    <text x="36" y="46" font-size="14" font-weight="650" fill="#14110E">app</text>
+    <text x="36" y="70" font-size="13" fill="#4A453F">route + composition root</text>
+    <line x1="100" y1="88" x2="100" y2="178" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <line x1="212" y1="62" x2="262" y2="118" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="20" y="182" width="190" height="86" fill="#14110E"/>
+    <text x="36" y="208" font-size="14" font-weight="650" fill="#FAF7F1">core</text>
+    <text x="36" y="232" font-size="13" fill="#FAF7F1">use case, entity, porte</text>
+    <text x="36" y="254" font-size="12" fill="#FAC775">nessuna tecnologia</text>
+    <rect x="266" y="110" width="190" height="158" fill="none" stroke="#5A5C60" stroke-dasharray="5 4"/>
+    <text x="280" y="132" font-size="13" font-weight="650" fill="#5A5C60">adapters/</text>
+    <rect x="280" y="144" width="162" height="34" fill="#FAF7F1" stroke="#4A453F"/><text x="292" y="166" font-size="13" fill="#14110E">db-adapter</text>
+    <rect x="280" y="186" width="162" height="34" fill="#FAF7F1" stroke="#4A453F"/><text x="292" y="208" font-size="13" fill="#14110E">stub-adapter</text>
+    <rect x="280" y="228" width="162" height="30" fill="#FAF7F1" stroke="#4A453F"/><text x="292" y="248" font-size="13" fill="#14110E">mail-adapter, …</text>
+    <line x1="264" y1="225" x2="214" y2="225" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <text x="239" y="218" font-size="11" fill="#6A6259" text-anchor="middle">porte</text>
+  </g>
+</svg></div>
+      <div><span class="lbl">Struttura</span><pre class="tree">packages/
+  core/src/                  <span class="c">nessuna tecnologia</span>
+    repo/IExpenseRepository.ts
+    service/IMailer.ts
+    useCase/…
+  webapp/app/
+    container.server.ts      <span class="c">sceglie reale o stub</span>
+adapters/
+  db-adapter/src/
+    ExpenseRepository.ts
+    ExpenseMapper.ts
+    install.ts
+  stub-adapter/src/
+    InMemoryExpenseRepository.ts
+    seed.ts  install.ts
+  mail-adapter/src/
+    Mailer.ts  install.ts</pre></div>
+    </div>
+    <div class="slide-g">
+      <div><span class="lbl">Come si chiama la logica</span><pre><span class="c">// webapp/app/container.server.ts</span>
+container.load(
+    env.MOCK
+        ? installStub()
+        : installDb({ db: env.DB }),
+    installMail({ from: env.MAIL_FROM }),
+);</pre></div>
+      <dl><dt>Segnale</dt><dd>Test degli use case senza infrastruttura; un mock navigabile prima del backend; la possibilità di cambiare un fornitore.</dd><dt>Mossa</dt><dd>Le implementazioni vanno in <code>adapters/*</code>, si aggiunge lo stub, l'app sceglie quali adapter caricare.</dd><dt>Pacchetti</dt><dd>2 + uno per adapter</dd><dt>Limite</dt><dd>Il wiring vive nell'app: un secondo processo dovrebbe ricopiarlo.</dd></dl>
+    </div>
+  </article>
+  <article class="slide">
+    <header class="slide-h"><span class="slide-n">2·B</span><div><h3>Bootstrap condiviso</h3><p>Più processi sullo stesso core. Il composition root diventa un pacchetto, con un profilo per processo.</p></div></header>
+    <div class="slide-g">
+      <div class="slide-fig"><svg viewBox="0 0 480 290" role="img" aria-label="Gradino 2 B">
+  <g font-family="Public Sans, sans-serif">
+    <g font-size="13">
+      <rect x="20" y="20" width="130" height="44" fill="#FAF7F1" stroke="#4A453F"/><text x="85" y="47" text-anchor="middle" fill="#14110E">webapp 1</text>
+      <rect x="170" y="20" width="130" height="44" fill="#FAF7F1" stroke="#4A453F"/><text x="235" y="47" text-anchor="middle" fill="#14110E">webapp 2</text>
+      <rect x="320" y="20" width="140" height="44" fill="#FAF7F1" stroke="#4A453F"/><text x="390" y="47" text-anchor="middle" fill="#14110E">consumer · cron</text>
+    </g>
+    <g stroke="#4A453F" stroke-width="1.5">
+      <line x1="85" y1="66" x2="170" y2="110" marker-end="url(#ah)"/>
+      <line x1="235" y1="66" x2="240" y2="110" marker-end="url(#ah)"/>
+      <line x1="390" y1="66" x2="310" y2="110" marker-end="url(#ah)"/>
+    </g>
+    <rect x="100" y="114" width="280" height="50" fill="#FAF7F1" stroke="#B84A1E" stroke-width="2"/>
+    <text x="240" y="136" font-size="14" font-weight="650" fill="#A8481F" text-anchor="middle">bootstrap</text>
+    <text x="240" y="155" font-size="12" fill="#4A453F" text-anchor="middle">carica core e adapter, mock o reale</text>
+    <g stroke="#4A453F" stroke-width="1.5">
+      <line x1="170" y1="166" x2="125" y2="200" marker-end="url(#ah)"/>
+      <line x1="310" y1="166" x2="355" y2="200" marker-end="url(#ah)"/>
+      <line x1="258" y1="238" x2="222" y2="238" marker-end="url(#ah)"/>
+    </g>
+    <rect x="20" y="204" width="200" height="66" fill="#14110E"/>
+    <text x="36" y="230" font-size="14" font-weight="650" fill="#FAF7F1">core</text>
+    <text x="36" y="254" font-size="13" fill="#FAF7F1">use case, entity, porte</text>
+    <rect x="260" y="204" width="200" height="66" fill="#FAF7F1" stroke="#5A5C60" stroke-dasharray="5 4"/>
+    <text x="276" y="230" font-size="14" font-weight="650" fill="#5A5C60">adapters/</text>
+    <text x="276" y="254" font-size="13" fill="#4A453F">db · stub · mail · coda</text>
+  </g>
+</svg></div>
+      <div><span class="lbl">Struttura</span><pre class="tree">packages/
+  core/
+  bootstrap/src/
+    base.ts          <span class="c">core + adapter comuni, mock o reale</span>
+    staff.ts         <span class="c">profilo di webapp-staff</span>
+    admin.ts         <span class="c">profilo di webapp-admin</span>
+  webapp-staff/
+  webapp-admin/
+  consumer/          <span class="c">esegue i job</span>
+adapters/
+  db-adapter/  stub-adapter/
+  mail-adapter/  queue-adapter/
+  image-adapter/     <span class="c">pesante: solo nel profilo admin</span></pre></div>
+    </div>
+    <div class="slide-g">
+      <div><span class="lbl">Come si chiama la logica</span><pre><span class="c">// webapp-admin/workers/app.ts</span>
+<span class="k">const</span> resolveUseCase = <span class="k">await</span> bootstrapAdmin(env, {
+    mock: env.MOCK === <span class="s">"1"</span>,
+    requires: [<span class="s">"DB"</span>, <span class="s">"MAIL_FROM"</span>],
+});</pre></div>
+      <dl><dt>Segnale</dt><dd>Più processi sullo stesso core: un'altra webapp, un consumer di code, un cron.</dd><dt>Mossa</dt><dd>Il composition root esce dall'app nel pacchetto <code>bootstrap</code>, con un profilo per processo. Un binding mancante è un errore con nome.</dd><dt>Pacchetti</dt><dd>+1</dd><dt>Dipendenze pesanti</dt><dd>Ogni profilo carica solo i suoi adapter. Una porta senza binding fa fallire solo lo use case che la usa, con un errore esplicito.</dd><dt>Limite</dt><dd>Ogni processo chiama gli use case e controlla i permessi per conto suo: le stesse regole scritte più volte.</dd></dl>
+    </div>
+  </article>
+  <article class="slide">
+    <header class="slide-h"><span class="slide-n">2·C</span><div><h3>Command bus</h3><p>Gli use case esposti diventano comandi. Il bus gira in un deployable suo; i client vedono il contratto e la parte client del core.</p></div></header>
+    <div class="slide-g">
+      <div class="slide-fig"><svg viewBox="0 0 480 340" role="img" aria-label="Gradino 2 C">
+  <g font-family="Public Sans, sans-serif">
+    <g font-size="13">
+      <rect x="20" y="14" width="130" height="40" fill="#FAF7F1" stroke="#4A453F"/><text x="85" y="39" text-anchor="middle" fill="#14110E">webapp 1</text>
+      <rect x="170" y="14" width="130" height="40" fill="#FAF7F1" stroke="#4A453F"/><text x="235" y="39" text-anchor="middle" fill="#14110E">webapp 2</text>
+      <rect x="320" y="14" width="140" height="40" fill="#FAF7F1" stroke="#4A453F"/><text x="390" y="39" text-anchor="middle" fill="#14110E">CLI · MCP</text>
+    </g>
+    <g stroke="#4A453F" stroke-width="1.5">
+      <line x1="85" y1="56" x2="85" y2="76" marker-end="url(#ah)"/>
+      <line x1="235" y1="56" x2="235" y2="76" marker-end="url(#ah)"/>
+      <line x1="390" y1="56" x2="390" y2="76" marker-end="url(#ah)"/>
+    </g>
+    <rect x="20" y="80" width="440" height="44" fill="#B84A1E"/>
+    <text x="36" y="101" font-size="14" font-weight="650" fill="#FAF7F1">commands</text>
+    <text x="36" y="117" font-size="12" fill="#FAF7F1">contratto · zod + core/client · niente use case né adapter</text>
+    <rect x="20" y="136" width="440" height="30" fill="none" stroke="#5A5C60" stroke-dasharray="5 4"/>
+    <text x="36" y="156" font-size="12" fill="#5A5C60">canale remoto: Workers RPC · HTTP</text>
+    <line x1="240" y1="168" x2="240" y2="186" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="20" y="190" width="440" height="136" fill="none" stroke="#4A453F"/>
+    <text x="36" y="212" font-size="13" font-weight="650" fill="#14110E">bus-server (un deployable)</text>
+    <rect x="36" y="224" width="408" height="38" fill="#A8481F"/>
+    <text x="52" y="248" font-size="13" font-weight="650" fill="#FAF7F1">bus · handler, middleware, policy</text>
+    <rect x="36" y="272" width="408" height="40" fill="#14110E"/>
+    <text x="52" y="297" font-size="13" font-weight="650" fill="#FAF7F1">bootstrap → core, adapters/</text>
+  </g>
+</svg></div>
+      <div><span class="lbl">Struttura</span><pre class="tree">packages/
+  core/  bootstrap/
+  commands/src/              <span class="c">contratto: zod + core/client</span>
+    approveExpense.ts        <span class="c">comando + policy</span>
+    index.ts                 <span class="c">mappa, tipo del bus</span>
+  bus/src/
+    handlers/approveExpense.ts
+    middleware/policy.ts  audit.ts
+    channels/http.ts  in-process.ts
+  bus-server/                <span class="c">deployable: bus + bootstrap</span>
+  webapp-staff/  webapp-admin/  <span class="c">commands + core/client</span>
+adapters/ …</pre></div>
+    </div>
+    <div class="slide-g">
+      <div><span class="lbl">Come si chiama la logica</span><pre><span class="c">// webapp: chiama il bus, non il core</span>
+<span class="k">const</span> result = <span class="k">await</span> bus.dispatch(
+    <span class="s">"approveExpense"</span>,
+    { expense_id },
+);</pre></div>
+      <dl><dt>Segnale</dt><dd>Client che non possono ospitare il core (CLI, MCP, agenti, client non JS); dati e segreti in un solo deploy; dipendenze pesanti fuori dalle webapp quando i profili non bastano; regole d'accesso che andrebbero riscritte in ogni webapp.</dd><dt>Mossa</dt><dd>Per ogni use case esposto: un comando con la sua policy in <code>commands</code> e un handler in <code>bus</code>. I client chiamano <code>bus.dispatch</code>.</dd><dt>Canale in-process</dt><dd>Non è un gradino a sé. Serve alla mock mode e al test di contratto sullo stub.</dd><dt>Pacchetti</dt><dd>+2, più il deployable del bus</dd><dt>Costo</dt><dd>Un salto di rete; un token che lo attraversa; un contratto da tenere compatibile fra deploy che non escono insieme.</dd></dl>
+    </div>
+  </article>
+</div></section>
+
+<!-- 2 -->
+<section class="s" id="strati"><div class="wrap">
+  <h2><span class="num">2</span>Strati e responsabilità</h2>
+  <p>Al gradino 2·C. Ogni strato risponde a una domanda sola.</p>
+  <figure>
+<svg viewBox="0 0 960 400" role="img" aria-label="Strati">
+  <g font-family="Public Sans, sans-serif">
+    <g font-size="12" font-weight="650" fill="#6A6259"><text x="30" y="20">strato</text><text x="500" y="20">domanda</text><text x="830" y="20">pacchetto</text></g>
+    <g font-size="14">
+      <rect x="30" y="32" width="440" height="42" fill="#FAF7F1" stroke="#4A453F"/>
+      <text x="48" y="58" font-weight="650" fill="#14110E">Webapp, CLI, agenti</text>
+      <text x="500" y="58" fill="#4A453F">Cosa mostro, quando chiamo?</text><text x="830" y="58" font-size="13" fill="#6A6259">webapp-*</text>
+      <rect x="30" y="82" width="440" height="36" fill="none" stroke="#5A5C60" stroke-dasharray="5 4"/>
+      <text x="48" y="105" fill="#5A5C60">Canale</text>
+      <text x="500" y="105" fill="#4A453F">Come arriva il comando? Sostituibile.</text><text x="830" y="105" font-size="13" fill="#6A6259">bus</text>
+      <rect x="30" y="126" width="440" height="42" fill="#B84A1E"/>
+      <text x="48" y="152" font-weight="650" fill="#FAF7F1">Comando: schema dell'input</text>
+      <text x="500" y="152" fill="#4A453F">L'input ha la forma giusta?</text><text x="830" y="152" font-size="13" fill="#6A6259">commands</text>
+      <rect x="30" y="176" width="440" height="42" fill="#B84A1E"/>
+      <text x="48" y="202" font-weight="650" fill="#FAF7F1">Middleware: policy</text>
+      <text x="500" y="202" fill="#4A453F">Questo attore può inviare il comando?</text><text x="830" y="202" font-size="13" fill="#6A6259">bus</text>
+      <rect x="30" y="226" width="440" height="42" fill="#A8481F"/>
+      <text x="48" y="252" font-weight="650" fill="#FAF7F1">Handler</text>
+      <text x="500" y="252" fill="#4A453F">Come diventa l'input dello use case?</text><text x="830" y="252" font-size="13" fill="#6A6259">bus</text>
+      <rect x="30" y="276" width="440" height="42" fill="#14110E"/>
+      <text x="48" y="302" font-weight="650" fill="#FAF7F1">Use case, entity, value object</text>
+      <text x="500" y="302" fill="#4A453F">Il dominio lo consente? Se sì, eseguo.</text><text x="830" y="302" font-size="13" fill="#6A6259">core</text>
+      <rect x="30" y="326" width="440" height="42" fill="#2A2622"/>
+      <text x="48" y="352" font-weight="650" fill="#FAF7F1">Porta → adapter</text>
+      <text x="500" y="352" fill="#4A453F">Dove salvo, a chi invio?</text><text x="830" y="352" font-size="13" fill="#6A6259">core → adapters/*</text>
+    </g>
+  </g>
+</svg>
+    <figcaption>Fino al gradino 2·B le righe arancioni non esistono come pacchetti: forma e permessi li
+      controlla la route. Restano comunque fuori dallo use case.</figcaption>
+  </figure>
+  <p>Criterio: se la risposta dipende da <b>chi</b> è l'attore rispetto alla risorsa (ruolo, appartenenza,
+    possesso) è policy; se dipende dallo <b>stato</b> della risorsa è dominio. «Solo l'autore invia la nota» è
+    policy, «solo se è in bozza» è dominio. Il resto lo decide l'applicazione.</p>
+</div></section>
+
+<!-- 3 -->
+<section class="s" id="usecase"><div class="wrap">
+  <h2><span class="num">3</span>Use case</h2>
+  <figure>
+<svg viewBox="0 0 960 230" role="img" aria-label="Anatomia di uno use case">
+  <g font-family="Public Sans, sans-serif">
+    <rect x="30" y="30" width="230" height="70" fill="#FAF7F1" stroke="#4A453F"/>
+    <text x="46" y="54" font-size="12" font-weight="650" fill="#6A6259">input: un oggetto</text>
+    <text x="46" y="82" font-size="14" fill="#14110E" font-family="ui-monospace, monospace">{ expense_id }</text>
+    <rect x="30" y="120" width="230" height="70" fill="#FAF7F1" stroke="#4A453F"/>
+    <text x="46" y="144" font-size="12" font-weight="650" fill="#6A6259">contesto d'esecuzione</text>
+    <text x="46" y="172" font-size="14" fill="#14110E" font-family="ui-monospace, monospace">{ actor }</text>
+    <line x1="262" y1="65" x2="356" y2="100" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <line x1="262" y1="155" x2="356" y2="125" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="360" y="50" width="260" height="120" fill="#14110E"/>
+    <text x="490" y="82" font-size="13" fill="#8A8178" text-anchor="middle">ApproveExpense</text>
+    <text x="490" y="110" font-size="14" fill="#FAF7F1" text-anchor="middle">carica → muta → salva</text>
+    <text x="490" y="136" font-size="12" fill="#FAC775" text-anchor="middle">le regole stanno nell'entity</text>
+    <line x1="622" y1="110" x2="696" y2="110" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="700" y="30" width="230" height="70" fill="#FAF7F1" stroke="#B84A1E" stroke-width="2"/>
+    <text x="716" y="54" font-size="12" font-weight="650" fill="#A8481F">ok</text>
+    <text x="716" y="82" font-size="14" fill="#14110E" font-family="ui-monospace, monospace">ExpenseDto</text>
+    <rect x="700" y="120" width="230" height="70" fill="#FAF7F1" stroke="#5A5C60" stroke-dasharray="5 4"/>
+    <text x="716" y="144" font-size="12" font-weight="650" fill="#5A5C60">errore con nome</text>
+    <text x="716" y="172" font-size="14" fill="#14110E" font-family="ui-monospace, monospace">ExpenseNotSubmitted</text>
+    <text x="490" y="215" font-size="12" fill="#6A6259" text-anchor="middle">esito come valore, nessuna eccezione</text>
+  </g>
+</svg>
+  </figure>
+  <div class="two">
+    <div class="col">
+      <span class="lbl">Fa</span>
+      <ul>
+        <li>Assume che l'input sia del tipo dichiarato: la forma l'ha già controllata il bordo</li>
+        <li>Applica le regole di dominio attraverso entity e value object</li>
+        <li>Controlla i campi opzionali dove la logica lo richiede</li>
+        <li>Usa l'attore come dato (autore, chi approva), non per decidere i permessi</li>
+        <li>Apre una transazione solo se ci sono due o più scritture che devono riuscire o fallire insieme</li>
+        <li>Ritorna sempre un <code>Result</code>: successo o errore con nome, anche quando non può fallire</li>
+      </ul>
+    </div>
+    <div class="col cold">
+      <span class="lbl">Non fa</span>
+      <ul>
+        <li>Autenticazione o autorizzazione</li>
+        <li>Rivalidare a runtime ciò che il tipo garantisce</li>
+        <li>Leggere richiesta, cookie, variabili d'ambiente</li>
+        <li>Ricevere argomenti posizionali</li>
+      </ul>
+    </div>
+  </div>
+  <figure>
+<pre><span class="c">// @efesto-cloud/usecase: il ritorno è vincolato</span>
+<span class="k">interface</span> IUseCase&lt;I, R <span class="k">extends</span> Result&lt;unknown, unknown&gt;&gt; {
+    execute(input: I, context: IExecutionContext): Promise&lt;R&gt;;
+}
+
+<span class="c">// core/src/useCase/expenses/IApproveExpense.ts</span>
+<span class="k">export default interface</span> IApproveExpense
+    <span class="k">extends</span> IUseCase&lt;IApproveExpense.Input, Result&lt;ExpenseDto, IApproveExpense.Error&gt;&gt; {}
+
+<span class="k">export namespace</span> IApproveExpense {
+    <span class="k">export type</span> Input = { expense_id: string };
+    <span class="k">export type</span> Error = ExpenseNotFound | ExpenseNotSubmitted;
+}
+
+<span class="c">// core/src/executionContext.ts: il core dichiara cosa contiene il contesto</span>
+<span class="k">declare module</span> <span class="s">"@efesto-cloud/usecase"</span> {
+    <span class="k">interface</span> IExecutionContext { actor?: MemberDto }
+}</pre>
+    <figcaption>Il vincolo sta in <code>IUseCase</code>: il tipo di ritorno deve essere un <code>Result</code>,
+      altrimenti non compila. Così chiunque chiami (route, handler, job, un altro use case) tratta allo
+      stesso modo successo e fallimento. Quale <code>Result</code> si usa è aperto (§9).</figcaption>
+  </figure>
+
+  <h3 style="margin-top:2rem">Use case che chiamano use case</h3>
+  <p>La regola «gli use case non chiamano altri use case» viene dalla skill attuale
+    (<code>conventions.md</code>, regola 4 di <code>SKILL.md</code>), con due motivazioni: transazioni
+    annidate e una catena di audit poco leggibile. La nota del 23/08 conta 23 casi in due progetti.
+    Con l'autorizzazione fuori dagli use case e l'audit tolto dagli use case, la prima motivazione resta
+    e la seconda no. Deciso: <b>consentito</b>, alle condizioni sotto.</p>
+  <figure>
+<svg viewBox="0 0 960 190" role="img" aria-label="Composizione di use case">
+  <g font-family="Public Sans, sans-serif">
+    <rect x="30" y="30" width="300" height="130" fill="#14110E"/>
+    <text x="48" y="58" font-size="14" font-weight="650" fill="#FAF7F1">ImportExpenses</text>
+    <text x="48" y="84" font-size="12" fill="#8A8178">@inject(UseCase.expenses.CreateExpense)</text>
+    <text x="48" y="104" font-size="12" fill="#8A8178">private readonly create: ICreateExpense</text>
+    <text x="48" y="138" font-size="13" fill="#FAC775">per ogni riga: create.execute(row, ctx)</text>
+    <line x1="332" y1="95" x2="416" y2="95" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="420" y="60" width="220" height="70" fill="#14110E"/>
+    <text x="530" y="92" font-size="14" font-weight="650" fill="#FAF7F1" text-anchor="middle">CreateExpense</text>
+    <text x="530" y="114" font-size="12" fill="#8A8178" text-anchor="middle">stesso contesto, stessa transazione</text>
+    <g font-size="13" fill="#4A453F">
+      <text x="680" y="58">· dipendenza per interfaccia, via DI</text>
+      <text x="680" y="82">· passa lo stesso contesto</text>
+      <text x="680" y="106">· la transazione interna si unisce a quella</text>
+      <text x="692" y="124">esterna (unit of work rientrante)</text>
+      <text x="680" y="148">· nessun ciclo fra use case</text>
+    </g>
+  </g>
+</svg>
+  </figure>
+  <p class="small" style="margin-top:.75rem">L'unit of work di Prisma è già rientrante. Tiene però la transazione
+    corrente in un campo dell'istanza: deve vivere per richiesta, non come singleton, altrimenti due richieste
+    concorrenti nello stesso processo se la contendono. Il template in <code>stack/</code> lo fa così e ha un test
+    sulla concorrenza.</p>
+  <h3 style="margin-top:2rem">Test</h3>
+  <ul style="color:var(--stone);line-height:1.6;max-width:75ch">
+    <li>dal gradino 2·A ogni use case ha test contro lo stub;</li>
+    <li>dal gradino 2·C il test di contratto del bus gira su entrambi i canali, con lo snapshot delle policy;</li>
+    <li>i fake in memoria rispettano i vincoli reali del database (indici unici, filtri) e lo dichiarano.</li>
+  </ul>
+  <p>Fixture, factory e struttura delle cartelle dei test sono preferenze, in <code>stack/</code>.</p>
+</div></section>
+
+<!-- 4 -->
+<section class="s" id="resolve"><div class="wrap">
+  <h2><span class="num">4</span>Risoluzione degli use case</h2>
+  <figure>
+<svg viewBox="0 0 960 240" role="img" aria-label="resolveUseCase e il registro">
+  <g font-family="Public Sans, sans-serif">
+    <rect x="30" y="30" width="320" height="66" fill="#FAF7F1" stroke="#4A453F"/>
+    <text x="46" y="54" font-size="12" font-weight="650" fill="#6A6259">chiamante: route (A, B), handler (C), job</text>
+    <text x="46" y="80" font-size="11.5" fill="#14110E" font-family="ui-monospace, monospace">resolveUseCase("expenses.ApproveExpense")</text>
+    <line x1="352" y1="63" x2="406" y2="63" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="410" y="30" width="250" height="66" fill="#14110E"/>
+    <text x="535" y="54" font-size="12" font-weight="650" fill="#8A8178" text-anchor="middle">UseCaseRegistry</text>
+    <text x="535" y="80" font-size="13" fill="#FAC775" text-anchor="middle" font-family="ui-monospace, monospace">"expenses.ApproveExpense"</text>
+    <line x1="662" y1="63" x2="716" y2="63" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="720" y="30" width="210" height="66" fill="#FAF7F1" stroke="#B84A1E" stroke-width="2"/>
+    <text x="736" y="54" font-size="12" font-weight="650" fill="#A8481F">tipo statico</text>
+    <text x="736" y="80" font-size="14" fill="#14110E" font-family="ui-monospace, monospace">IApproveExpense</text>
+    <rect x="410" y="146" width="250" height="60" fill="none" stroke="#4A453F" stroke-dasharray="5 4"/>
+    <text x="535" y="171" font-size="13" fill="#14110E" text-anchor="middle">ExpensesModule.ts</text>
+    <text x="535" y="191" font-size="12" fill="#6A6259" text-anchor="middle">bind + declare module</text>
+    <line x1="535" y1="144" x2="535" y2="100" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <text x="680" y="166" font-size="13" fill="#4A453F">Fuori dal pacchetto il tipo si vede solo</text>
+    <text x="680" y="186" font-size="13" fill="#4A453F">se il modulo è importato «nudo» in</text>
+    <text x="680" y="206" font-size="13" fill="#4A453F"><tspan font-family="ui-monospace, monospace">server.ts</tspan>; altrimenti il tipo diventa <tspan font-weight="650">never</tspan>.</text>
+  </g>
+</svg>
+    <figcaption>Chiave DI <code>"&lt;dominio&gt;.&lt;Nome&gt;"</code>, interfaccia <code>I&lt;Nome&gt;</code>,
+      implementazione <code>&lt;Nome&gt;</code>, senza suffisso. Una chiave sbagliata non compila. Lo stesso
+      registro tipizza la coda dei job (§7).</figcaption>
+  </figure>
+</div></section>
+
+<!-- 5 -->
+<section class="s" id="bus"><div class="wrap">
+  <h2><span class="num">5</span>Command bus</h2>
+  <p>Il chiamante invia un comando e attende l'esito; non sa su quale canale viaggia né dove gira
+    l'handler. In-process, Workers RPC o HTTP: la chiamata è la stessa e restituisce una
+    <code>Promise</code> dell'esito.</p>
+  <table class="t">
+    <tr><th>Termine</th><th>Cos'è</th><th>Dove sta</th></tr>
+    <tr><td>Command</td><td>Il messaggio: nome, schema dell'input, schema dell'output, <code>kind</code>, descrizione, policy</td><td><code>commands</code></td></tr>
+    <tr><td>Query</td><td>Un comando con <code>kind: "query"</code>: non modifica lo stato</td><td><code>commands</code></td></tr>
+    <tr><td>Bus</td><td>L'oggetto con <code>dispatch(nome, input)</code>; il tipo deriva dalla mappa dei comandi</td><td>tipo in <code>commands</code>, implementazione in <code>bus</code></td></tr>
+    <tr><td>Handler</td><td>Traduce il comando nello use case: chiave del registro, <code>toUseCase</code>, <code>fromUseCase?</code></td><td><code>bus</code></td></tr>
+    <tr><td>Middleware</td><td>Strati attorno a ogni handler: policy, audit, logging</td><td><code>bus</code></td></tr>
+    <tr><td>Canale</td><td>Porta il comando dal chiamante al dispatcher e ne riporta l'esito: HTTP, RPC, in-process</td><td><code>bus</code> (adapter)</td></tr>
+  </table>
+  <figure>
+<svg viewBox="0 0 960 250" role="img" aria-label="Dispatch attraverso un canale">
+  <g font-family="Public Sans, sans-serif">
+    <rect x="20" y="70" width="190" height="80" fill="#FAF7F1" stroke="#4A453F"/>
+    <text x="36" y="96" font-size="12" font-weight="650" fill="#6A6259">chiamante</text>
+    <text x="36" y="122" font-size="12.5" fill="#14110E" font-family="ui-monospace, monospace">await bus.dispatch(</text>
+    <text x="36" y="140" font-size="12.5" fill="#14110E" font-family="ui-monospace, monospace">  "approveExpense", {…})</text>
+    <line x1="212" y1="110" x2="256" y2="110" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="260" y="20" width="200" height="146" fill="none" stroke="#5A5C60" stroke-dasharray="5 4"/>
+    <text x="276" y="44" font-size="13" font-weight="650" fill="#5A5C60">canale</text>
+    <g font-size="13" fill="#14110E">
+      <rect x="276" y="56" width="168" height="28" fill="#FAF7F1" stroke="#4A453F"/><text x="288" y="75">in-process</text>
+      <rect x="276" y="92" width="168" height="28" fill="#FAF7F1" stroke="#4A453F"/><text x="288" y="111">Workers RPC</text>
+      <rect x="276" y="128" width="168" height="28" fill="#FAF7F1" stroke="#4A453F"/><text x="288" y="147">HTTP</text>
+    </g>
+    <line x1="462" y1="110" x2="506" y2="110" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <rect x="510" y="70" width="430" height="80" fill="#A8481F"/>
+    <text x="526" y="96" font-size="12" font-weight="650" fill="#FAF7F1">dispatcher</text>
+    <text x="526" y="124" font-size="13" fill="#FAF7F1">middleware (policy, audit) → handler → use case</text>
+    <text x="526" y="142" font-size="12" fill="#FAC775">ritorna l'esito come valore</text>
+    <path d="M725 152 v40 h-610 v-40" fill="none" stroke="#B84A1E" stroke-width="1.5" marker-end="url(#ahf)"/>
+    <text x="420" y="212" font-size="12" fill="#A8481F" text-anchor="middle">Promise&lt;esito&gt;, qualunque sia il canale</text>
+  </g>
+</svg>
+    <figcaption>Il canale in-process serve alla mock mode e ai test di contratto. Il bus è sempre una
+      chiamata con risposta: non ha una coda e non differisce niente. Il lavoro differito è della job queue
+      (§7).</figcaption>
+  </figure>
+  <div class="two">
+<pre><span class="c">// commands/src/approveExpense.ts</span>
+<span class="k">export default</span> command({
+    input: z.object({ expense_id: z.string() }),
+    output: expenseDto,
+    kind: <span class="s">"mutation"</span>,
+    description: <span class="s">"Approva una nota spese inviata"</span>,
+    policy: can(<span class="s">"expenses.approve"</span>),
+});</pre>
+<pre><span class="c">// bus/src/handlers/approveExpense.ts</span>
+<span class="k">export default</span> handler(commands.approveExpense, {
+    useCase: <span class="s">"expenses.ApproveExpense"</span>,
+    toUseCase: (input) =&gt; input,
+});
+
+<span class="c">// handlers: { [K in keyof Commands]: Handler&lt;Commands[K]&gt; }</span>
+<span class="c">// un comando senza handler non compila</span></pre>
+  </div>
+  <h3 style="margin-top:2rem">Dove si valida l'input</h3>
+  <p>Lo schema sta nel comando, perché è contratto condiviso: il client può usarlo per validare prima di
+    inviare, per dare un errore subito. Ma vale solo il controllo fatto dove il comando arriva: su un canale
+    remoto può arrivare qualunque cosa. Il dispatcher del bus valida l'input contro lo schema prima della
+    policy e dell'handler; se non passa, ritorna un errore di validazione e l'handler non viene chiamato.
+    Così l'handler riceve sempre un input del tipo dichiarato, e lo use case dietro di lui può fidarsi. Sul
+    canale in-process la validazione gira lo stesso.</p>
+  <p>Fino al gradino 2·B lo stesso ruolo lo ha la route, con lo stesso strumento di validazione.</p>
+  <p class="small">Si chiama solo <code>bus.dispatch(nome, input)</code>, mai una forma alternativa. Pacchetti:
+    <code>commands</code> (contratto), <code>bus</code> (dispatcher, handler, middleware, canali),
+    <code>bus-server</code> (deployable). Nomi delle funzioni indicativi: si fissano nel progetto esempio.</p>
+  <h3 style="margin-top:2rem">Cosa importano i client</h3>
+  <p>Il peso non sta nel core ma negli adapter. Un core senza tecnologia e tree-shakeable
+    (<code>"sideEffects": false</code>, un'uscita <code>core/client</code> separata da quella server) si importa a
+    cuor leggero: DTO, tipi, dizionari, errori, funzioni pure. Le webapp lo fanno a ogni gradino, invece di
+    duplicare codice. Quello che un client non importa mai sono use case, container e adapter.</p>
+  <p>Gli errori che attraversano il bus: il comando dichiara nello schema dell'output i suoi errori con nome,
+    presi dal core. Il client li distingue in modo esaustivo; tutto ciò che non è dichiarato arriva come
+    errore interno generico, senza dettagli.</p>
+</div></section>
+
+<!-- 6 -->
+<section class="s" id="policy"><div class="wrap">
+  <h2><span class="num">6</span>Middleware e policy</h2>
+  <figure>
+<svg viewBox="0 0 960 330" role="img" aria-label="Middleware attorno all'handler">
+  <g font-family="Public Sans, sans-serif">
+    <rect x="160" y="15" width="640" height="300" fill="#EFE8DC"/>
+    <text x="178" y="40" font-size="13" font-weight="650" fill="#4A453F">audit, logging: attore, comando, input, esito</text>
+    <rect x="215" y="56" width="530" height="240" fill="#FAF7F1" stroke="#B84A1E" stroke-width="2"/>
+    <text x="233" y="80" font-size="13" font-weight="650" fill="#A8481F">policy: legge la policy dichiarata nel comando</text>
+    <rect x="270" y="96" width="420" height="180" fill="#A8481F"/>
+    <text x="288" y="120" font-size="13" font-weight="650" fill="#FAF7F1">handler: comando → use case</text>
+    <rect x="330" y="140" width="300" height="116" fill="#14110E"/>
+    <text x="480" y="192" font-size="15" font-weight="650" fill="#FAF7F1" text-anchor="middle">use case</text>
+    <text x="480" y="216" font-size="12" fill="#8A8178" text-anchor="middle">non conosce gli strati esterni</text>
+  </g>
+</svg>
+    <figcaption>Funzioni che avvolgono l'handler, applicate una volta da chi costruisce il bus; l'handler
+      non sa chi lo avvolge.</figcaption>
+  </figure>
+  <h3 style="margin-top:1.5rem">Chi sa le regole, chi le applica</h3>
+  <p>Le regole d'accesso le conosce il core, come conosce l'attore: un servizio di autorizzazione risponde,
+    dato lo use case, l'input e il contesto, se l'attore può procedere, se la risorsa non è sua o se non è
+    autenticato. Anche identificare l'attore a partire da una credenziale (sessione, token) è un servizio
+    del core. Come lo fa (stato sul database, token, attore ricaricato o no) lo decide l'applicazione.</p>
+  <p>Chi applica le regole cambia col gradino. Fino al 2·B è ogni webapp, che chiama il servizio per
+    ottenere il contesto e deve farlo correttamente su ogni route: una route può avere più contesti
+    possibili, e nessun meccanismo unico lo impone. Al 2·C le applica il middleware del bus, una volta per
+    tutti i client: è uno dei motivi per salire.</p>
+  <div class="two">
+    <div class="col">
+      <span class="lbl">Policy obbligatoria</span>
+      <ul>
+        <li>Dato nel comando: CLI e agenti la leggono</li>
+        <li>Accessibile a ogni utente autenticato: <code>anyMember</code>, scritto esplicitamente</li>
+        <li>Nessun accesso anonimo: il bus si apre solo con un token valido</li>
+        <li>Scartati i default: «nega se manca» sposta l'errore a runtime, «consenti se manca» lascia buchi silenziosi</li>
+      </ul>
+    </div>
+    <div class="col">
+      <span class="lbl">Verifica</span>
+      <ul>
+        <li>Snapshot test versionato con comandi e policy: ogni cambio di permessi compare nel diff della PR</li>
+        <li>Test di contratto scritto una volta, eseguito sul canale in-process (stub) e su quello remoto</li>
+        <li>Middleware finto nei test: riceve nome del comando, attore, input ed esito senza conoscere l'handler</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- 7 -->
+<section class="s" id="job"><div class="wrap">
+  <h2><span class="num">7</span>Job, coda e cron</h2>
+  <p>Il command bus astrae <b>come</b> si fa una chiamata (HTTP, RPC, in-process) e restituisce subito
+    l'esito. Una job queue fa un'altra cosa: mette in coda un lavoro che un consumer esegue più tardi,
+    con i suoi tempi, i suoi retry e il suo parallelismo. Sono due componenti distinti e si possono usare
+    insieme.</p>
+  <figure>
+<svg viewBox="0 0 960 210" role="img" aria-label="Bus e job queue a confronto">
+  <g font-family="Public Sans, sans-serif">
+    <text x="20" y="30" font-size="13" font-weight="650" fill="#A8481F">command bus</text>
+    <rect x="20" y="42" width="170" height="44" fill="#FAF7F1" stroke="#4A453F"/><text x="105" y="69" font-size="13" text-anchor="middle" fill="#14110E">chiamante</text>
+    <line x1="192" y1="64" x2="336" y2="64" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <text x="264" y="56" font-size="12" fill="#6A6259" text-anchor="middle">dispatch</text>
+    <rect x="340" y="42" width="220" height="44" fill="#A8481F"/><text x="450" y="69" font-size="13" text-anchor="middle" fill="#FAF7F1">bus → handler → use case</text>
+    <path d="M450 88 v18 h-345 v-18" fill="none" stroke="#B84A1E" stroke-width="1.5" marker-end="url(#ahf)"/>
+    <text x="580" y="69" font-size="12" fill="#4A453F">esito subito, nella stessa chiamata</text>
+
+    <text x="20" y="140" font-size="13" font-weight="650" fill="#5A5C60">job queue</text>
+    <rect x="20" y="152" width="170" height="44" fill="#14110E"/><text x="105" y="179" font-size="13" text-anchor="middle" fill="#FAF7F1">use case · cron</text>
+    <line x1="192" y1="174" x2="276" y2="174" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
+    <text x="234" y="166" font-size="12" fill="#6A6259" text-anchor="middle">enqueue</text>
+    <rect x="280" y="152" width="150" height="44" fill="none" stroke="#5A5C60" stroke-dasharray="5 4"/><text x="355" y="179" font-size="13" text-anchor="middle" fill="#5A5C60">coda</text>
+    <line x1="432" y1="174" x2="516" y2="174" stroke="#4A453F" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#ah)"/>
+    <text x="474" y="166" font-size="12" fill="#6A6259" text-anchor="middle">più tardi</text>
+    <rect x="520" y="152" width="200" height="44" fill="#14110E"/><text x="620" y="179" font-size="13" text-anchor="middle" fill="#FAF7F1">consumer → use case</text>
+    <text x="736" y="170" font-size="12" fill="#4A453F">al chiamante torna la conferma;</text>
+    <text x="736" y="186" font-size="12" fill="#4A453F">l'esito lo registra il consumer</text>
+  </g>
+</svg>
+  </figure>
+
+  <p style="margin-top:1rem">Quello che il blueprint fissa è poco:</p>
+  <ul style="color:var(--stone);line-height:1.6;max-width:75ch">
+    <li>il lavoro differito passa da una porta del core; coda e scheduler sono adapter, con il loro stub;</li>
+    <li>il bus non sostituisce la coda, e la coda non sostituisce il bus;</li>
+    <li>chi esegue un job chiama lo use case, che resta quello di sempre e non sa di girare in differita.</li>
+  </ul>
+  <p>Il resto (dove girano consumer e scheduler, retry, parallelismo, repliche, idempotenza, attore dei
+    job) dipende dal progetto e dalla piattaforma. Il blueprint non lo prescrive: va deciso con calma,
+    progetto per progetto, e diventerà una reference solo quando ci sarà una soluzione provata.</p>
+</div></section>
+
+<!-- 8 -->
+<section class="s" id="preferenze"><div class="wrap">
+  <h2><span class="num">8</span>Principi e preferenze</h2>
+  <p>La skill separa le regole che valgono a prescindere dagli strumenti da quelle legate alla scelta di
+    uno strumento. Le seconde stanno in <code>references/stack/&lt;strumento&gt;.md</code>, con la data della
+    scelta: cambiare ORM significa aggiungere una pagina, non modificare le altre.</p>
+  <table class="t">
+    <tr><th>Principio (skill)</th><th>Preferenza attuale (stack/)</th><th>Alternative possibili</th></tr>
+    <tr><td>Repository pattern; implementazione in un adapter</td><td>Prisma</td><td>Drizzle, query dirette</td></tr>
+    <tr><td>Il core non dipende dal runtime</td><td>Cloudflare Workers, D1</td><td>container, Postgres</td></tr>
+    <tr><td>Porte risolte per iniezione nel costruttore</td><td>Inversify</td><td>tsyringe, TypeDI</td></tr>
+    <tr><td>Ogni use case ritorna un <code>Result</code> con errori con nome</td><td><code>@efesto-cloud/result</code>, <code>tagged-error</code></td><td>valori di Effect</td></tr>
+    <tr><td>Input validato al bordo</td><td>zod</td><td><code>Schema</code> di Effect</td></tr>
+    <tr><td>Canale sostituibile fra chiamante e bus</td><td>Workers RPC</td><td>HTTP, altro RPC</td></tr>
+    <tr><td>Coda e scheduler dietro una porta</td><td>Cloudflare Queues, Cron Trigger</td><td>pg-boss, croner</td></tr>
+    <tr><td>Interfaccia separata dalla logica</td><td>React Router (framework mode)</td><td>—</td></tr>
+  </table>
+</div></section>
+
+<!-- 9 -->
+<section class="s" id="librerie"><div class="wrap">
+  <h2><span class="num">9</span>Librerie in <code>lib</code></h2>
+  <p>Due proposte che riducono <code>lib</code>: usare i valori di Effect al posto dei nostri
+    <code>Result</code> ed errori taggati; spostare il codice specifico di un ORM dai pacchetti ai template della skill, così che ogni
+    progetto lo scriva nel proprio adapter.</p>
+  <table class="t">
+    <tr><th>Pacchetti</th><th>Decisione</th><th>Note</th></tr>
+    <tr><td><code>result</code>, <code>result-async</code>, <code>maybe</code>, <code>maybe-async</code>, <code>tagged-error</code>, <code>result-codec</code></td>
+      <td>Ritirare per i progetti nuovi</td><td>Al loro posto i valori di Effect</td></tr>
+    <tr><td><code>prisma-unit-of-work</code>, <code>mongodb-unit-of-work</code>, <code>prisma-expand</code>, <code>mongodb-expand</code></td>
+      <td>Ritirare</td><td>Diventano template in <code>stack/*</code>, verificati nel progetto esempio</td></tr>
+    <tr><td><code>entity</code>, <code>usecase</code>, <code>unit-of-work</code>, <code>expand</code>, <code>metadata</code>, <code>teardown</code></td>
+      <td>Tenere</td><td><code>usecase</code> va aggiornato col vincolo sul <code>Result</code> (§3)</td></tr>
+    <tr><td><code>publisher</code>, <code>observable</code>, <code>react-observable</code>, <code>computed</code></td>
+      <td>Tenere</td><td>Usati spesso; altrimenti si riscrivono ogni volta</td></tr>
+    <tr><td><code>toast</code></td><td>Da riallineare</td><td>È un <code>Result</code> con un messaggio e dipende da
+      <code>result</code> e <code>maybe</code>: va riscritto sui valori di Effect o ritirato insieme a loro</td></tr>
+    <tr><td><code>env</code></td><td>Tenere, da rivedere</td><td>Oggi legge <code>process.env</code>: deve funzionare
+      anche dove <code>process</code> non c'è (Workers), ricevendo l'ambiente da chi lo chiama</td></tr>
+    <tr><td><code>outbox</code></td><td>Sospeso</td><td>Era un tentativo per i job (outbox → coda); si decide
+      insieme ai job, fuori dal blueprint (§7)</td></tr>
+    <tr><td><code>login-session</code></td><td>Ritirare</td><td>Un'entity già pronta non regge: si riscrive ogni
+      volta secondo il progetto</td></tr>
+    <tr><td><code>audit</code></td><td>Ritirare</td><td>0 usi su 604 use case; manca <code>npm deprecate</code></td></tr>
+  </table>
+  <div class="two">
+    <div class="col">
+      <span class="lbl">Effect: cosa si prende</span>
+      <ul>
+        <li>Il modello: ogni operazione fallibile ritorna successo o errore con nome, errori taggati,
+          schema per validare al bordo</li>
+        <li>Lo si rende obbligatorio negli use case (§3)</li>
+        <li>Si può adottare la libreria per i soli valori (<code>Result</code>, <code>Data.TaggedError</code>,
+          <code>Schema</code>) oppure tenere la nostra con la stessa forma</li>
+      </ul>
+    </div>
+    <div class="col cold">
+      <span class="lbl">Effect: cosa non si prende</span>
+      <ul>
+        <li>Il runtime: use case come <code>Effect&lt;A, E, R&gt;</code>, porte come <code>Context.Tag</code>, adapter come <code>Layer</code></li>
+        <li>Restano classi, iniezione nel costruttore, <code>execute(input, ctx)</code>, il command bus del §5</li>
+      </ul>
+    </div>
+  </div>
+  <h3 style="margin-top:1.75rem">Cambiare libreria di DI</h3>
+  <p>Oggi ogni use case porta <code>@injectable()</code> e <code>@inject(Symbol)</code> di Inversify. tsyringe e
+    TypeDI hanno decoratori con la stessa forma, quindi il passaggio è un codemod, se il core rispetta tre
+    condizioni:</p>
+  <ul style="color:var(--stone);line-height:1.6;max-width:75ch">
+    <li>solo iniezione nel costruttore, con simboli o token propri del progetto;</li>
+    <li>nessuna funzione specifica del container nel core (binding con nome, scope esotici,
+      <code>container.get</code> negli use case);</li>
+    <li>i binding stanno tutti nei moduli e nel composition root.</li>
+  </ul>
+  <p>Ricerca fatta: Inversify 8, tsyringe e TypeDI richiedono ancora i decoratori legacy; TypeDI è
+    abbandonato; esbuild non emette i metadata dei decoratori, e il core regge perché ogni parametro ha un
+    <code>@inject(Symbol)</code> esplicito. L'alternativa senza decoratori (factory nei moduli, per esempio
+    <code>toResolvedValue</code>) renderebbe il core indipendente dal container. Deciso: per ora restano
+    Inversify e i suoi decoratori. Una migrazione futura costa di più, ma resta fattibile se valgono le tre
+    condizioni sopra.</p>
+  <p>Deciso: i valori (risultato, errori con tag, schema) vengono da Effect 4; i nostri pacchetti
+    <code>result</code>, <code>maybe</code> e <code>tagged-error</code> si ritirano. La PR #31 non si fonde.
+    I progetti esistenti restano come sono: la skill non contiene una guida di migrazione.</p>
+</div></section>
+
+<!-- 10 -->
+<section class="s" id="esempio"><div class="wrap">
+  <h2><span class="num">10</span>Progetto esempio: <code>lib/example</code></h2>
+  <p>Lo stesso dominio implementato a ogni gradino. Il confronto fra due cartelle vicine mostra la mossa
+    per salire. Gli snippet della skill si prendono da qui: compilano e hanno i test.</p>
+  <div class="two">
+<pre>example/
+  README.md          dominio e come leggere le cartelle
+  0-single/
+  1-core/
+  2a-adapters/
+    packages/  core  webapp
+    adapters/  db  stub  mail
+  2b-bootstrap/
+    packages/  core  bootstrap  webapp-staff
+               webapp-admin  consumer
+    adapters/  db  stub  mail  queue
+  2c-bus/
+    packages/  … + commands  bus  bus-server
+
+<span class="c"># la mossa da 2·B a 2·C:</span>
+diff -r example/2b-bootstrap example/2c-bus</pre>
+    <div>
+      <h3>Dominio: note spese</h3>
+      <table class="t" style="margin-top:.25rem">
+        <tr><td>Stati</td><td><code>draft → submitted → approved | rejected → reimbursed</code>; transizioni non ammesse rifiutate dall'entity</td></tr>
+        <tr><td>Storico</td><td><code>ExpenseStatusChange</code> scritto insieme alla nota: due scritture, una transazione</td></tr>
+        <tr><td>Porta esterna</td><td>Mailer (notifica all'autore), con stub</td></tr>
+        <tr><td>Job</td><td>Notifica all'autore accodata, per mostrare la porta della coda e il suo stub</td></tr>
+        <tr><td>Composizione</td><td><code>ImportExpenses</code> usa <code>CreateExpense</code></td></tr>
+        <tr><td>Due webapp</td><td><code>webapp-staff</code> crea e invia le proprie note; <code>webapp-admin</code> approva e rimborsa</td></tr>
+        <tr><td>Policy</td><td><code>expenses.approve</code>, <code>expenses.reimburse</code>, <code>anyMember</code></td></tr>
+        <tr><td>Test</td><td>use case sullo stub; contratto del bus in-process e remoto; snapshot delle policy</td></tr>
+      </table>
+    </div>
+  </div>
+  <p>Deciso: cinque cartelle, con un dominio minimo (un'entity, pochi use case) e uno script che fa girare
+    typecheck e test su tutte, così nessuna copia resta indietro. Da definire in fase di scrittura come
+    entrano nel workspace pnpm di <code>lib</code>.</p>
+</div></section>
+
+<!-- 11 -->
+<section class="s" id="registro"><div class="wrap">
+  <h2><span class="num">11</span>Registro</h2>
+  <table class="t">
+    <tr><td>30/10, giro 1</td><td>Prima versione: fonti, nome, assorbimento delle figlie, lingua.
+      Indicazioni: API unica dalla seconda webapp; use case senza autorizzazione, che si fidano del tipo;
+      principi separati dalle preferenze; codice per ORM fuori da <code>lib</code>; Effect da valutare;
+      niente pattern di dettaglio (plan/apply).</td></tr>
+    <tr><td>30/10, giro 2</td><td>Documento reso indipendente dal progetto di partenza: dominio neutro
+      (note spese). Progetto esempio in <code>lib/example</code>, per gradini. Gradini disegnati uno per uno
+      con segnale, mossa e limite. Tono tecnico.</td></tr>
+    <tr><td>30/10, giro 3</td><td>Command bus con la sua terminologia (command, handler, middleware, canale),
+      diviso in due gradini: 3·C in-process e 3·D remoto. Aggiunti job e cron (riferimento arsenale v2).
+      «Use case che non chiamano use case» rimessa in discussione: proposta consentita a condizioni.</td></tr>
+    <tr><td>30/10, giro 4</td><td>Effect solo come modello per i valori, non come runtime. Ogni use case
+      ritorna obbligatoriamente un <code>Result</code> (vincolo in <code>IUseCase</code>). La libreria di DI
+      deve restare sostituibile (Inversify → tsyringe, TypeDI): condizioni e ricerca da fare.</td></tr>
+    <tr><td>30/10, giro 5</td><td>Dipendenze pesanti per deployable: al gradino 3·B il bootstrap espone
+      profili, così ogni webapp carica solo gli adapter che le servono.</td></tr>
+    <tr><td>30/10, giro 6</td><td>3·C e 3·D uniti in un gradino solo, «3·C · command bus», che nasce col
+      canale remoto: in-process il bus non aggiunge niente rispetto a 3·B. Il canale in-process resta per
+      mock e test di contratto. Nomi resi generici: <code>bus-server</code> per il deployable del bus,
+      «consumer» per chi esegue i job.</td></tr>
+    <tr><td>30/10, giro 7</td><td>Corretto il §7: il command bus non ha una coda, è sempre una chiamata con
+      risposta. La job queue è un componente a parte; il consumer chiama gli use case direttamente. Aggiunta
+      la collocazione di consumer e scheduler (nel nodo principale, separati, piattaforma gestita) come
+      terza dimensione, da ragionare.</td></tr>
+    <tr><td>30/10, giro 8</td><td>Job ridotti all'essenziale: porta nel core, adapter per coda e scheduler,
+      bus e coda distinti. Collocazione, retry, parallelismo e idempotenza restano fuori dal blueprint finché
+      non c'è una soluzione provata; niente <code>jobs.md</code> per ora.</td></tr>
+    <tr><td>30/10, giro 9</td><td>Decisi i pacchetti di <code>lib</code>: si ritirano i valori (al loro posto
+      Effect), i pacchetti per ORM, <code>login-session</code>, <code>audit</code>. Restano <code>entity</code>,
+      <code>usecase</code>, <code>unit-of-work</code>, <code>expand</code>, <code>metadata</code> e i reattivi.
+      <code>toast</code> da riallineare, <code>env</code> da rendere indipendente dal runtime,
+      <code>outbox</code> sospeso con i job, <code>teardown</code> resta.</td></tr>
+    <tr><td>30/10, giro 10</td><td>Gradini rinumerati: 0 (un pacchetto, per i proof of concept), 1 (core, la
+      forma più comune), 2·A, 2·B, 2·C. Ogni gradino è una scheda con diagramma, struttura delle cartelle,
+      una chiamata d'esempio e segnale, mossa, limite. Bootstrap del 2·B a profili.</td></tr>
+    <tr><td>30/10, giro 11</td><td>Grilling, primo round. Decisi: composizione di use case a condizioni (unit
+      of work per richiesta); il branch è la nuova fonte di verità; solo <code>bus.dispatch</code>; pacchetti
+      <code>commands</code>/<code>bus</code>/<code>bus-server</code>; esempio in cinque cartelle con script di
+      verifica; vocabolario in <code>CONTEXT.md</code> e nella skill; tre regole sui test; validazione dove
+      l'input arriva; Inversify coi decoratori per ora. Le regole d'accesso le conosce il core, le applica la
+      webapp fino al 2·B e il bus al 2·C. Il blueprint resta sulle regole generali.</td></tr>
+    <tr><td>30/10, giro 12</td><td>Grilling, secondo round. Criterio policy/dominio in una riga. I client
+      importano <code>core/client</code> a ogni gradino: il peso sta negli adapter, non nel core. Il comando
+      dichiara i suoi errori con nome. Effect 4. Struttura della skill accettata, da rivedere. Prima il progetto
+      esempio, poi la skill. Nessuna guida di migrazione.</td></tr>
+  </table>
+</div></section>
+
+<!-- 12 -->
+<section class="s" id="vocabolario"><div class="wrap">
+  <h2><span class="num">12</span>Vocabolario</h2>
+  <p>Copia di <code>CONTEXT.md</code> alla radice di <code>lib</code>, in inglese come la skill. La fonte è lì.</p>
+  <table class="t">
+    <tr><th>Termine</th><th>Significato</th><th>Da evitare</th></tr>
+    <tr><td>Rung</td><td>One of the shapes a project can take — 0, 1, 2·A, 2·B, 2·C — each adding packages to the one before.</td><td>level, stage, tier</td></tr>
+    <tr><td>Signal</td><td>The concrete need that justifies climbing to the next rung.</td><td>trigger, reason</td></tr>
+    <tr><td>Move</td><td>The refactor that takes a project from one rung to the next without rewriting it.</td><td>migration, upgrade</td></tr>
+    <tr><td>Core</td><td>The package holding entities, value objects, use cases and ports, with no knowledge of any technology.</td><td>domain package, backend</td></tr>
+    <tr><td>Use case</td><td>One business operation: takes an input object and an execution context, returns a Result.</td><td>service, interactor, action</td></tr>
+    <tr><td>Execution context</td><td>What a use case receives besides its input — at least the actor.</td><td>request, session</td></tr>
+    <tr><td>Actor</td><td>Who is performing the operation, as the core knows them.</td><td>user, caller, principal</td></tr>
+    <tr><td>Port</td><td>An interface in the core for anything outside the process: storage, mail, queue, clock, token signer.</td><td>gateway, provider</td></tr>
+    <tr><td>Adapter</td><td>A package that implements one or more ports with a concrete technology.</td><td>driver, plugin, infrastructure</td></tr>
+    <tr><td>Stub</td><td>The in-memory adapter that implements every port, used for mock mode and for tests.</td><td>fake, mock adapter</td></tr>
+    <tr><td>Bootstrap</td><td>The package that loads the core and chooses its adapters, real or stub, for a deployable.</td><td>container, composition package</td></tr>
+    <tr><td>Profile</td><td>A variant of the bootstrap that loads only the adapters one deployable needs.</td><td>preset, flavour</td></tr>
+    <tr><td>Policy</td><td>The rule that says whether an actor may perform a use case on a given input.</td><td>permission, guard, ACL</td></tr>
+    <tr><td>Command</td><td>The contract for one exposed use case: input and output schemas, kind, description, policy.</td><td>operation, endpoint, RPC method</td></tr>
+    <tr><td>Handler</td><td>The code that turns a command into a call to its use case.</td><td>operation, resolver, controller</td></tr>
+    <tr><td>Middleware</td><td>A layer wrapped around every handler, such as policy enforcement, audit or logging.</td><td>decorator, interceptor</td></tr>
+    <tr><td>Channel</td><td>How a command travels from the caller to the bus and its result comes back: in-process, HTTP, RPC.</td><td>transport, protocol</td></tr>
+    <tr><td>Bus server</td><td>The deployable that hosts the bus, its handlers and the bootstrap.</td><td>API worker, API server</td></tr>
+    <tr><td>Job queue</td><td>The port through which work is scheduled to run later, outside the call that requested it.</td><td>bus, outbox</td></tr>
+    <tr><td>Consumer</td><td>The process that takes jobs from the queue and runs their use cases.</td><td>worker</td></tr>
+  </table>
+</div></section>
+
+</main>
+</body>
+</html>
