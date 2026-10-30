@@ -1,0 +1,20 @@
+{
+    "name": "@expenses/mail-adapter",
+    "private": true,
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@expenses/core": "workspace:*",
+        "inversify": "8.2.3"
+    },
+    "devDependencies": {
+        "@types/node": "^24",
+        "typescript": "^6.0.2"
+    }
+}

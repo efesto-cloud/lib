@@ -1,0 +1,24 @@
+{
+    "name": "@expenses/tests",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "typecheck": "tsc --noEmit",
+        "test": "HARNESS=stub CHANNEL=in-process tsx --tsconfig ../tsconfig.base.json --test \"src/**/*.test.ts\" && HARNESS=stub CHANNEL=http tsx --tsconfig ../tsconfig.base.json --test \"src/**/*.test.ts\" && HARNESS=db CHANNEL=http tsx --tsconfig ../tsconfig.base.json --test \"src/**/*.test.ts\""
+    },
+    "dependencies": {
+        "@expenses/bus": "workspace:*",
+        "@expenses/bus-server": "workspace:*",
+        "@expenses/commands": "workspace:*",
+        "@expenses/consumer": "workspace:*",
+        "@expenses/db-adapter": "workspace:*",
+        "@expenses/stub-adapter": "workspace:*",
+        "@expenses/webapp-admin": "workspace:*",
+        "@expenses/webapp-staff": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/node": "^24",
+        "tsx": "^4.22.4",
+        "typescript": "^6.0.2"
+    }
+}

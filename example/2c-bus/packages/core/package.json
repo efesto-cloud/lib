@@ -1,0 +1,29 @@
+{
+    "name": "@expenses/core",
+    "private": true,
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": "./src/server.ts",
+        "./client": "./src/client.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit",
+        "test": "tsx --tsconfig ../../tsconfig.base.json --test \"test/**/*.test.ts\""
+    },
+    "dependencies": {
+        "@efesto-cloud/entity": "file:../../../../packages/entity",
+        "@efesto-cloud/unit-of-work": "file:../../../../packages/unit-of-work",
+        "@efesto-cloud/usecase": "file:../../../../packages/usecase",
+        "effect": "4.1.0",
+        "inversify": "8.2.3",
+        "luxon": "^3.7.2"
+    },
+    "devDependencies": {
+        "@expenses/stub-adapter": "workspace:*",
+        "@types/luxon": "^3",
+        "@types/node": "^24",
+        "tsx": "^4.22.4",
+        "typescript": "^6.0.2"
+    }
+}

@@ -15,7 +15,8 @@
         "check-plugins": "node scripts/check-plugins.mjs",
         "changeset": "changeset",
         "version": "changeset version && pnpm install --lockfile-only",
-        "release": "pnpm build && changeset publish"
+        "release": "pnpm build && changeset publish",
+        "example": "bash example/check.sh"
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.11",

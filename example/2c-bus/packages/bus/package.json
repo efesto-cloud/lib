@@ -1,0 +1,27 @@
+{
+    "name": "@expenses/bus",
+    "private": true,
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": "./src/index.ts",
+        "./client": "./src/client.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit",
+        "test": "tsx --tsconfig ../../tsconfig.base.json --test \"test/**/*.test.ts\""
+    },
+    "dependencies": {
+        "@efesto-cloud/usecase": "file:../../../../packages/usecase",
+        "@expenses/commands": "workspace:*",
+        "@expenses/core": "workspace:*",
+        "effect": "4.1.0"
+    },
+    "devDependencies": {
+        "@expenses/bootstrap": "workspace:*",
+        "@expenses/stub-adapter": "workspace:*",
+        "@types/node": "^24",
+        "tsx": "^4.22.4",
+        "typescript": "^6.0.2"
+    }
+}

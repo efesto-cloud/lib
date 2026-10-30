@@ -1,0 +1,7 @@
+packages:
+  - "packages/*"
+  - "adapters/*"
+  - "tests"
+
+allowBuilds:
+  esbuild: true

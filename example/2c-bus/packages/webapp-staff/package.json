@@ -1,0 +1,20 @@
+{
+    "name": "@expenses/webapp-staff",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": "./app/server.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@expenses/bus": "workspace:*",
+        "@expenses/commands": "workspace:*",
+        "effect": "4.1.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24",
+        "typescript": "^6.0.2"
+    }
+}

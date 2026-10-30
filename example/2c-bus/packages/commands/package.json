@@ -1,0 +1,20 @@
+{
+    "name": "@expenses/commands",
+    "private": true,
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@expenses/core": "workspace:*",
+        "effect": "4.1.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24",
+        "typescript": "^6.0.2"
+    }
+}

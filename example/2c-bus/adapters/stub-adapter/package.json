@@ -1,0 +1,23 @@
+{
+    "name": "@expenses/stub-adapter",
+    "private": true,
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@efesto-cloud/unit-of-work": "file:../../../../packages/unit-of-work",
+        "@efesto-cloud/usecase": "file:../../../../packages/usecase",
+        "@expenses/core": "workspace:*",
+        "effect": "4.1.0",
+        "inversify": "8.2.3"
+    },
+    "devDependencies": {
+        "@types/node": "^24",
+        "typescript": "^6.0.2"
+    }
+}

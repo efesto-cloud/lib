@@ -269,7 +269,7 @@
     <div>
       <span class="chip open">Da decidere</span>
       <ul>
-        <li>Dove si dichiara la policy di uno use case (§6)</li>
+        <li>Dove si dichiara la policy di uno use case (§6): l'esempio propone una mappa nel core, da confermare</li>
               </ul>
     </div>
     <div>
@@ -278,7 +278,6 @@
         <li><code>SKILL.md</code> (bozza da rivedere su questo documento)</li>
         <li>Nuove: <code>growth.md</code>, <code>command-bus.md</code>, <code>testing.md</code>, <code>stack/*</code></li>
         <li>Le altre references, riscritte</li>
-        <li><code>lib/example</code></li>
         <li>Rimozione delle skill figlie</li>
       </ul>
     </div>
@@ -1056,8 +1055,36 @@ diff -r example/2b-bootstrap example/2c-bus</pre>
     </div>
   </div>
   <p>Deciso: cinque cartelle, con un dominio minimo (un'entity, pochi use case) e uno script che fa girare
-    typecheck e test su tutte, così nessuna copia resta indietro. Da definire in fase di scrittura come
-    entrano nel workspace pnpm di <code>lib</code>.</p>
+    typecheck e test su tutte, così nessuna copia resta indietro.</p>
+  <h3 style="margin-top:2rem">Scritto: cosa ha fissato l'esempio</h3>
+  <p>Le cinque cartelle esistono e passano tutte con <code>pnpm example</code>. Lo scenario
+    (<code>expenses.test.ts</code>) è lo stesso file in tutti i gradini; cambia solo lo harness. Dal 2·A gira
+    sullo stub e su SQLite, al 2·C anche sui due canali.</p>
+  <table class="t">
+    <tr><th>Tema</th><th>Com'è nell'esempio</th></tr>
+    <tr><td>Workspace</td><td>Ogni gradino è un workspace pnpm a sé, fuori da quello di <code>lib</code>: i nomi dei
+      pacchetti restano uguali e il <code>diff</code> resta leggibile. I pacchetti di <code>lib</code> entrano
+      con <code>file:</code>.</td></tr>
+    <tr><td>Errori</td><td>Classi <code>Schema.TaggedError</code> nel core, esportate da <code>core/client</code>.
+      Il comando le dichiara in <code>errors</code>; tornano dal canale HTTP come istanze della loro classe.</td></tr>
+    <tr><td>Contratto</td><td><code>command({ kind, description, input, output, errors })</code> con
+      <code>Schema</code> di Effect, non zod. <code>handler()</code> non compila se input o
+      <code>Result</code> dello use case non combaciano col comando.</td></tr>
+    <tr><td>Policy (Q11)</td><td>Proposta: una mappa nel core, <code>policies.ts</code>, una policy per use case.
+      Il tipo richiede ogni chiave del registro, quindi uno use case senza policy non compila. Fino al 2·B la
+      applica la route, al 2·C il middleware; lo snapshot elenca comando → use case → policy. Il comando non
+      porta la policy: la legge chi la cerca nello snapshot.</td></tr>
+    <tr><td>Use case interni</td><td>Policy <code>internal</code>, che nega sempre dal bordo: li chiamano solo
+      altri use case e i job (<code>NotifyAuthor</code>).</td></tr>
+    <tr><td>Unit of work</td><td>Riceve e ritorna un <code>Result</code> e fa rollback anche sul fallimento.
+      Quella dello stub fa rollback da uno snapshot: lo scenario dell'import lo richiede.</td></tr>
+    <tr><td>Coda</td><td><code>IJobQueue.enqueue(chiave, input, contesto)</code>, tipizzata sul registro; il
+      consumer chiama lo use case. Retry e parallelismo restano fuori.</td></tr>
+    <tr><td>Boot</td><td><code>MissingEnv</code> elenca le variabili mancanti; <code>UseCaseUnavailable</code>
+      quando un profilo non lega le porte di uno use case.</td></tr>
+  </table>
+  <p>Al passaggio 2·B → 2·C il core cambia in un file solo (<code>server.ts</code>, che esporta le
+    policy): cambia chi chiama gli use case, non come sono scritti.</p>
 </div></section>
 
 <!-- 11 -->
@@ -1110,6 +1137,9 @@ diff -r example/2b-bootstrap example/2c-bus</pre>
       esempio, poi la skill. Nessuna guida di migrazione.</td></tr>
     <tr><td>30/10, giro 13</td><td>Aggiunto «Il quadro completo» in apertura: client, canali, bus server, core,
       adapter e consumer in una figura. Avviato il deck di presentazione in <code>deck/</code>.</td></tr>
+    <tr><td>30/10, giro 14</td><td>Scritto <code>lib/example</code> dal gradino 0 al 2·C. In <code>lib</code>:
+      <code>IUseCase</code> vincolato al <code>Result</code> di Effect, <code>IUnitOfWork</code> che fa rollback
+      sul fallimento, <code>audit</code> rimosso. Proposta per la Q11: policy in una mappa nel core.</td></tr>
   </table>
 </div></section>
 

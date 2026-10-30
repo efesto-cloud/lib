@@ -1,0 +1,19 @@
+{
+    "name": "@expenses/bus-server",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@expenses/bootstrap": "workspace:*",
+        "@expenses/bus": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/node": "^24",
+        "typescript": "^6.0.2"
+    }
+}

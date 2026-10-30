@@ -1,0 +1,12 @@
+exports[`command → use case → policy 1`] = `
+[
+  "approveExpense → expenses.ApproveExpense → can(expenses.review)",
+  "createExpense → expenses.CreateExpense → can(expenses.create)",
+  "importExpenses → expenses.ImportExpenses → can(expenses.import)",
+  "listMyExpenses → expenses.ListMyExpenses → anyMember",
+  "listSubmittedExpenses → expenses.ListSubmittedExpenses → can(expenses.review)",
+  "reimburseExpense → expenses.ReimburseExpense → can(expenses.reimburse)",
+  "rejectExpense → expenses.RejectExpense → can(expenses.review)",
+  "submitExpense → expenses.SubmitExpense → authorOfExpense"
+]
+`;

@@ -6,6 +6,5 @@
             "project": ["scripts/**/*.mjs"]
         }
     },
-    "ignoreExportsUsedInFile": true,
-    "ignore": ["example/**"]
+    "ignoreExportsUsedInFile": true
 }

@@ -1,0 +1,21 @@
+{
+    "name": "@expenses/queue-adapter",
+    "private": true,
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@efesto-cloud/usecase": "file:../../../../packages/usecase",
+        "@expenses/core": "workspace:*",
+        "inversify": "8.2.3"
+    },
+    "devDependencies": {
+        "@types/node": "^24",
+        "typescript": "^6.0.2"
+    }
+}
