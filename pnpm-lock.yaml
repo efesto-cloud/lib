@@ -24,31 +24,6 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
 
-  example:
-    dependencies:
-      '@efesto-cloud/usecase':
-        specifier: workspace:*
-        version: link:../packages/usecase
-
-  packages/audit:
-    dependencies:
-      '@efesto-cloud/metadata':
-        specifier: workspace:*
-        version: link:../metadata
-      '@efesto-cloud/usecase':
-        specifier: workspace:*
-        version: link:../usecase
-      luxon:
-        specifier: ^3
-        version: 3.7.2
-    devDependencies:
-      '@types/luxon':
-        specifier: ^3
-        version: 3.7.1
-      '@types/node':
-        specifier: ^24
-        version: 24.12.2
-
   packages/computed:
     dependencies:
       '@efesto-cloud/observable':
@@ -240,9 +215,17 @@ importers:
         specifier: '24'
         version: 24.12.2
 
-  packages/unit-of-work: {}
+  packages/unit-of-work:
+    dependencies:
+      effect:
+        specifier: ^4.1.0
+        version: 4.1.0
 
-  packages/usecase: {}
+  packages/usecase:
+    dependencies:
+      effect:
+        specifier: ^4.1.0
+        version: 4.1.0
 
   tests:
     dependencies:
@@ -865,6 +848,9 @@ packages:
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
+
+  effect@4.1.0:
+    resolution: {integrity: sha512-lGx2MJJyrXA8RZb2UpQ/0Nkb5Utaimby7oD92+18noBxLPE85IFOvptdzau8dvcxAOwfwHo9iqapbKeFzqQM/Q==}
 
   enquirer@2.4.1:
     resolution: {integrity: sha512-rRqJg/6gd538VHvR3PSrdRBb/1Vy2YfzHqzvbhGIQpDRKIa4FgV/54b5Q1xYSxOOwKvjXweS26E0Q+nAMwp2pQ==}
@@ -1771,6 +1757,8 @@ snapshots:
   dir-glob@3.0.1:
     dependencies:
       path-type: 4.0.0
+
+  effect@4.1.0: {}
 
   enquirer@2.4.1:
     dependencies:
