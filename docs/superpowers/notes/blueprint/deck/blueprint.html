@@ -1,0 +1,639 @@
+<!doctype html>
+<!-- data-mode: "deck" si presenta, "fogli" si scorre e si stampa. Lo stesso
+     file, due viste: ?fogli nell'URL forza la seconda, e nel deck un rimando
+     «Versione stampabile» ci porta. -->
+<html lang="it" data-mode="deck">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Il blueprint di Efesto · Efesto</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Bricolage+Grotesque:wght@400..800&family=Public+Sans:ital,wght@0,300..700;1,300..700&display=block">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css" integrity="sha384-tK61vs+AeByBmiQ/i6CLgp/PbaaoB/k7M4J5mlX70GVtBPGUk5avjbXhSwhsf3fS" crossorigin="anonymous">
+
+<!-- Il CSS della skill: lo riempie scripts/build.py, lasciarlo vuoto. -->
+<style id="slide-deck">/* slide-deck 1f976008 */:root{--forge: #b84a1e;--forge-ink: #a8481f;--ember: #e8722a;--spark: #fac775;--coal: #14110e;--ash: #2a2622;--stone: #4a453f;--dust: #8a8178;--dust-ink: #6a6259;--paper: #faf7f1;--light: #f8f4ed;--warm: #efe8dc;--steel: #5a5c60;--font-voice: "Bricolage Grotesque","Helvetica Neue",Helvetica,Arial,sans-serif;--font-text: "Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--font-code: ui-monospace,"SF Mono",Menlo,Consolas,monospace;--bg: var(--paper);--text: var(--stone);--heading: var(--coal);--strong: var(--coal);--muted: var(--dust-ink);--accent: var(--forge-ink);--signal: var( --forge );--on-signal: var(--paper);--surface: var(--light);--rule: #e3dbcd;--rule-strong: var(--coal);--label-weight: 650;--sheet-shadow: 0 2px 6px rgba(20,17,14,0.08),0 18px 40px rgba(20,17,14,0.12)}.deck section.night{--bg: var(--coal);--text: var(--warm);--heading: var(--paper);--strong: var(--paper);--muted: var(--dust);--accent: var(--spark);--signal: var(--ember);--on-signal: var(--coal);--surface: var(--ash);--rule: rgba(250,247,241,0.16);--rule-strong: var(--paper)}.deck section.sand{--bg: var(--warm);--surface: var(--paper);--rule: #D6CBB8}.reveal-viewport{background: var(--paper)}.reveal .slide-background{background-color: var(--paper)}.deck{font-family: var(--font-text);font-size: 28px;font-weight: 400;line-height: 1.45;color: var(--text);font-variant-numeric: tabular-nums}.deck ::selection{background: var(--signal);color: var(--on-signal)}.deck .slides section{box-sizing: border-box;height: 100%;padding: 52px 76px 60px;text-align: left;color: var(--text)}.deck .slides>section:has(>section){padding: 0}.deck h1,.deck h2,.deck h3,.deck h4{margin: 0;font-family: var(--font-voice);font-weight: 400;color: var(--heading);text-transform: none;text-wrap: balance}.deck h1{font-size: 84px;line-height: 1;letter-spacing: -0.032em}.deck h2{margin-bottom: 26px;font-size: 54px;line-height: 1.06;letter-spacing: -0.025em}.deck h3{margin-bottom: 10px;font-size: 32px;font-weight: 500;line-height: 1.12;letter-spacing: -0.015em}.deck h4{margin-bottom: 6px;font-size: 26px;font-weight: 600;line-height: 1.2}.deck h1 em,.deck h2 em,.deck h3 em{font-style: normal;font-weight: 800;color: var(--signal)}.deck p{margin: 0 0 16px}.deck ul,.deck ol{display: block;margin: 0 0 16px;padding-left: 30px}.deck li{margin-bottom: 10px}.deck li::marker{color: var(--signal)}.deck strong,.deck b{font-weight: 600;color: var(--strong)}.deck em{font-style: italic}.deck a{color: var(--accent);text-decoration: underline;text-underline-offset: 3px}.deck code{font-family: var(--font-code);font-size: 0.86em;color: var(--strong)}.deck pre{width: 100%;margin: 0 0 16px;padding: 16px 20px;background: var(--surface);box-shadow: none;font-size: 20px;line-height: 1.5}.deck pre code{max-height: none;padding: 0;background: none;color: var(--text)}.reveal .slide-number{right: auto;left: 22px;bottom: 18px;background: none;font-family: var(--font-text);font-size: 14px;font-weight: var(--label-weight);color: var(--muted)}.reveal .progress{height: 3px;color: var(--signal)}.reveal .controls{color: var(--signal)}.deck .kicker{display: flex;align-items: center;gap: 14px;margin: 0 0 22px;font-family: var(--font-voice);font-size: 22px;font-weight: 600;color: var(--muted)}.deck .kicker::after{content: "";width: 44px;height: 3px;background: var(--signal)}.deck section.cover{padding-top: 150px}.deck section.cover .logo svg{width: 170px;margin-bottom: 64px}.deck .lead{max-width: 30em;margin-top: 22px;font-size: 30px;font-weight: 300;line-height: 1.4;color: var(--text)}.deck .meta{margin-top: 48px;font-size: 20px;font-weight: var(--label-weight);color: var(--muted)}.deck section.chapter{padding-top: 190px}.deck .chapter-number{margin-bottom: 18px;font-family: var(--font-voice);font-size: 30px;font-weight: 600;color: var(--signal)}.deck ol.agenda{list-style: none;counter-reset: capitolo;padding: 0;columns: 2;column-gap: 64px}.deck ol.agenda li{counter-increment: capitolo;break-inside: avoid;display: flex;gap: 18px;padding: 12px 0;margin: 0;border-bottom: 1px solid var(--rule);font-size: 28px}.deck ol.agenda li::before{content: counter(capitolo,decimal-leading-zero);min-width: 1.6em;font-family: var(--font-voice);font-weight: 600;color: var(--signal)}.deck .cols{display: grid;grid-template-columns: 1fr 1fr;gap: 56px}.deck .cols.three{grid-template-columns: 1fr 1fr 1fr;gap: 40px}.deck .cols ul{padding-left: 26px}.deck ul.points{list-style: none;padding: 0}.deck ul.points li{position: relative;padding-left: 34px;margin-bottom: 16px}.deck ul.points li::before{content: "→";position: absolute;left: 0;color: var(--signal)}.deck ul.points li>b:first-child{color: var(--accent)}.deck .cards{display: grid;grid-template-columns: repeat(auto-fit,minmax(240px,1fr));gap: 24px}.deck .card{padding: 22px 24px 20px;background: var(--surface);border-top: 3px solid var(--signal);font-size: 23px;line-height: 1.4}.deck .card h4{margin-bottom: 8px}.deck .card p:last-child{margin-bottom: 0}.deck ol.flow{list-style: none;counter-reset: passo;display: grid;grid-auto-columns: 1fr;grid-auto-flow: column;gap: 44px;padding: 0;margin-top: 8px}.deck ol.flow>li{position: relative;counter-increment: passo;margin: 0;padding-top: 64px;font-size: 23px;line-height: 1.4}.deck ol.flow>li::before{content: counter(passo);position: absolute;top: 0;left: 0;width: 44px;height: 44px;border: 2px solid var(--signal);border-radius: 50%;font-family: var(--font-voice);font-size: 22px;font-weight: 600;line-height: 40px;text-align: center;color: var(--accent)}.deck ol.flow>li:not(:last-child)::after{content: "";position: absolute;top: 22px;left: 58px;right: -30px;height: 2px;background: var(--rule)}.deck ol.flow>li b:first-child{display: block;margin-bottom: 6px;font-family: var(--font-voice);font-size: 27px;font-weight: 600;color: var(--heading)}.deck .figure{font-family: var(--font-voice);font-size: 190px;font-weight: 400;line-height: 0.85;letter-spacing: -0.04em;color: var(--signal)}.deck .figure .unit{margin-left: 12px;font-size: 64px;letter-spacing: -0.02em;color: var(--accent)}.deck .figure + p{max-width: 26em;margin-top: 34px;font-size: 30px;font-weight: 300}.deck table{width: 100%;border-collapse: collapse;font-size: 23px}.deck table th{padding: 0 18px 10px 0;border-bottom: 2px solid var(--rule-strong);text-align: left;font-size: 19px;font-weight: var(--label-weight);color: var(--muted)}.deck table td{padding: 11px 18px 11px 0;border-bottom: 1px solid var(--rule);vertical-align: top}.deck table .num{text-align: right;white-space: nowrap}.deck .takeaway{margin-top: 30px;padding-left: 22px;border-left: 3px solid var(--signal);font-size: 28px;font-style: italic;color: var(--strong)}.deck .note{margin-top: 14px;font-size: 18px;color: var(--muted)}.deck .logo{display: inline-block;line-height: 0}.deck .logo svg{display: block;width: 100%;height: auto}.deck figure{margin: 0}.deck figure img,.deck figure svg{display: block;max-width: 100%;max-height: 440px;margin: 0 auto}.deck figcaption{margin-top: 10px;font-size: 18px;color: var(--muted);text-align: center}.deck .slides section>.firma{position: absolute;top: 46px;right: 76px;font-family: "Cormorant Garamond",Georgia,serif;font-size: 26px;font-weight: 500;line-height: 1;letter-spacing: 0.01em;color: var(--heading);opacity: 0.85;pointer-events: none}.deck .slides section>.firma i{font-style: italic;color: var(--signal)}body>.cambia-vista{font-family: var(--font-text);font-size: 13px;font-weight: var(--label-weight);line-height: 1;color: var(--muted);text-decoration: none}body>.cambia-vista:hover,body>.cambia-vista:focus-visible{color: var(--accent);text-decoration: underline;text-underline-offset: 3px}body.reveal-viewport>.cambia-vista{position: fixed;top: 16px;right: 22px;z-index: 40;opacity: 0.8}body.reveal-viewport>.cambia-vista:hover,body.reveal-viewport>.cambia-vista:focus-visible{opacity: 1}body:has(.reveal.has-dark-background)>.cambia-vista{color: var(--dust)}body:has(.reveal.has-dark-background)>.cambia-vista:hover,body:has(.reveal.has-dark-background)>.cambia-vista:focus-visible{color: var(--spark)}body:has(.deck:not(.reveal))>.cambia-vista{display: block;width: 1280px;margin: -10px auto 14px;text-align: right}:root:fullscreen .cambia-vista,:root:has(:fullscreen) .cambia-vista,:root.print-pdf .cambia-vista{display: none !important}@media print{.cambia-vista{display: none !important}}@page{size: 1280px 720px;margin: 0}.deck:not(.reveal){counter-reset: foglio}.deck:not(.reveal) .slides>section,.deck:not(.reveal) .slides>section>section{position: relative;width: 1280px;height: 720px;margin: 0 auto 28px;background: var(--bg);box-shadow: var(--sheet-shadow);counter-increment: foglio}.deck:not(.reveal) .slides>section:has(>section){display: contents;counter-increment: none}.deck:not(.reveal) .slides section:not(:has(>section))::after{content: counter(foglio);position: absolute;right: 28px;bottom: 20px;font-size: 14px;font-weight: var(--label-weight);color: var(--muted)}.deck:not(.reveal) aside.notes{display: none}body:has(.deck:not(.reveal)){margin: 0;padding: 28px 0;background: var(--warm)}@media print{body:has(.deck:not(.reveal)){padding: 0;background: none}.deck:not(.reveal) .slides>section,.deck:not(.reveal) .slides>section>section{margin: 0;box-shadow: none;overflow: hidden;break-after: page;-webkit-print-color-adjust: exact;print-color-adjust: exact}}</style>
+
+<!-- Diagrammi e piccoli aggiustamenti di questo deck: solo ruoli dei token. -->
+<style id="blueprint">
+.deck svg.dg { display: block; width: 100%; height: auto; overflow: visible; }
+.deck .dg text { font-family: var(--font-text); font-size: 20px; fill: var(--text); }
+.deck .dg .h { font-family: var(--font-voice); font-weight: 600; fill: var(--heading); }
+.deck .dg .big { font-family: var(--font-voice); font-size: 34px; font-weight: 600; fill: var(--heading); }
+.deck .dg .m { font-size: 18px; fill: var(--muted); }
+.deck .dg .a { fill: var(--accent); font-weight: 600; }
+.deck .dg .c { font-family: var(--font-code); font-size: 19px; fill: var(--strong); }
+.deck .dg rect { fill: var(--surface); stroke: var(--rule); stroke-width: 1.5; }
+.deck .dg rect.hot { stroke: var(--signal); stroke-width: 2.5; }
+.deck .dg rect.frame { fill: none; stroke: var(--signal); stroke-width: 2.5; }
+.deck .dg rect.dash { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.deck .dg rect.off { fill: none; stroke: var(--rule); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.deck .dg .ln { stroke: var(--muted); stroke-width: 2; fill: none; }
+.deck .dg .ln.hot { stroke: var(--signal); stroke-width: 3; }
+.deck .dg .tip { fill: var(--muted); }
+.deck .dg .tip.hot { fill: var(--signal); }
+.deck section.tight h2 { margin-bottom: 18px; }
+.deck .cols.narrow-left { grid-template-columns: 1.05fr 1fr; gap: 44px; }
+.deck .small, .deck .small li { font-size: 23px; line-height: 1.4; }
+.deck .small li { margin-bottom: 8px; }
+.deck pre { box-sizing: border-box; font-size: 20px; line-height: 1.45; overflow: hidden; }
+.deck pre code { font-size: 20px; }
+.deck table.compact { font-size: 21px; }
+.deck table.compact td { padding: 8px 18px 8px 0; }
+.deck .open { margin-top: 18px; padding: 14px 20px; border-left: 3px dashed var(--signal); background: var(--surface); font-size: 22px; }
+</style>
+</head>
+<body>
+<div class="deck">
+<div class="slides">
+
+<!-- ═══ COPERTINA ══════════════════════════════════════════════════════ -->
+<section class="cover night" data-background-color="#14110e">
+  <span class="logo" data-logo="wordmark-light"><svg xmlns="http://www.w3.org/2000/svg" viewBox="2.20 -151.20 469.00 212.20" role="img" aria-label="Efesto"><title>Efesto</title><path fill="#FAF7F1" d="M92.400 0L8.600 0Q8.200 0 8.200-1.200Q8.200-2.400 8.600-2.400Q16-2.400 19.600-3.400Q23.200-4.400 24.500-7.400Q25.800-10.400 25.800-16.200L25.800-108.800Q25.800-114.600 24.500-117.500Q23.200-120.400 19.600-121.500Q16-122.600 8.600-122.600Q8.200-122.600 8.200-123.800Q8.200-125 8.600-125L89-125Q90.800-125 90.800-123.200L91.200-98.600Q91.200-98 90.100-97.900Q89-97.800 89-98.400Q88.400-109.200 82.500-115Q76.600-120.800 67.200-120.800L55-120.800Q48.200-120.800 44.700-119.800Q41.200-118.800 39.900-116Q38.600-113.200 38.600-107.800L38.600-17Q38.600-11.800 39.900-9Q41.200-6.200 44.500-5.200Q47.800-4.200 54.400-4.200L70.400-4.200Q80-4.200 86.500-11.100Q93-18 95-29.800Q95-30.400 96.200-30.200Q97.400-30 97.400-29.400Q96.600-24.200 96.100-16.800Q95.600-9.400 95.600-3Q95.600 0 92.400 0M81.200-46.600Q81.200-55.400 76.900-59.200Q72.600-63 62.600-63L32.600-63L32.600-67.200L63.200-67.200Q72.800-67.200 76.900-70.500Q81-73.800 81-81.200Q81-81.600 82.200-81.600Q83.400-81.600 83.400-81.200Q83.400-75.200 83.300-71.900Q83.200-68.600 83.200-65Q83.200-60.400 83.400-56Q83.600-51.600 83.600-46.600Q83.600-46.200 82.400-46.200Q81.200-46.200 81.200-46.600"/><path fill="#B84A1E" d="M99.400 55Q92.400 55 89.300 52.300Q86.200 49.600 86.800 46.400Q87 43.800 89 42Q91 40.200 94 40.200Q97.200 40.200 98.600 41.900Q100 43.600 100.600 45.800Q101.200 48 102.100 49.700Q103 51.400 105.400 51.400Q107.800 51.400 109.500 48.300Q111.200 45.200 113 36.200Q114.800 27.200 117.400 9.400L127.600-61.200Q128.400-66.200 127.900-68.500Q127.400-70.800 124.800-71.500Q122.200-72.200 116.600-72.200Q115.800-72.200 116-73.400Q116.200-74.600 116.800-74.600Q124-74.600 127-76.600Q130-78.600 130.800-83.600Q133.800-101.800 137.300-113.700Q140.800-125.600 145.400-132.500Q150-139.400 156.200-142.300Q162.400-145.200 171.200-145.200Q178.400-145.200 182.200-142.100Q186-139 185.600-134.800Q185-131.800 183-130.400Q181-129 178.600-129Q175.400-129 174.100-131Q172.800-133 171.900-135.600Q171-138.200 169.600-140.200Q168.200-142.200 165-142.200Q157.200-142.200 151.600-128.500Q146-114.800 142-87.800L128.600 4.200Q125.800 23.200 122.200 34.400Q118.600 45.600 113.100 50.300Q107.600 55 99.400 55M155.400-68.400Q153.200-68.800 149.700-69.300Q146.200-69.800 142.100-70.200Q138-70.600 133.600-70.600L134-75.200Q138.400-75.200 144.100-75.600Q149.800-76 154.600-76.300Q159.400-76.600 160.800-76.600Q161.800-76.600 162.100-76.100Q162.400-75.600 162.200-74.800Q161.800-73.200 159.700-70.700Q157.600-68.200 155.400-68.400"/><path fill="#FAF7F1" d="M203.600 2.400Q191.600 2.400 183.400-3.100Q175.200-8.600 171.100-17.400Q167-26.200 167-36Q167-48.200 172.600-57.900Q178.200-67.600 187.900-73.300Q197.600-79 209.200-79Q220.600-79 226.500-73Q232.400-67 232.400-56.200Q232.400-53.600 231.900-52.300Q231.400-51 230-51L218.800-51Q219.600-63.200 215.200-69.100Q210.800-75 202.600-75Q192-75 186.100-66.600Q180.200-58.200 180.200-43.600Q180.200-32.200 183.800-23.400Q187.400-14.600 194.400-9.600Q201.400-4.600 211.400-4.600Q218.200-4.600 222.600-6.600Q227-8.600 231.400-11.200Q231.800-11.600 232.500-10.700Q233.200-9.800 232.800-9.200Q225.800-3 218.500-0.300Q211.200 2.400 203.600 2.400M221.800-51L176.600-50.800L176.400-53.400L221.800-54.200"/><path fill="#FAF7F1" d="M261.400-65Q261.400-59.800 264.100-56.200Q266.800-52.600 270.900-50.100Q275-47.600 279.600-45.200Q284.800-42.600 289.400-39.700Q294-36.800 297-32.700Q300-28.600 300-22Q300-15.600 296.800-10.100Q293.600-4.600 287.300-1.200Q281 2.200 271.800 2.200Q266.800 2.200 262.200 0.900Q257.600-0.400 252.600-3.800Q252.200-4.200 251.800-4.800Q251.400-5.400 251.400-6.200L251-21.800Q251-22.400 252.100-22.500Q253.200-22.600 253.400-22Q255.800-15.200 259.400-10.700Q263-6.200 267.600-3.900Q272.200-1.600 277.400-1.600Q283.800-1.600 287.300-4.800Q290.800-8 290.600-14.200Q290.400-20 287.600-23.600Q284.800-27.200 280.700-29.700Q276.600-32.200 272.200-34.400Q267.200-36.800 262.700-39.500Q258.200-42.200 255.300-46.400Q252.400-50.600 252.400-57.400Q252.400-65.200 256.400-70.100Q260.400-75 266.600-77.300Q272.800-79.600 279.600-79.600Q283.400-79.600 287-79Q290.600-78.400 294.200-76.600Q296-76 296-74.400Q296-71.200 295.800-67.700Q295.600-64.200 295.600-59.800Q295.600-59.400 294.400-59.400Q293.200-59.400 293.200-59.800Q293.200-64.400 290-68Q286.800-71.600 282-73.700Q277.200-75.800 272.400-75.800Q267.600-75.800 264.500-73.200Q261.400-70.600 261.400-65"/><path fill="#FAF7F1" d="M346.600 2.400Q341.800 2.400 337.400 0.900Q333-0.600 330.200-4.200Q327.400-7.800 327.400-14L327.400-61Q327.400-65.800 326.800-68.200Q326.200-70.600 324-71.300Q321.800-72 317.200-72Q316.400-72 316.400-73.300Q316.400-74.600 317.200-74.600Q325.200-74.800 330.300-79Q335.400-83.200 336-89.800Q336-90.400 337.500-90.400Q339-90.400 339-89.800L339-20.800Q339-12.600 343.100-8.600Q347.200-4.600 354.800-4.600Q360-4.600 364.100-6.300Q368.200-8 370.800-10.200Q371.600-10.600 372.300-9.700Q373-8.800 372.200-8.200Q364.800-2.600 358.900-0.100Q353 2.400 346.600 2.400M366-67.400Q358.200-69.400 351-70Q343.800-70.600 335.600-70.600L335.600-75Q343.600-75 351-75.600Q358.400-76.200 366.800-77Q367.200-77 367.700-75.600Q368.200-74.200 368.200-72.200Q368.200-70.800 367.500-69Q366.800-67.200 366-67.400"/><path fill="#FAF7F1" d="M422.800 2.600Q411 2.600 402.200-3.200Q393.400-9 388.600-18.700Q383.800-28.400 383.800-39.600Q383.800-50 387.600-57.600Q391.400-65.200 397.800-70.100Q404.200-75 411.700-77.400Q419.200-79.800 426.400-79.800Q438.600-79.800 447.300-73.800Q456-67.800 460.600-58.400Q465.200-49 465.200-38.600Q465.200-25.800 459.400-16.600Q453.600-7.400 444-2.400Q434.400 2.600 422.800 2.600M428.600-1.200Q439.200-1.200 445.400-8.700Q451.600-16.200 451.600-33Q451.600-45.600 447.500-55.300Q443.400-65 436.200-70.500Q429-76 419.800-76Q409.200-76 403.200-68.200Q397.200-60.400 397.200-45.800Q397.200-33.600 401.200-23.400Q405.200-13.200 412.300-7.200Q419.400-1.200 428.600-1.200"/></svg></span>
+  <h1>Il <em>blueprint</em> di Efesto</h1>
+  <p class="lead">Come costruiamo un'applicazione perché resti elastica: le forme che prende crescendo e le parti di ciascuna.</p>
+  <p class="meta">30 ottobre 2026 · documento di lavoro, in revisione</p>
+</section>
+
+<!-- ═══ QUADRO COMPLETO ════════════════════════════════════════════════ -->
+<section class="tight">
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <h2>Dove può <em>arrivare</em> un progetto</h2>
+  <svg class="dg" viewBox="0 0 1128 524" role="img" aria-label="Il quadro completo: client, bus server, bootstrap, core, adapter e job queue">
+    <defs>
+      <marker id="q-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="tip" d="M0,0 L10,5 L0,10 z"/></marker>
+    </defs>
+    <!-- client -->
+    <rect x="0" y="0" width="180" height="52"/><text x="90" y="33" text-anchor="middle" class="h">webapp-staff</text>
+    <rect x="200" y="0" width="180" height="52"/><text x="290" y="33" text-anchor="middle" class="h">webapp-admin</text>
+    <rect x="400" y="0" width="180" height="52"/><text x="490" y="33" text-anchor="middle" class="h">CLI</text>
+    <rect x="600" y="0" width="220" height="52"/><text x="710" y="33" text-anchor="middle" class="h">agenti → server MCP</text>
+    <text x="850" y="22" class="h">client</text>
+    <text x="850" y="46" class="m">lato driver</text>
+    <!-- canali -->
+    <path class="ln" d="M90,54 V104" marker-end="url(#q-tip)"/><text x="100" y="86" class="m">Workers RPC</text>
+    <path class="ln" d="M290,54 V104" marker-end="url(#q-tip)"/><text x="300" y="86" class="m">Workers RPC</text>
+    <path class="ln" d="M490,54 V104" marker-end="url(#q-tip)"/><text x="500" y="86" class="m">HTTP · API</text>
+    <path class="ln" d="M710,54 V104" marker-end="url(#q-tip)"/><text x="720" y="86" class="m">canale remoto</text>
+    <!-- bus server -->
+    <rect class="frame" x="0" y="108" width="820" height="232"/>
+    <text x="18" y="138"><tspan class="h">bus-server</tspan><tspan class="m" dx="8">un deployable, unico punto d'ingresso</tspan></text>
+    <rect x="18" y="152" width="136" height="54"/><text x="86" y="186" text-anchor="middle" class="h">canali</text>
+    <rect x="180" y="152" width="136" height="54"/><text x="248" y="186" text-anchor="middle" class="h">dispatcher</text>
+    <rect class="hot" x="342" y="152" width="136" height="54"/><text x="410" y="186" text-anchor="middle" class="h">middleware</text>
+    <rect x="504" y="152" width="136" height="54"/><text x="572" y="186" text-anchor="middle" class="h">handler</text>
+    <rect x="666" y="152" width="136" height="54"/><text x="734" y="186" text-anchor="middle" class="h">use case</text>
+    <path class="ln" d="M156,179 H176" marker-end="url(#q-tip)"/>
+    <path class="ln" d="M318,179 H338" marker-end="url(#q-tip)"/>
+    <path class="ln" d="M480,179 H500" marker-end="url(#q-tip)"/>
+    <path class="ln" d="M642,179 H662" marker-end="url(#q-tip)"/>
+    <text x="86" y="232" text-anchor="middle" class="m">RPC · HTTP<tspan x="86" dy="22">in-process</tspan></text>
+    <text x="248" y="232" text-anchor="middle" class="m">valida l'input<tspan x="248" dy="22">con lo schema</tspan></text>
+    <text x="410" y="232" text-anchor="middle" class="m">policy · audit<tspan x="410" dy="22">niente anonimi</tspan></text>
+    <text x="572" y="232" text-anchor="middle" class="m">comando →<tspan x="572" dy="22">use case</tspan></text>
+    <text x="734" y="232" text-anchor="middle" class="m">ritorna<tspan x="734" dy="22">un Result</tspan></text>
+    <rect x="18" y="272" width="784" height="50"/>
+    <text x="36" y="304"><tspan class="h">bootstrap</tspan><tspan dx="8">compone il core con gli adapter, reali o stub</tspan></text>
+    <!-- core -->
+    <path class="ln" d="M410,324 V370" marker-end="url(#q-tip)"/><text x="420" y="356" class="m">carica</text>
+    <rect class="hot" x="0" y="374" width="820" height="56"/>
+    <text x="18" y="409"><tspan class="h">core</tspan><tspan dx="10">entity · value object · use case · porte</tspan><tspan class="m" dx="14">nessuna tecnologia</tspan></text>
+    <!-- adapter driven -->
+    <text x="870" y="138" class="h">adapter</text>
+    <text x="870" y="160" class="m">lato driven</text>
+    <rect x="870" y="174" width="258" height="40"/><text x="886" y="201">database</text>
+    <rect x="870" y="222" width="258" height="40"/><text x="886" y="249">mail</text>
+    <rect x="870" y="270" width="258" height="40"/><text x="886" y="297">coda dei job</text>
+    <rect class="dash" x="870" y="318" width="258" height="40"/><text x="886" y="345">stub in memoria</text>
+    <path class="ln" d="M822,297 H866" marker-end="url(#q-tip)"/>
+    <path class="ln" d="M999,360 V402 H824" marker-end="url(#q-tip)"/>
+    <text x="842" y="424" class="m">implementano le porte</text>
+    <!-- job queue, a parte -->
+    <rect class="dash" x="0" y="456" width="1128" height="66"/>
+    <rect x="16" y="468" width="190" height="42"/><text x="111" y="496" text-anchor="middle" class="h">coda dei job</text>
+    <path class="ln" d="M208,489 H244" marker-end="url(#q-tip)"/>
+    <rect x="248" y="468" width="160" height="42"/><text x="328" y="496" text-anchor="middle" class="h">consumer</text>
+    <path class="ln" d="M410,489 H446" marker-end="url(#q-tip)"/>
+    <rect x="450" y="468" width="240" height="42"/><text x="570" y="496" text-anchor="middle" class="h">gli stessi use case</text>
+    <text x="716" y="485" class="a" style="font-size:18px">a parte: bus ≠ coda</text>
+    <text x="716" y="507" class="m">il bus risponde subito, la coda esegue dopo</text>
+  </svg>
+  <aside class="notes">L'immagine di tutto quello che ci sta davanti. In alto i client, il lato driver: due webapp via Workers RPC, una CLI sull'API HTTP, un server MCP per gli agenti. Tutti passano dallo stesso bus server: il canale porta il comando, il dispatcher valida l'input con lo schema del comando, il middleware applica la policy (un solo punto di autorizzazione, nessun accesso anonimo) e scrive l'audit, l'handler chiama lo use case. Il bus server carica il bootstrap, che compone il core con gli adapter driven: database, mail, coda dei job, e lo stub in memoria per mock e test. A parte la job queue: il consumer chiama gli stessi use case, più tardi.</aside>
+</section>
+
+<!-- ═══ PUNTO D'ARRIVO, NON DI PARTENZA ════════════════════════════════ -->
+<section class="sand" data-background-color="#efe8dc">
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Come si legge il quadro</p>
+  <h2>È il punto d'arrivo possibile, non il punto di <em>partenza</em></h2>
+  <ol class="flow">
+    <li><b>Si parte in basso</b>Dal gradino più basso che basta al progetto.</li>
+    <li><b>Compare il segnale</b>Un bisogno concreto che il gradino attuale non regge.</li>
+    <li><b>Si fa la mossa</b>Un refactor verso il gradino dopo. Niente riscrittura.</li>
+  </ol>
+  <p class="takeaway">Si sale senza riscrivere solo se le regole dello use case valgono dal primo giorno.</p>
+  <aside class="notes">Elasticità vuol dire questo: salire quando serve, non prima, e senza buttare via il codice. Ogni gradino aggiunge pacchetti a quello prima. La condizione è che le regole sugli use case (input oggetto, contesto, Result, niente autorizzazione dentro) si rispettino già al gradino 1.</aside>
+</section>
+
+<!-- ═══ DUE ASSI, CINQUE GRADINI ═══════════════════════════════════════ -->
+<section class="tight">
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Gradini</p>
+  <h2>Due assi, cinque <em>gradini</em></h2>
+  <svg class="dg" viewBox="0 0 1128 430" role="img" aria-label="I gradini sui due assi">
+    <defs>
+      <marker id="g-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="tip hot" d="M0,0 L10,5 L0,10 z"/></marker>
+    </defs>
+    <!-- etichette delle righe -->
+    <text x="40" y="46" class="h">C</text><text x="40" y="70" class="m">command bus</text>
+    <text x="40" y="156" class="h">B</text><text x="40" y="180" class="m">bootstrap condiviso</text>
+    <text x="40" y="266" class="h">A</text><text x="40" y="290" class="m">l'app chiama il core</text>
+    <text transform="translate(16,300) rotate(-90)" class="m">come arrivano ai client →</text>
+    <!-- colonne: 0, 1, 2 -->
+    <rect class="off" x="230" y="0" width="280" height="96"/><text x="370" y="54" text-anchor="middle" class="m">possibile, raro</text>
+    <rect class="off" x="536" y="0" width="280" height="96"/><text x="676" y="54" text-anchor="middle" class="m">possibile, raro</text>
+    <rect class="off" x="230" y="110" width="280" height="96"/><text x="370" y="164" text-anchor="middle" class="m">possibile, raro</text>
+    <rect class="off" x="536" y="110" width="280" height="96"/><text x="676" y="164" text-anchor="middle" class="m">possibile, raro</text>
+
+    <rect class="hot" x="230" y="220" width="280" height="96"/><text x="254" y="270" class="big">0</text><text x="254" y="298" class="m">un pacchetto</text>
+    <rect class="hot" x="536" y="220" width="280" height="96"/><text x="560" y="270" class="big">1</text><text x="560" y="298" class="m">core</text>
+    <rect class="hot" x="842" y="220" width="280" height="96"/><text x="866" y="270" class="big">2·A</text><text x="866" y="298" class="m">adapter e stub</text>
+    <rect class="hot" x="842" y="110" width="280" height="96"/><text x="866" y="160" class="big">2·B</text><text x="866" y="188" class="m">bootstrap condiviso</text>
+    <rect class="hot" x="842" y="0" width="280" height="96"/><text x="866" y="50" class="big">2·C</text><text x="866" y="78" class="m">command bus</text>
+
+    <path class="ln hot" d="M511,268 H533" marker-end="url(#g-tip)"/>
+    <path class="ln hot" d="M817,268 H839" marker-end="url(#g-tip)"/>
+    <path class="ln hot" d="M982,219 V209" marker-end="url(#g-tip)"/>
+    <path class="ln hot" d="M982,109 V99" marker-end="url(#g-tip)"/>
+    <!-- asse x -->
+    <text x="370" y="350" text-anchor="middle" class="h">0 · un pacchetto</text>
+    <text x="676" y="350" text-anchor="middle" class="h">1 · + core</text>
+    <text x="982" y="350" text-anchor="middle" class="h">2 · + adapter</text>
+    <text x="676" y="384" text-anchor="middle" class="m">modularità interna →</text>
+    <text x="230" y="424" class="m">Prima si separa la logica (0 → 1 → 2), poi cambia il modo in cui arriva ai client (A → B → C).</text>
+  </svg>
+  <aside class="notes">Ogni gradino aggiunge pacchetti a quello prima. Le caselle fuori percorso sono possibili ma rare. Nei diagrammi dei gradini le frecce indicano «importa».</aside>
+</section>
+
+<!-- ═══ GRADINO 0 ══════════════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Gradino 0</p>
+  <h2>Un pacchetto: tutto sta <em>nell'app</em></h2>
+  <div class="cols narrow-left">
+    <pre><code>// app/routes/expenses.$id.tsx
+export async function loader({ params }) {
+    const expense =
+        await db.expense.findUnique({
+            where: { id: params.id },
+        });
+    if (!expense) throw notFound();
+    return { expense };
+}</code></pre>
+    <ul class="points small">
+      <li><b>Per:</b> proof of concept, applicativi piccoli e autocontenuti.</li>
+      <li><b>Pacchetti:</b> uno. Route, logica e query nello stesso posto.</li>
+      <li><b>Limite:</b> la logica non si riusa e non si testa senza database.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ GRADINO 1 ══════════════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Gradino 1</p>
+  <h2>La logica esce dall'app ed entra nel <em>core</em></h2>
+  <div class="cols narrow-left">
+    <pre><code>// webapp: il loader chiama lo use case
+const result = await context
+    .resolveUseCase("expenses.GetExpense")
+    .execute({ expense_id: params.id },
+             { actor: context.actor });
+return toResponse(result);</code></pre>
+    <ul class="points small">
+      <li><b>Segnale:</b> la logica serve a un secondo consumatore (un job, una CLI) o supera la prima schermata.</li>
+      <li><b>Mossa:</b> la logica passa per intero in core; i loader chiamano use case.</li>
+      <li><b>Limite:</b> le implementazioni delle porte stanno nel core e si portano dietro l'ORM.</li>
+    </ul>
+  </div>
+  <aside class="notes">È la forma della maggior parte delle applicazioni. Due pacchetti: core e webapp. Il limite: niente stub, niente test isolati.</aside>
+</section>
+
+<!-- ═══ GRADINO 2·A ════════════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Gradino 2·A</p>
+  <h2>Ogni porta ha un adapter reale e uno <em>stub</em></h2>
+  <div class="cols narrow-left">
+    <pre><code>// webapp/app/container.server.ts
+container.load(
+    env.MOCK
+        ? installStub()
+        : installDb({ db: env.DB }),
+    installMail({ from: env.MAIL_FROM }),
+);</code></pre>
+    <ul class="points small">
+      <li><b>Segnale:</b> test senza infrastruttura, un mock navigabile prima del backend, un fornitore da poter cambiare.</li>
+      <li><b>Mossa:</b> le implementazioni vanno in <code>adapters/*</code>, si aggiunge lo stub, l'app sceglie cosa caricare.</li>
+      <li><b>Limite:</b> il wiring vive nell'app; un secondo processo dovrebbe ricopiarlo.</li>
+    </ul>
+  </div>
+  <aside class="notes">Il core non contiene più nessuna tecnologia. Pacchetti: due, più uno per adapter.</aside>
+</section>
+
+<!-- ═══ GRADINO 2·B ════════════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Gradino 2·B</p>
+  <h2>Più processi, un <em>bootstrap</em> con un profilo ciascuno</h2>
+  <div class="cols narrow-left">
+    <pre><code>// webapp-admin/workers/app.ts
+const resolveUseCase =
+    await bootstrapAdmin(env, {
+        mock: env.MOCK === "1",
+        requires: ["DB", "MAIL_FROM"],
+    });</code></pre>
+    <ul class="points small">
+      <li><b>Segnale:</b> un'altra webapp, un consumer di code, un cron sullo stesso core.</li>
+      <li><b>Mossa:</b> il composition root diventa il pacchetto <code>bootstrap</code>. Un binding mancante è un errore con nome.</li>
+      <li><b>Limite:</b> ogni processo controlla i permessi per conto suo: le stesse regole, scritte più volte.</li>
+    </ul>
+  </div>
+  <aside class="notes">Il profilo carica solo gli adapter che servono a quel processo: le dipendenze pesanti (per esempio un adapter per le immagini) restano fuori dalle webapp che non le usano. Una porta senza binding fa fallire solo lo use case che la usa, con un errore esplicito.</aside>
+</section>
+
+<!-- ═══ GRADINO 2·C ════════════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Gradino 2·C</p>
+  <h2>Gli use case esposti diventano <em>comandi</em></h2>
+  <div class="cols narrow-left">
+    <pre><code>// webapp: chiama il bus, non il core
+const result = await bus.dispatch(
+    "approveExpense",
+    { expense_id },
+);</code></pre>
+    <ul class="points small">
+      <li><b>Segnale:</b> client che non ospitano il core (CLI, MCP, agenti); regole d'accesso da riscrivere in ogni webapp.</li>
+      <li><b>Mossa:</b> per ogni use case esposto, un comando con la policy e un handler.</li>
+      <li><b>Costo:</b> un salto di rete, un token che lo attraversa, un contratto da tenere compatibile.</li>
+    </ul>
+  </div>
+  <aside class="notes">Altri segnali: dati e segreti in un solo deploy; dipendenze pesanti fuori dalle webapp quando i profili non bastano. Il gradino nasce col canale remoto (Workers RPC, HTTP). Il canale in-process non è un gradino a sé: serve alla mock mode e al test di contratto sullo stub. Pacchetti: commands, bus, più il deployable bus-server.</aside>
+</section>
+
+<!-- ═══ STRATI ═════════════════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Strati · al gradino 2·C</p>
+  <h2>Ogni strato risponde a una <em>domanda</em> sola</h2>
+  <table class="compact">
+    <thead><tr><th>Strato</th><th>Domanda</th><th>Pacchetto</th></tr></thead>
+    <tbody>
+      <tr><td>Webapp, CLI, agenti</td><td>Cosa mostro, quando chiamo?</td><td><code>webapp-*</code></td></tr>
+      <tr><td>Canale</td><td>Come arriva il comando? Sostituibile.</td><td><code>bus</code></td></tr>
+      <tr><td>Schema dell'input</td><td>L'input ha la forma giusta?</td><td><code>commands</code></td></tr>
+      <tr><td>Middleware: policy</td><td>Questo attore può inviare il comando?</td><td><code>bus</code></td></tr>
+      <tr><td>Handler</td><td>Come diventa l'input dello use case?</td><td><code>bus</code></td></tr>
+      <tr><td>Use case, entity, value object</td><td>Il dominio lo consente? Se sì, eseguo.</td><td><code>core</code></td></tr>
+      <tr><td>Porta → adapter</td><td>Dove salvo, a chi invio?</td><td><code>core</code> → <code>adapters/*</code></td></tr>
+    </tbody>
+  </table>
+  <p class="note">Fino al 2·B forma e permessi li controlla la route. Restano comunque fuori dallo use case.</p>
+</section>
+
+<!-- ═══ USE CASE ═══════════════════════════════════════════════════════ -->
+<section class="tight">
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Use case</p>
+  <h2>Un oggetto e un contesto in ingresso, un <em>Result</em> in uscita</h2>
+  <svg class="dg" viewBox="0 0 1128 140" role="img" aria-label="ApproveExpense: input e contesto, Result in uscita">
+    <defs>
+      <marker id="u-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="tip" d="M0,0 L10,5 L0,10 z"/></marker>
+    </defs>
+    <rect x="0" y="0" width="260" height="60"/><text x="16" y="25" class="m">input: un oggetto</text><text x="16" y="49" class="c">{ expense_id }</text>
+    <rect x="0" y="80" width="260" height="60"/><text x="16" y="105" class="m">contesto</text><text x="16" y="129" class="c">{ actor }</text>
+    <path class="ln" d="M262,30 H300 V60 H336" marker-end="url(#u-tip)"/>
+    <path class="ln" d="M262,110 H300 V80 H336" marker-end="url(#u-tip)"/>
+    <rect class="hot" x="340" y="20" width="320" height="100"/>
+    <text x="500" y="60" text-anchor="middle" class="h">ApproveExpense</text>
+    <text x="500" y="90" text-anchor="middle" class="m">carica → muta → salva</text>
+    <path class="ln" d="M662,60 H700 V30 H736" marker-end="url(#u-tip)"/>
+    <path class="ln" d="M662,80 H700 V110 H736" marker-end="url(#u-tip)"/>
+    <rect x="740" y="0" width="388" height="60"/><text x="756" y="25" class="m">ok</text><text x="756" y="49" class="c">ExpenseDto</text>
+    <rect x="740" y="80" width="388" height="60"/><text x="756" y="105" class="m">errore con nome</text><text x="756" y="129" class="c">ExpenseNotSubmitted</text>
+  </svg>
+  <div class="cols" style="margin-top:26px">
+    <div><h3>Fa</h3><ul class="small">
+      <li>Si fida del tipo dichiarato</li>
+      <li>Applica le regole tramite entity e value object</li>
+      <li>Usa l'attore come dato, non per i permessi</li>
+      <li>Ritorna sempre un <code>Result</code></li>
+    </ul></div>
+    <div><h3>Non fa</h3><ul class="small">
+      <li>Autenticazione o autorizzazione</li>
+      <li>Rivalidare ciò che il tipo garantisce</li>
+      <li>Leggere richiesta, cookie, ambiente</li>
+      <li>Ricevere argomenti posizionali</li>
+    </ul></div>
+  </div>
+  <aside class="notes">Il vincolo sta in IUseCase: il tipo di ritorno deve essere un Result, altrimenti non compila. Così route, handler, job e altri use case trattano allo stesso modo successo e fallimento. Una transazione si apre solo se ci sono due o più scritture che devono riuscire o fallire insieme. Lo use case si chiama senza suffisso: ApproveExpense, interfaccia IApproveExpense, chiave DI "expenses.ApproveExpense".</aside>
+</section>
+
+<!-- ═══ COMPOSIZIONE ═══════════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Use case</p>
+  <h2>Uno use case può chiamarne un altro, a <em>condizioni</em></h2>
+  <svg class="dg" viewBox="0 0 1128 110" role="img" aria-label="ImportExpenses usa CreateExpense">
+    <defs>
+      <marker id="c-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="tip" d="M0,0 L10,5 L0,10 z"/></marker>
+    </defs>
+    <rect class="hot" x="0" y="0" width="440" height="100"/>
+    <text x="20" y="42" class="h">ImportExpenses</text>
+    <text x="20" y="74" class="c">create.execute(row, ctx)</text>
+    <path class="ln" d="M442,50 H684" marker-end="url(#c-tip)"/>
+    <text x="458" y="38" class="m">@inject · ICreateExpense</text>
+    <rect x="688" y="0" width="440" height="100"/>
+    <text x="708" y="42" class="h">CreateExpense</text>
+    <text x="708" y="74" class="m">stesso contesto, stessa transazione</text>
+  </svg>
+  <ul class="points small" style="margin-top:26px">
+    <li><b>Dipendenza per interfaccia,</b> iniettata via DI.</li>
+    <li><b>Stesso contesto</b> passato allo use case chiamato.</li>
+    <li><b>Una transazione sola:</b> l'unit of work è rientrante e vive per richiesta, non come singleton.</li>
+    <li><b>Nessun ciclo</b> fra use case.</li>
+  </ul>
+  <aside class="notes">La regola precedente vietava la composizione per due motivi: transazioni annidate e catena di audit poco leggibile. Con autorizzazione e audit fuori dagli use case resta solo il primo, che l'unit of work rientrante risolve. L'unit of work tiene la transazione corrente in un campo dell'istanza: se fosse singleton, due richieste concorrenti nello stesso processo se la contenderebbero. Il template in stack/ ha un test sulla concorrenza.</aside>
+</section>
+
+<!-- ═══ POLICY VS DOMINIO ══════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Policy e dominio</p>
+  <h2>Chi è l'attore è policy, com'è la risorsa è <em>dominio</em></h2>
+  <div class="cols">
+    <div class="card"><h4>Policy</h4>
+      <p>Dipende dall'attore rispetto alla risorsa: ruolo, appartenenza, possesso.</p>
+      <p><b>«Solo l'autore invia la nota»</b></p>
+      <p>Fuori dallo use case: la route fino al 2·B, il middleware del bus al 2·C.</p></div>
+    <div class="card"><h4>Dominio</h4>
+      <p>Dipende dallo stato della risorsa.</p>
+      <p><b>«Solo se è in bozza»</b></p>
+      <p>Dentro lo use case, attraverso l'entity.</p></div>
+  </div>
+  <p class="takeaway">I casi che il criterio non copre li decide l'applicazione.</p>
+  <aside class="notes">Le regole d'accesso le conosce il core: un servizio di autorizzazione risponde, dato use case, input e contesto, se l'attore può procedere, se la risorsa non è sua o se non è autenticato. Anche identificare l'attore da una credenziale è un servizio del core. Cambia chi le applica: fino al 2·B ogni webapp, route per route, senza un meccanismo unico che lo imponga; al 2·C il middleware del bus, una volta per tutti i client.</aside>
+</section>
+
+<!-- ═══ COMMAND BUS ════════════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Command bus</p>
+  <h2>Si chiama solo <em>bus.dispatch</em>, qualunque sia il canale</h2>
+  <ol class="flow">
+    <li><b>Chiamante</b>Invia nome e input. Non sa dove gira l'handler.</li>
+    <li><b>Canale</b>In-process, Workers RPC, HTTP. Sostituibile.</li>
+    <li><b>Dispatcher</b>Valida l'input con lo schema del comando.</li>
+    <li><b>Middleware</b>Policy, audit, logging.</li>
+    <li><b>Handler</b>Traduce il comando nello use case.</li>
+  </ol>
+  <p class="takeaway">Il ritorno è sempre una Promise dell'esito. Il bus non ha code e non differisce niente.</p>
+  <aside class="notes">Il chiamante non sa su quale canale viaggia il comando né dove gira l'handler. Il canale in-process serve alla mock mode e ai test di contratto. Pacchetti: commands (contratto), bus (dispatcher, handler, middleware, canali), bus-server (deployable). Un comando senza handler non compila. I nomi delle funzioni sono indicativi: si fissano nel progetto esempio.</aside>
+</section>
+
+<!-- ═══ IL COMANDO COME CONTRATTO ══════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Command bus</p>
+  <h2>Il comando è il <em>contratto</em> fra client e bus</h2>
+  <div class="cols narrow-left">
+    <pre><code>// commands/src/approveExpense.ts
+export default command({
+    input: z.object({
+        expense_id: z.string(),
+    }),
+    output: expenseDto,
+    kind: "mutation",
+    description: "Approva una nota spese",
+    policy: can("expenses.approve"),
+});</code></pre>
+    <ul class="points small">
+      <li><b>Schema:</b> il client può validare prima di inviare; fa fede il controllo del dispatcher.</li>
+      <li><b>Errori:</b> con nome, dichiarati nell'output. Il resto arriva come errore interno generico.</li>
+      <li><b>Client:</b> importano <code>commands</code> e <code>core/client</code>; mai use case, container, adapter.</li>
+    </ul>
+  </div>
+  <aside class="notes">Su un canale remoto può arrivare qualunque cosa: il dispatcher valida prima della policy e dell'handler, anche in-process. Se l'input non passa, torna un errore di validazione e l'handler non viene chiamato. Il core è tree-shakeable, con un'uscita core/client separata da quella server: DTO, tipi, dizionari, errori, funzioni pure. Il peso sta negli adapter, non nel core.</aside>
+</section>
+
+<!-- ═══ POLICY OBBLIGATORIA ════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Middleware e policy</p>
+  <h2>Nessun comando senza <em>policy</em></h2>
+  <div class="cols">
+    <div><h3>La regola</h3><ul class="small">
+      <li>La policy è un dato: CLI e agenti la leggono</li>
+      <li>Aperta a ogni autenticato: <code>anyMember</code>, esplicito</li>
+      <li>Nessun accesso anonimo: serve un token valido</li>
+      <li>Nessun default: né «nega» né «consenti» se manca</li>
+    </ul></div>
+    <div><h3>La verifica</h3><ul class="small">
+      <li>Snapshot versionato di comandi e policy: ogni cambio di permessi è nel diff della PR</li>
+      <li>Test di contratto sui due canali, in-process e remoto</li>
+    </ul></div>
+  </div>
+  <p class="open"><b>Da decidere:</b> dove si dichiara la policy di uno use case. Gli esempi la mettono nel comando.</p>
+  <aside class="notes">Nei test un middleware finto riceve nome del comando, attore, input ed esito senza conoscere l'handler. I default sono stati scartati: «nega se manca» sposta l'errore a runtime, «consenti se manca» lascia buchi silenziosi. Il middleware è una funzione che avvolge l'handler, applicata una volta da chi costruisce il bus; l'handler non sa chi lo avvolge.</aside>
+</section>
+
+<!-- ═══ JOB ════════════════════════════════════════════════════════════ -->
+<section class="tight">
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Job, coda e cron</p>
+  <h2>Il bus risponde subito, la coda esegue <em>dopo</em></h2>
+  <svg class="dg" viewBox="0 0 1128 140" role="img" aria-label="Command bus e job queue a confronto">
+    <defs>
+      <marker id="j-tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="tip" d="M0,0 L10,5 L0,10 z"/></marker>
+    </defs>
+    <text x="0" y="34" class="h">command bus</text>
+    <rect x="180" y="4" width="180" height="48"/><text x="270" y="35" text-anchor="middle">chiamante</text>
+    <path class="ln" d="M362,28 H416" marker-end="url(#j-tip)"/>
+    <rect class="hot" x="420" y="4" width="320" height="48"/><text x="580" y="35" text-anchor="middle">bus → handler → use case</text>
+    <text x="770" y="35" class="m">esito subito, nella stessa chiamata</text>
+    <text x="0" y="118" class="h">job queue</text>
+    <rect x="180" y="88" width="180" height="48"/><text x="270" y="119" text-anchor="middle">use case · cron</text>
+    <path class="ln" d="M362,112 H416" marker-end="url(#j-tip)"/>
+    <rect x="420" y="88" width="100" height="48"/><text x="470" y="119" text-anchor="middle">coda</text>
+    <path class="ln" d="M522,112 H556" marker-end="url(#j-tip)"/>
+    <rect class="hot" x="560" y="88" width="250" height="48"/><text x="685" y="119" text-anchor="middle">consumer → use case</text>
+    <text x="836" y="108" class="m">conferma subito; l'esito</text>
+    <text x="836" y="130" class="m">lo registra il consumer</text>
+  </svg>
+  <div class="cols" style="margin-top:28px">
+    <div><h3>Il blueprint fissa</h3><ul class="small">
+      <li>Il lavoro differito passa da una porta del core</li>
+      <li>Coda e scheduler sono adapter, con il loro stub</li>
+      <li>Il consumer chiama lo use case di sempre</li>
+    </ul></div>
+    <div><h3>Resta al progetto</h3><ul class="small">
+      <li>Dove girano consumer e scheduler</li>
+      <li>Retry, parallelismo, repliche, idempotenza</li>
+      <li>L'attore dei job</li>
+    </ul></div>
+  </div>
+  <aside class="notes">Il bus non sostituisce la coda e la coda non sostituisce il bus; si possono usare insieme. Lo use case non sa di girare in differita. Il resto diventerà una reference solo quando ci sarà una soluzione provata.</aside>
+</section>
+
+<!-- ═══ PRINCIPI E PREFERENZE ══════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Principi e preferenze</p>
+  <h2>I principi stanno nella skill, gli strumenti in <em>stack/</em></h2>
+  <table class="compact">
+    <thead><tr><th>Principio</th><th>Preferenza attuale</th><th>Alternative</th></tr></thead>
+    <tbody>
+      <tr><td>Repository in un adapter</td><td>Prisma</td><td>Drizzle, query dirette</td></tr>
+      <tr><td>Il core non dipende dal runtime</td><td>Cloudflare Workers, D1</td><td>container, Postgres</td></tr>
+      <tr><td>Porte iniettate nel costruttore</td><td>Inversify</td><td>tsyringe, TypeDI</td></tr>
+      <tr><td>Result con errori con nome</td><td>valori di Effect 4</td><td>libreria propria, stessa forma</td></tr>
+      <tr><td>Input validato al bordo</td><td>zod</td><td>Schema di Effect</td></tr>
+      <tr><td>Canale sostituibile</td><td>Workers RPC</td><td>HTTP, altro RPC</td></tr>
+      <tr><td>Coda e scheduler dietro una porta</td><td>Cloudflare Queues, Cron Trigger</td><td>pg-boss, croner</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Ogni preferenza è una pagina con la data della scelta: cambiare ORM aggiunge una pagina, non modifica le altre.</p>
+  <aside class="notes">Ottava riga del documento: interfaccia separata dalla logica, oggi React Router in framework mode. Sulla riga del Result il §8 indica ancora @efesto-cloud/result come preferenza attuale; il §9 e lo stato decidono Effect 4 per i valori. Qui è riportata la decisione.</aside>
+</section>
+
+<!-- ═══ LIBRERIE ═══════════════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Librerie in lib</p>
+  <h2>Meno pacchetti: i valori da Effect 4, il resto si <em>tiene</em></h2>
+  <div class="cols three small">
+    <div><h3>Si tiene</h3><p>entity, usecase (col vincolo sul Result), unit-of-work, expand, metadata, teardown, publisher, observable, react-observable, computed</p></div>
+    <div><h3>Si ritira</h3><p>result, maybe, tagged-error e affini → Effect 4. I pacchetti per ORM → template in <code>stack/</code>. login-session, audit.</p></div>
+    <div><h3>Da rivedere</h3><p>toast, da riallineare. env, da far girare dove <code>process</code> non c'è. outbox, sospeso con i job.</p></div>
+  </div>
+  <p class="takeaway">Da Effect solo i valori, non il runtime. Inversify e i decoratori restano, per ora.</p>
+  <aside class="notes">Effect: si prende il modello (successo o errore con nome, errori taggati, schema al bordo); non si prende il runtime (Effect come use case, Context.Tag, Layer). Restano classi, iniezione nel costruttore, execute(input, ctx). Inversify: un passaggio futuro a tsyringe o TypeDI resta un codemod se il core usa solo iniezione nel costruttore con simboli propri, nessuna funzione specifica del container, binding tutti nei moduli e nel composition root. I progetti esistenti restano come sono: niente guida di migrazione.</aside>
+</section>
+
+<!-- ═══ PROGETTO ESEMPIO ═══════════════════════════════════════════════ -->
+<section>
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Progetto esempio</p>
+  <h2>Un dominio, cinque cartelle, un <em>diff</em> per ogni mossa</h2>
+  <div class="cols narrow-left">
+    <pre><code>example/
+  0-single/
+  1-core/
+  2a-adapters/
+  2b-bootstrap/
+  2c-bus/
+
+# la mossa da 2·B a 2·C
+diff -r example/2b-bootstrap \
+        example/2c-bus</code></pre>
+    <ul class="points small">
+      <li><b>Note spese:</b> draft → submitted → approved | rejected → reimbursed.</li>
+      <li><b>Due scritture:</b> <code>ExpenseStatusChange</code> nella stessa transazione.</li>
+      <li><b>Due webapp:</b> lo staff invia, l'admin approva e rimborsa.</li>
+      <li><b>Uno script</b> fa girare typecheck e test su tutte le cartelle.</li>
+    </ul>
+  </div>
+  <aside class="notes">Il dominio è minimo: un'entity, pochi use case. Ci sono anche la porta Mailer con lo stub, una notifica accodata per mostrare la porta della coda, ImportExpenses che usa CreateExpense, le policy expenses.approve, expenses.reimburse, anyMember, e i test: use case sullo stub, contratto del bus sui due canali, snapshot delle policy. Gli snippet della skill si prendono da qui: compilano e hanno i test.</aside>
+</section>
+
+<!-- ═══ PROSSIMI PASSI ═════════════════════════════════════════════════ -->
+<section class="sand" data-background-color="#efe8dc">
+  <span class="firma" aria-hidden="true">E<i>f</i>esto</span>
+  <p class="kicker">Prossimi passi</p>
+  <h2>Prima l'esempio, poi la <em>skill</em></h2>
+  <ol class="flow">
+    <li><b>lib/example</b>Le cinque cartelle, con lo script di verifica.</li>
+    <li><b>SKILL.md</b>Rivista su questo documento, snippet presi dall'esempio.</li>
+    <li><b>References</b>growth, command-bus, testing, stack/*; le altre riscritte.</li>
+    <li><b>Pulizia</b>Le skill figlie si rimuovono.</li>
+  </ol>
+  <p class="open"><b>Ancora aperto:</b> dove si dichiara la policy di uno use case.</p>
+</section>
+
+<!-- ═══ CHIUSURA ═══════════════════════════════════════════════════════ -->
+<section class="cover night" data-background-color="#14110e">
+  <span class="logo" data-logo="wordmark-light"><svg xmlns="http://www.w3.org/2000/svg" viewBox="2.20 -151.20 469.00 212.20" role="img" aria-label="Efesto"><title>Efesto</title><path fill="#FAF7F1" d="M92.400 0L8.600 0Q8.200 0 8.200-1.200Q8.200-2.400 8.600-2.400Q16-2.400 19.600-3.400Q23.200-4.400 24.500-7.400Q25.800-10.400 25.800-16.200L25.800-108.800Q25.800-114.600 24.500-117.500Q23.200-120.400 19.600-121.500Q16-122.600 8.600-122.600Q8.200-122.600 8.200-123.800Q8.200-125 8.600-125L89-125Q90.800-125 90.800-123.200L91.200-98.600Q91.200-98 90.100-97.900Q89-97.800 89-98.400Q88.400-109.200 82.500-115Q76.600-120.800 67.200-120.800L55-120.800Q48.200-120.800 44.700-119.800Q41.200-118.800 39.900-116Q38.600-113.200 38.600-107.800L38.600-17Q38.600-11.800 39.900-9Q41.200-6.200 44.500-5.200Q47.800-4.200 54.400-4.200L70.400-4.200Q80-4.200 86.500-11.100Q93-18 95-29.800Q95-30.400 96.200-30.200Q97.400-30 97.400-29.400Q96.600-24.200 96.100-16.800Q95.600-9.400 95.600-3Q95.600 0 92.400 0M81.200-46.600Q81.200-55.400 76.900-59.200Q72.600-63 62.600-63L32.600-63L32.600-67.200L63.200-67.200Q72.800-67.200 76.900-70.500Q81-73.800 81-81.200Q81-81.600 82.200-81.600Q83.400-81.600 83.400-81.200Q83.400-75.200 83.300-71.900Q83.200-68.600 83.200-65Q83.200-60.400 83.400-56Q83.600-51.600 83.600-46.600Q83.600-46.200 82.400-46.200Q81.200-46.200 81.200-46.600"/><path fill="#B84A1E" d="M99.400 55Q92.400 55 89.300 52.300Q86.200 49.600 86.800 46.400Q87 43.800 89 42Q91 40.200 94 40.200Q97.200 40.200 98.600 41.900Q100 43.600 100.600 45.800Q101.200 48 102.100 49.700Q103 51.400 105.400 51.400Q107.800 51.400 109.500 48.300Q111.200 45.200 113 36.200Q114.800 27.200 117.400 9.400L127.600-61.200Q128.400-66.200 127.900-68.500Q127.400-70.800 124.800-71.500Q122.200-72.200 116.600-72.200Q115.800-72.200 116-73.400Q116.200-74.600 116.800-74.600Q124-74.600 127-76.600Q130-78.600 130.800-83.600Q133.800-101.800 137.300-113.700Q140.800-125.600 145.400-132.500Q150-139.400 156.200-142.300Q162.400-145.200 171.200-145.200Q178.400-145.200 182.200-142.100Q186-139 185.600-134.800Q185-131.800 183-130.400Q181-129 178.600-129Q175.400-129 174.100-131Q172.800-133 171.900-135.600Q171-138.200 169.600-140.200Q168.200-142.200 165-142.200Q157.200-142.200 151.600-128.500Q146-114.800 142-87.800L128.600 4.200Q125.800 23.200 122.200 34.400Q118.600 45.600 113.100 50.300Q107.600 55 99.400 55M155.400-68.400Q153.200-68.800 149.700-69.300Q146.200-69.800 142.100-70.200Q138-70.600 133.600-70.600L134-75.200Q138.400-75.200 144.100-75.600Q149.800-76 154.600-76.300Q159.400-76.600 160.800-76.600Q161.800-76.600 162.100-76.100Q162.400-75.600 162.200-74.800Q161.800-73.200 159.700-70.700Q157.600-68.200 155.400-68.400"/><path fill="#FAF7F1" d="M203.600 2.400Q191.600 2.400 183.400-3.100Q175.200-8.600 171.100-17.400Q167-26.200 167-36Q167-48.200 172.600-57.900Q178.200-67.600 187.900-73.300Q197.600-79 209.200-79Q220.600-79 226.500-73Q232.400-67 232.400-56.200Q232.400-53.600 231.900-52.300Q231.400-51 230-51L218.800-51Q219.600-63.200 215.200-69.100Q210.800-75 202.600-75Q192-75 186.100-66.600Q180.200-58.200 180.200-43.600Q180.200-32.200 183.800-23.400Q187.400-14.600 194.400-9.600Q201.400-4.600 211.400-4.600Q218.200-4.600 222.600-6.600Q227-8.600 231.400-11.200Q231.800-11.600 232.500-10.700Q233.200-9.800 232.800-9.200Q225.800-3 218.500-0.300Q211.200 2.400 203.600 2.400M221.800-51L176.600-50.800L176.400-53.400L221.800-54.200"/><path fill="#FAF7F1" d="M261.400-65Q261.400-59.800 264.100-56.200Q266.800-52.600 270.900-50.100Q275-47.600 279.600-45.200Q284.800-42.600 289.400-39.700Q294-36.800 297-32.700Q300-28.600 300-22Q300-15.600 296.800-10.100Q293.600-4.600 287.300-1.200Q281 2.200 271.800 2.200Q266.800 2.200 262.200 0.900Q257.600-0.400 252.600-3.800Q252.200-4.200 251.800-4.800Q251.400-5.400 251.400-6.200L251-21.800Q251-22.400 252.100-22.500Q253.200-22.600 253.400-22Q255.800-15.200 259.400-10.700Q263-6.200 267.600-3.900Q272.200-1.600 277.400-1.600Q283.800-1.600 287.300-4.800Q290.800-8 290.600-14.200Q290.400-20 287.600-23.600Q284.800-27.200 280.700-29.700Q276.600-32.200 272.200-34.400Q267.200-36.800 262.700-39.500Q258.200-42.200 255.300-46.400Q252.400-50.600 252.400-57.400Q252.400-65.200 256.400-70.100Q260.400-75 266.600-77.300Q272.800-79.600 279.600-79.600Q283.400-79.600 287-79Q290.600-78.400 294.200-76.600Q296-76 296-74.400Q296-71.200 295.800-67.700Q295.600-64.200 295.600-59.800Q295.600-59.400 294.400-59.400Q293.200-59.400 293.200-59.800Q293.200-64.400 290-68Q286.800-71.600 282-73.700Q277.200-75.800 272.400-75.800Q267.600-75.800 264.500-73.200Q261.400-70.600 261.400-65"/><path fill="#FAF7F1" d="M346.600 2.400Q341.800 2.400 337.400 0.900Q333-0.600 330.200-4.200Q327.400-7.800 327.400-14L327.400-61Q327.400-65.800 326.800-68.200Q326.200-70.600 324-71.300Q321.800-72 317.200-72Q316.400-72 316.400-73.300Q316.400-74.600 317.200-74.600Q325.200-74.800 330.300-79Q335.400-83.200 336-89.800Q336-90.400 337.500-90.400Q339-90.400 339-89.800L339-20.800Q339-12.600 343.100-8.600Q347.200-4.600 354.800-4.600Q360-4.600 364.100-6.300Q368.200-8 370.800-10.200Q371.600-10.600 372.300-9.700Q373-8.800 372.200-8.200Q364.800-2.600 358.900-0.100Q353 2.400 346.600 2.400M366-67.400Q358.200-69.400 351-70Q343.800-70.600 335.600-70.600L335.600-75Q343.600-75 351-75.600Q358.400-76.200 366.800-77Q367.200-77 367.700-75.600Q368.200-74.200 368.200-72.200Q368.200-70.800 367.500-69Q366.800-67.200 366-67.400"/><path fill="#FAF7F1" d="M422.800 2.600Q411 2.600 402.200-3.200Q393.400-9 388.600-18.700Q383.800-28.400 383.800-39.600Q383.800-50 387.600-57.600Q391.400-65.200 397.800-70.100Q404.200-75 411.700-77.400Q419.200-79.800 426.400-79.800Q438.600-79.800 447.300-73.800Q456-67.800 460.600-58.400Q465.200-49 465.200-38.600Q465.200-25.800 459.400-16.600Q453.600-7.400 444-2.400Q434.400 2.600 422.800 2.600M428.600-1.200Q439.200-1.200 445.400-8.700Q451.600-16.200 451.600-33Q451.600-45.600 447.500-55.300Q443.400-65 436.200-70.500Q429-76 419.800-76Q409.200-76 403.200-68.200Q397.200-60.400 397.200-45.800Q397.200-33.600 401.200-23.400Q405.200-13.200 412.300-7.200Q419.400-1.200 428.600-1.200"/></svg></span>
+  <h1>Domande?</h1>
+  <p class="meta">efesto-cloud/lib · issue 32</p>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js" integrity="sha384-rZIIVPQD/+U9IL3I62KrBHuVtPgYv+xdXvER5RBiVQRszJEJfLKRrcrZwI7fhcHT" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/notes/notes.js" integrity="sha384-zaxVZlTGBPySa6IWC61g+1BgKaWp4jQ7Qcm/TrxRPMAziaAmE0ZbNGwRAGI2vmkk" crossorigin="anonymous"></script>
+<script>
+  (() => {
+    const fogli = new URLSearchParams(location.search).has("fogli")
+      || document.documentElement.dataset.mode === "fogli";
+    if (fogli || !window.Reveal) return;
+    document.querySelector(".deck").classList.add("reveal");
+    Reveal.initialize({
+      width: 1280, height: 720, margin: 0.04, center: false,
+      hash: true, slideNumber: "c/t", progress: true,
+      controlsTutorial: false, transition: "slide", backgroundTransition: "fade",
+      pdfSeparateFragments: false,
+      plugins: window.RevealNotes ? [RevealNotes] : [],
+    });
+  })();
+</script>
+<script id="slide-deck-vista">
+// Il passaggio fra le due viste. Nella vista deck un rimando discreto alla
+// versione stampabile (lo stesso file con ?fogli); nei fogli, uno per
+// tornare alla presentazione. Lo copia build.py nel blocco script con id
+// "slide-deck-vista": si modifica qui, non nel deck.
+//
+// Dove NON compare: in stampa e nel PDF (lo nasconde il CSS), quando si
+// presenta a schermo intero col tasto F (la Fullscreen API, la vede il CSS),
+// nella vista di chi presenta (tasto S: le slide girano in iframe
+// con ?receiver), nei file nati solo fogli e quando reveal.js non si è
+// caricato (non c'è una presentazione a cui tornare).
+(() => {
+    const d = document;
+    const root = d.documentElement;
+    const q = new URLSearchParams(location.search);
+    // Solo ?receiver, non «sono in un iframe»: anche le anteprime degli
+    // editor (VS Code Live Preview) e i deck incorporati in un'altra pagina
+    // girano in un iframe, e lì il rimando serve.
+    if (q.has("receiver")) return;
+    const deck = d.querySelector(".deck");
+    if (!deck || d.querySelector("body > .cambia-vista")) return;
+    const inDeck = deck.classList.contains("reveal");
+    if (!inDeck && (!q.has("fogli") || root.dataset.mode === "fogli" || !window.Reveal)) return;
+
+    // Il resto dell'URL resta; l'ancora di reveal.js (#/3/1) nei fogli non
+    // vuol dire niente, e tornando si riparte dalla copertina.
+    const resto = location.search
+        .slice(1)
+        .split("&")
+        .filter((p) => p && decodeURIComponent(p.split("=")[0]) !== "fogli");
+    if (inDeck) resto.push("fogli");
+    const url = new URL(location.href);
+    url.search = resto.join("&");
+    url.hash = "";
+
+    const a = d.createElement("a");
+    a.className = "cambia-vista";
+    a.href = url.href;
+    a.textContent = inDeck ? "Versione stampabile" : "Torna alla presentazione";
+    a.title = inDeck
+        ? "Le stesse slide come fogli, da scorrere e stampare in PDF"
+        : "Le stesse slide come presentazione";
+    d.body.prepend(a);
+})();
+</script>
+</body>
+</html>

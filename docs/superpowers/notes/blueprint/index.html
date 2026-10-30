@@ -683,7 +683,7 @@ adapters/ …</pre></div>
 }</pre>
     <figcaption>Il vincolo sta in <code>IUseCase</code>: il tipo di ritorno deve essere un <code>Result</code>,
       altrimenti non compila. Così chiunque chiami (route, handler, job, un altro use case) tratta allo
-      stesso modo successo e fallimento. Quale <code>Result</code> si usa è aperto (§9).</figcaption>
+      stesso modo successo e fallimento. Il <code>Result</code> è quello di Effect 4 (§9).</figcaption>
   </figure>
 
   <h3 style="margin-top:2rem">Use case che chiamano use case</h3>
@@ -945,8 +945,8 @@ adapters/ …</pre></div>
     <tr><td>Repository pattern; implementazione in un adapter</td><td>Prisma</td><td>Drizzle, query dirette</td></tr>
     <tr><td>Il core non dipende dal runtime</td><td>Cloudflare Workers, D1</td><td>container, Postgres</td></tr>
     <tr><td>Porte risolte per iniezione nel costruttore</td><td>Inversify</td><td>tsyringe, TypeDI</td></tr>
-    <tr><td>Ogni use case ritorna un <code>Result</code> con errori con nome</td><td><code>@efesto-cloud/result</code>, <code>tagged-error</code></td><td>valori di Effect</td></tr>
-    <tr><td>Input validato al bordo</td><td>zod</td><td><code>Schema</code> di Effect</td></tr>
+    <tr><td>Ogni use case ritorna un <code>Result</code> con errori con nome</td><td><code>Result</code> e <code>Schema.TaggedError</code> di Effect 4</td><td>una libreria propria con la stessa forma</td></tr>
+    <tr><td>Input validato al bordo</td><td><code>Schema</code> di Effect 4</td><td>zod</td></tr>
     <tr><td>Canale sostituibile fra chiamante e bus</td><td>Workers RPC</td><td>HTTP, altro RPC</td></tr>
     <tr><td>Coda e scheduler dietro una porta</td><td>Cloudflare Queues, Cron Trigger</td><td>pg-boss, croner</td></tr>
     <tr><td>Interfaccia separata dalla logica</td><td>React Router (framework mode)</td><td>—</td></tr>
