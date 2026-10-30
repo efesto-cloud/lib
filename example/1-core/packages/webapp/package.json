@@ -1,0 +1,20 @@
+{
+    "name": "@expenses/webapp",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "typecheck": "tsc --noEmit",
+        "test": "tsx --tsconfig ../../tsconfig.base.json --test \"test/**/*.test.ts\""
+    },
+    "dependencies": {
+        "@efesto-cloud/usecase": "file:../../../../packages/usecase",
+        "@expenses/core": "workspace:*",
+        "effect": "4.1.0",
+        "inversify": "8.2.3"
+    },
+    "devDependencies": {
+        "@types/node": "^24",
+        "tsx": "^4.22.4",
+        "typescript": "^6.0.2"
+    }
+}

@@ -4,14 +4,8 @@
         ".": {
             "entry": ["scripts/*.mjs"],
             "project": ["scripts/**/*.mjs"]
-        },
-        "example": {
-            "entry": ["src/index.ts"],
-            "project": ["src/**/*.ts"]
-        },
-        "packages/audit": {
-            "entry": ["examples/*.ts"]
         }
     },
-    "ignoreExportsUsedInFile": true
+    "ignoreExportsUsedInFile": true,
+    "ignore": ["example/**"]
 }

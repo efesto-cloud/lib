@@ -1,0 +1,9 @@
+{
+    "name": "@expenses/root",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "typecheck": "pnpm -r typecheck",
+        "test": "pnpm -r test"
+    }
+}
