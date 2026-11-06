@@ -1,4 +1,4 @@
-import type { Result } from "effect";
+import type { Result } from "better-result";
 
 export default interface IUnitOfWork {
     /**
@@ -7,6 +7,6 @@ export default interface IUnitOfWork {
      * the outer transaction, so a use case can call another one.
      */
     runWithTransaction<A, E>(
-        fn: () => Promise<Result.Result<A, E>>,
-    ): Promise<Result.Result<A, E>>;
+        fn: () => Promise<Result<A, E>>,
+    ): Promise<Result<A, E>>;
 }

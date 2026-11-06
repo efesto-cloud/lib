@@ -1,5 +1,5 @@
 import type IUseCase from "@efesto-cloud/usecase";
-import type { Result } from "effect";
+import type { Result } from "better-result";
 import type { ExpenseDto } from "../../dto/ExpenseDto.js";
 import type ExpenseNotFound from "../../errors/ExpenseNotFound.js";
 import type InvalidTransition from "../../errors/InvalidTransition.js";
@@ -7,7 +7,7 @@ import type InvalidTransition from "../../errors/InvalidTransition.js";
 interface IApproveExpense
     extends IUseCase<
         IApproveExpense.Input,
-        Result.Result<ExpenseDto, IApproveExpense.Error>
+        Result<ExpenseDto, IApproveExpense.Error>
     > {}
 
 namespace IApproveExpense {

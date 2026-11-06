@@ -1,12 +1,9 @@
 import type IUseCase from "@efesto-cloud/usecase";
-import type { Result } from "effect";
+import type { Result } from "better-result";
 import type ExpenseNotFound from "../../errors/ExpenseNotFound.js";
 
 interface INotifyAuthor
-    extends IUseCase<
-        INotifyAuthor.Input,
-        Result.Result<void, INotifyAuthor.Error>
-    > {}
+    extends IUseCase<INotifyAuthor.Input, Result<void, INotifyAuthor.Error>> {}
 
 namespace INotifyAuthor {
     export type Input = { expense_id: string };

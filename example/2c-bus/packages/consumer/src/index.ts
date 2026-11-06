@@ -4,7 +4,7 @@ import {
     bootstrapConsumer,
     type Env,
 } from "@expenses/bootstrap/consumer";
-import { Result } from "effect";
+import { Result } from "better-result";
 
 /** Takes jobs from the queue and runs their use cases, the same ones the webapps call. */
 export async function createConsumer(env: Env, options?: BootOptions) {
@@ -15,11 +15,11 @@ export async function createConsumer(env: Env, options?: BootOptions) {
             for (let job = await jobs.next(); job; job = await jobs.next()) {
                 const useCase = resolveUseCase(job.key) as IUseCase<
                     unknown,
-                    Result.Result<unknown, { _tag: string }>
+                    Result<unknown, { _tag: string }>
                 >;
                 const result = await useCase.execute(job.input, job.context);
-                if (Result.isFailure(result))
-                    console.warn(`[job] ${job.key}: ${result.failure._tag}`);
+                if (Result.isError(result))
+                    console.warn(`[job] ${job.key}: ${result.error._tag}`);
                 done++;
             }
             return done;

@@ -1,5 +1,5 @@
 import Entity from "@efesto-cloud/entity";
-import { Result } from "effect";
+import { Result } from "better-result";
 import type { ExpenseDto } from "../dto/ExpenseDto.js";
 import type InvalidAmount from "../errors/InvalidAmount.js";
 import InvalidTransition from "../errors/InvalidTransition.js";
@@ -21,9 +21,8 @@ export default class Expense extends Entity<ExpenseProps, string> {
         author_id: string;
         description: string;
         amount_cents: number;
-    }): Result.Result<Expense, InvalidAmount> {
-        return Result.map(
-            Amount.create(input.amount_cents),
+    }): Result<Expense, InvalidAmount> {
+        return Amount.create(input.amount_cents).map(
             (amount) =>
                 new Expense(
                     {
@@ -54,15 +53,15 @@ export default class Expense extends Entity<ExpenseProps, string> {
     transition(
         to: ExpenseStatus,
         by: string,
-    ): Result.Result<ExpenseStatusChange, InvalidTransition> {
+    ): Result<ExpenseStatusChange, InvalidTransition> {
         const from = this.props.status;
         if (!canTransition(from, to)) {
-            return Result.fail(
+            return Result.err(
                 new InvalidTransition({ expense_id: this._id, from, to }),
             );
         }
         this.props.status = to;
-        return Result.succeed({
+        return Result.ok({
             expense_id: this._id,
             from,
             to,

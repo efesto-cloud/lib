@@ -6,7 +6,7 @@ import {
     type StubStore,
     seededStore,
 } from "@expenses/stub-adapter";
-import { Result } from "effect";
+import { Result } from "better-result";
 import { Container } from "inversify";
 import {
     AuthModule,
@@ -43,7 +43,7 @@ async function draft(description = "Taxi", amount_cents = 2400) {
         { description, amount_cents },
         { actor: anna },
     );
-    return Result.getOrThrow(created);
+    return created.unwrap();
 }
 
 describe("CreateExpense", () => {
@@ -58,8 +58,8 @@ describe("CreateExpense", () => {
             { description: "Taxi", amount_cents: 0 },
             { actor: anna },
         );
-        assert.ok(Result.isFailure(result));
-        assert.equal(result.failure._tag, "InvalidAmount");
+        assert.ok(Result.isError(result));
+        assert.equal(result.error._tag, "InvalidAmount");
     });
 });
 
@@ -75,7 +75,7 @@ describe("ApproveExpense", () => {
             { actor: carla },
         );
 
-        assert.equal(Result.getOrThrow(result).status, "approved");
+        assert.equal(result.unwrap().status, "approved");
         assert.deepEqual(
             store.state.changes.map((c) => [c.from, c.to, c.changed_by]),
             [
@@ -99,8 +99,8 @@ describe("ApproveExpense", () => {
             { expense_id: expense.id },
             { actor: carla },
         );
-        assert.ok(Result.isFailure(result));
-        assert.equal(result.failure._tag, "InvalidTransition");
+        assert.ok(Result.isError(result));
+        assert.equal(result.error._tag, "InvalidTransition");
         assert.equal(store.state.changes.length, 0);
         assert.equal(store.state.jobs.length, 0);
     });
@@ -126,11 +126,13 @@ describe("ImportExpenses", () => {
             { file: "description,amount_cents\nHotel,9000\nPranzo,-1\n" },
             { actor: carla },
         );
-        assert.ok(Result.isFailure(result));
-        assert.deepEqual(
-            { ...result.failure },
-            { _tag: "ImportRowInvalid", row: 2, reason: "InvalidAmount" },
-        );
+        assert.ok(Result.isError(result));
+        const { name: _name, ...fields } = { ...result.error };
+        assert.deepEqual(fields, {
+            _tag: "ImportRowInvalid",
+            row: 2,
+            reason: "InvalidAmount",
+        });
         assert.equal(store.state.expenses.size, 0);
     });
 });

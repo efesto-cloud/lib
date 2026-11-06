@@ -1,6 +1,6 @@
-import { Schema } from "effect";
+import { taggedError } from "./taggedError.js";
 
-export default class Unauthenticated extends Schema.TaggedError<Unauthenticated>()(
+export default class Unauthenticated extends taggedError(
     "Unauthenticated",
     {},
 ) {}

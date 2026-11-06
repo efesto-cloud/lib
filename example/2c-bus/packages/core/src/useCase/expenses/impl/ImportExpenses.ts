@@ -1,6 +1,6 @@
 import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
 import type { IExecutionContext } from "@efesto-cloud/usecase";
-import { Result } from "effect";
+import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import ImportRowInvalid from "../../../errors/ImportRowInvalid.js";
@@ -24,24 +24,24 @@ export default class ImportExpenses implements IImportExpenses {
 
     async execute(input: IImportExpenses.Input, context: IExecutionContext) {
         const rows = this.reader.read(input.file);
-        if (Result.isFailure(rows)) return Result.fail(rows.failure);
+        if (Result.isError(rows)) return Result.err(rows.error);
 
         return this.uow.runWithTransaction<
             { created: number },
             IImportExpenses.Error
         >(async () => {
-            for (const [index, row] of rows.success.entries()) {
+            for (const [index, row] of rows.value.entries()) {
                 const created = await this.create.execute(row, context);
-                if (Result.isFailure(created)) {
-                    return Result.fail(
+                if (Result.isError(created)) {
+                    return Result.err(
                         new ImportRowInvalid({
                             row: index + 1,
-                            reason: created.failure._tag,
+                            reason: created.error._tag,
                         }),
                     );
                 }
             }
-            return Result.succeed({ created: rows.success.length });
+            return Result.ok({ created: rows.value.length });
         });
     }
 }

@@ -1,6 +1,6 @@
 import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
 import type { IExecutionContext } from "@efesto-cloud/usecase";
-import { Result } from "effect";
+import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import type IExpenseRepository from "../../../repo/IExpenseRepository.js";
@@ -27,13 +27,13 @@ export default class ApproveExpense implements IApproveExpense {
             "approved",
             context,
         );
-        if (Result.isFailure(result)) return Result.fail(result.failure);
+        if (Result.isError(result)) return Result.err(result.error);
 
         await this.jobs.enqueue(
             "expenses.NotifyAuthor",
             { expense_id: input.expense_id },
             context,
         );
-        return Result.succeed(result.success.toDTO());
+        return Result.ok(result.value.toDTO());
     }
 }

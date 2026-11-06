@@ -11,7 +11,7 @@
     "dependencies": {
         "@expenses/bus": "workspace:*",
         "@expenses/commands": "workspace:*",
-        "effect": "4.1.0"
+        "better-result": "3.0.1"
     },
     "devDependencies": {
         "@types/node": "^24",

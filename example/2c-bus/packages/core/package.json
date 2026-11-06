@@ -15,9 +15,10 @@
         "@efesto-cloud/entity": "file:../../../../packages/entity",
         "@efesto-cloud/unit-of-work": "file:../../../../packages/unit-of-work",
         "@efesto-cloud/usecase": "file:../../../../packages/usecase",
-        "effect": "4.1.0",
+        "better-result": "3.0.1",
         "inversify": "8.2.3",
-        "luxon": "^3.7.2"
+        "luxon": "^3.7.2",
+        "zod": "4.6.7"
     },
     "devDependencies": {
         "@expenses/stub-adapter": "workspace:*",

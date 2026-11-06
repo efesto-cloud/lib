@@ -12,7 +12,7 @@
         "@efesto-cloud/usecase": "file:../../../../packages/usecase",
         "@expenses/bootstrap": "workspace:*",
         "@expenses/core": "workspace:*",
-        "effect": "4.1.0"
+        "better-result": "3.0.1"
     },
     "devDependencies": {
         "@types/node": "^24",

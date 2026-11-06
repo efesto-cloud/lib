@@ -1,7 +1,7 @@
 import type { IExecutionContext } from "@efesto-cloud/usecase";
 import type { CommandName } from "@expenses/commands";
 import type { UseCaseKey } from "@expenses/core";
-import type { Result } from "effect";
+import type { Result } from "better-result";
 
 export type Call = {
     readonly command: CommandName;
@@ -10,7 +10,7 @@ export type Call = {
     readonly context: IExecutionContext;
 };
 
-export type Outcome = Result.Result<unknown, unknown>;
+export type Outcome = Result<unknown, unknown>;
 
 /** A layer around every handler. It sees the call and the outcome, not the handler. */
 export type Middleware = (

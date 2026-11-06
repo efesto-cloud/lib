@@ -1,4 +1,4 @@
-import { Result } from "effect";
+import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../di/Port.js";
 import Unauthenticated from "../errors/Unauthenticated.js";
@@ -14,8 +14,6 @@ export default class Identifier implements IIdentifier {
 
     async identify(token: string | null) {
         const member = token ? await this.members.findByToken(token) : null;
-        return member
-            ? Result.succeed(member)
-            : Result.fail(new Unauthenticated());
+        return member ? Result.ok(member) : Result.err(new Unauthenticated());
     }
 }

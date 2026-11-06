@@ -5,7 +5,7 @@ import { bootstrapBus } from "@expenses/bootstrap/bus";
 import { type Bus, InternalError, InvalidInput } from "@expenses/commands";
 import { Forbidden, InvalidTransition, Unauthenticated } from "@expenses/core";
 import { seededStore } from "@expenses/stub-adapter";
-import { Result } from "effect";
+import { Result } from "better-result";
 import { httpBus } from "../src/client.js";
 import {
     type AuditEntry,
@@ -51,8 +51,8 @@ for (const [channel, connect] of Object.entries(channels)) {
         it("refuses a call without a valid token", async () => {
             const result = await as("nope").dispatch("listMyExpenses", {});
             assert.ok(
-                Result.isFailure(result) &&
-                    result.failure instanceof Unauthenticated,
+                Result.isError(result) &&
+                    result.error instanceof Unauthenticated,
             );
         });
 
@@ -61,8 +61,7 @@ for (const [channel, connect] of Object.entries(channels)) {
                 description: "Taxi",
             } as never);
             assert.ok(
-                Result.isFailure(result) &&
-                    result.failure instanceof InvalidInput,
+                Result.isError(result) && result.error instanceof InvalidInput,
             );
             assert.equal(entries.length, 0);
         });
@@ -73,9 +72,9 @@ for (const [channel, connect] of Object.entries(channels)) {
                 {},
             );
             assert.ok(
-                Result.isFailure(result) && result.failure instanceof Forbidden,
+                Result.isError(result) && result.error instanceof Forbidden,
             );
-            assert.equal(result.failure.policy, "can(expenses.review)");
+            assert.equal(result.error.policy, "can(expenses.review)");
         });
 
         it("brings a declared error back as an instance of its class", async () => {
@@ -83,15 +82,15 @@ for (const [channel, connect] of Object.entries(channels)) {
                 description: "Taxi",
                 amount_cents: 2400,
             });
-            const expense = Result.getOrThrow(created);
+            const expense = created.unwrap();
             const result = await as("carla-token").dispatch("approveExpense", {
                 expense_id: expense.id,
             });
             assert.ok(
-                Result.isFailure(result) &&
-                    result.failure instanceof InvalidTransition,
+                Result.isError(result) &&
+                    result.error instanceof InvalidTransition,
             );
-            assert.equal(result.failure.from, "draft");
+            assert.equal(result.error.from, "draft");
         });
 
         it("lets the middleware see command, actor, input and outcome", async () => {
@@ -130,9 +129,11 @@ describe("undeclared errors", () => {
         console.error = original;
         assert.ok(
             result &&
-                Result.isFailure(result) &&
-                result.failure instanceof InternalError,
+                Result.isError(result) &&
+                result.error instanceof InternalError,
         );
-        assert.deepEqual({ ...result.failure }, { _tag: "InternalError" });
+        // Only the tag crosses: no stack, no message, no cause.
+        const { name: _name, ...fields } = { ...result.error };
+        assert.deepEqual(fields, { _tag: "InternalError" });
     });
 });

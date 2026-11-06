@@ -34,6 +34,6 @@
         "access": "public"
     },
     "dependencies": {
-        "effect": "^4.1.0"
+        "better-result": "^3.0.1"
     }
 }

@@ -1,13 +1,13 @@
-import { Schema } from "effect";
+import { z } from "zod";
 import { EXPENSE_STATUSES } from "../type/ExpenseStatus.js";
 
-export const ExpenseDto = Schema.Struct({
-    id: Schema.String,
-    author_id: Schema.String,
-    description: Schema.String,
-    amount_cents: Schema.Number,
-    status: Schema.Literals(EXPENSE_STATUSES),
-    created_at: Schema.String,
+export const ExpenseDto = z.object({
+    id: z.string(),
+    author_id: z.string(),
+    description: z.string(),
+    amount_cents: z.number(),
+    status: z.enum(EXPENSE_STATUSES),
+    created_at: z.string(),
 });
 
-export type ExpenseDto = typeof ExpenseDto.Type;
+export type ExpenseDto = z.infer<typeof ExpenseDto>;

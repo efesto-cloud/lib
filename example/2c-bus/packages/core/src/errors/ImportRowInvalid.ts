@@ -1,9 +1,7 @@
-import { Schema } from "effect";
+import { z } from "zod";
+import { taggedError } from "./taggedError.js";
 
-export default class ImportRowInvalid extends Schema.TaggedError<ImportRowInvalid>()(
-    "ImportRowInvalid",
-    {
-        row: Schema.Number,
-        reason: Schema.String,
-    },
-) {}
+export default class ImportRowInvalid extends taggedError("ImportRowInvalid", {
+    row: z.number(),
+    reason: z.string(),
+}) {}

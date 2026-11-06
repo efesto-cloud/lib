@@ -1,6 +1,6 @@
 import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
 import type { IExecutionContext } from "@efesto-cloud/usecase";
-import { Result } from "effect";
+import { Result } from "better-result";
 import type Expense from "../../../entity/Expense.js";
 import ExpenseNotFound from "../../../errors/ExpenseNotFound.js";
 import type InvalidTransition from "../../../errors/InvalidTransition.js";
@@ -18,19 +18,19 @@ export default function transitionExpense(
     expense_id: string,
     to: ExpenseStatus,
     context: IExecutionContext,
-): Promise<Result.Result<Expense, ExpenseNotFound | InvalidTransition>> {
+): Promise<Result<Expense, ExpenseNotFound | InvalidTransition>> {
     return deps.uow.runWithTransaction<
         Expense,
         ExpenseNotFound | InvalidTransition
     >(async () => {
         const expense = await deps.expenses.findById(expense_id);
-        if (!expense) return Result.fail(new ExpenseNotFound({ expense_id }));
+        if (!expense) return Result.err(new ExpenseNotFound({ expense_id }));
 
         const change = expense.transition(to, context.actor.id);
-        if (Result.isFailure(change)) return Result.fail(change.failure);
+        if (Result.isError(change)) return Result.err(change.error);
 
         await deps.expenses.save(expense);
-        await deps.history.add(change.success);
-        return Result.succeed(expense);
+        await deps.history.add(change.value);
+        return Result.ok(expense);
     });
 }

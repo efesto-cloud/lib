@@ -1,5 +1,5 @@
 import type { IExecutionContext } from "@efesto-cloud/usecase";
-import { Result } from "effect";
+import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../di/Port.js";
 import type { UseCaseInput, UseCaseKey } from "../di/UseCaseRegistry.js";
@@ -26,7 +26,7 @@ export default class Authorizer implements IAuthorizer {
             expenses: this.expenses,
         });
         return allowed
-            ? Result.void
-            : Result.fail(new Forbidden({ policy: policy.name }));
+            ? Result.ok()
+            : Result.err(new Forbidden({ policy: policy.name }));
     }
 }

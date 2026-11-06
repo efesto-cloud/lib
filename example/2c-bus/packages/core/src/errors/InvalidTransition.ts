@@ -1,12 +1,13 @@
-import { Schema } from "effect";
+import { z } from "zod";
 import { EXPENSE_STATUSES } from "../type/ExpenseStatus.js";
+import { taggedError } from "./taggedError.js";
 
-const Status = Schema.Literals(EXPENSE_STATUSES);
+const Status = z.enum(EXPENSE_STATUSES);
 
-export default class InvalidTransition extends Schema.TaggedError<InvalidTransition>()(
+export default class InvalidTransition extends taggedError(
     "InvalidTransition",
     {
-        expense_id: Schema.String,
+        expense_id: z.string(),
         from: Status,
         to: Status,
     },

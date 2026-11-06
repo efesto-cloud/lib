@@ -1,4 +1,4 @@
-import { Result } from "effect";
+import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import type IExpenseRepository from "../../../repo/IExpenseRepository.js";
@@ -13,6 +13,6 @@ export default class ListSubmittedExpenses implements IListSubmittedExpenses {
 
     async execute() {
         const expenses = await this.expenses.list({ status: "submitted" });
-        return Result.succeed(expenses.map((e) => e.toDTO()));
+        return Result.ok(expenses.map((e) => e.toDTO()));
     }
 }

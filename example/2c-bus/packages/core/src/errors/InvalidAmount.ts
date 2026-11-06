@@ -1,8 +1,6 @@
-import { Schema } from "effect";
+import { z } from "zod";
+import { taggedError } from "./taggedError.js";
 
-export default class InvalidAmount extends Schema.TaggedError<InvalidAmount>()(
-    "InvalidAmount",
-    {
-        amount_cents: Schema.Number,
-    },
-) {}
+export default class InvalidAmount extends taggedError("InvalidAmount", {
+    amount_cents: z.number(),
+}) {}

@@ -1,4 +1,4 @@
-import { Result } from "effect";
+import { Result } from "better-result";
 import type { Middleware } from "./types.js";
 
 export type AuditEntry = {
@@ -16,9 +16,9 @@ export function audit(write: (entry: AuditEntry) => void): Middleware {
             command: call.command,
             actor_id: call.context.actor.id,
             input: call.input,
-            outcome: Result.isSuccess(outcome)
+            outcome: Result.isOk(outcome)
                 ? "ok"
-                : String((outcome.failure as { _tag?: string })._tag),
+                : String((outcome.error as { _tag?: string })._tag),
         });
         return outcome;
     };

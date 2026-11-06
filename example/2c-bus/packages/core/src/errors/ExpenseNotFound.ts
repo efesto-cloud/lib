@@ -1,8 +1,6 @@
-import { Schema } from "effect";
+import { z } from "zod";
+import { taggedError } from "./taggedError.js";
 
-export default class ExpenseNotFound extends Schema.TaggedError<ExpenseNotFound>()(
-    "ExpenseNotFound",
-    {
-        expense_id: Schema.String,
-    },
-) {}
+export default class ExpenseNotFound extends taggedError("ExpenseNotFound", {
+    expense_id: z.string(),
+}) {}

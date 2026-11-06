@@ -1,9 +1,9 @@
-import type { Result } from "effect";
+import type { Result } from "better-result";
 
 // biome-ignore lint/suspicious/noEmptyInterface: we want to allow empty execution context -> libraries will extend this interface to add their own context properties
 export interface IExecutionContext {}
 
-type AnyResult = Result.Result<unknown, unknown>;
+type AnyResult = Result<unknown, unknown>;
 
 export type ExtractUseCaseInput<T extends IUseCase> =
     // biome-ignore lint/suspicious/noExplicitAny: we want to allow any input type

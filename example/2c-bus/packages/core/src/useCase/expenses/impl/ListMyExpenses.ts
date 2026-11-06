@@ -1,5 +1,5 @@
 import type { IExecutionContext } from "@efesto-cloud/usecase";
-import { Result } from "effect";
+import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import type IExpenseRepository from "../../../repo/IExpenseRepository.js";
@@ -17,6 +17,6 @@ export default class ListMyExpenses implements IListMyExpenses {
         const expenses = await this.expenses.list({
             author_id: context.actor.id,
         });
-        return Result.succeed(expenses.map((e) => e.toDTO()));
+        return Result.ok(expenses.map((e) => e.toDTO()));
     }
 }

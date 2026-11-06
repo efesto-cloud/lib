@@ -11,8 +11,8 @@
     },
     "dependencies": {
         "@expenses/core": "workspace:*",
-        "effect": "4.1.0",
-        "inversify": "8.2.3"
+        "inversify": "8.2.3",
+        "better-result": "3.0.1"
     },
     "devDependencies": {
         "@types/node": "^24",

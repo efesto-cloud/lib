@@ -1,5 +1,5 @@
 import { type Bus, type CommandResult, resultCodec } from "@expenses/commands";
-import { Schema } from "effect";
+import { z } from "zod";
 
 /** The client side of the HTTP channel. Imports the contract, never the core server. */
 export function httpBus(options: {
@@ -22,7 +22,8 @@ export function httpBus(options: {
                     body: JSON.stringify(input),
                 }),
             );
-            return Schema.decodeUnknownSync(resultCodec(name))(
+            return z.decode(
+                resultCodec(name),
                 await response.json(),
             ) as CommandResult<typeof name>;
         },

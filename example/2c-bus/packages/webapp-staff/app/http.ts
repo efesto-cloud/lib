@@ -1,4 +1,4 @@
-import { Result } from "effect";
+import { Result } from "better-result";
 
 export function json(status: number, body: unknown) {
     return new Response(JSON.stringify(body), {
@@ -25,11 +25,11 @@ export function failure(error: { _tag: string }) {
 
 /** The outcome of bus.dispatch, as HTTP. */
 export async function send(
-    outcome: Promise<Result.Result<unknown, { _tag: string }>>,
+    outcome: Promise<Result<unknown, { _tag: string }>>,
     status = 200,
 ) {
     const result = await outcome;
-    return Result.isSuccess(result)
-        ? json(status, result.success)
-        : failure(result.failure);
+    return Result.isOk(result)
+        ? json(status, result.value)
+        : failure(result.error);
 }

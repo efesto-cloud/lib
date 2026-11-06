@@ -1,8 +1,6 @@
-import { Schema } from "effect";
+import { z } from "zod";
+import { taggedError } from "./taggedError.js";
 
-export default class Forbidden extends Schema.TaggedError<Forbidden>()(
-    "Forbidden",
-    {
-        policy: Schema.String,
-    },
-) {}
+export default class Forbidden extends taggedError("Forbidden", {
+    policy: z.string(),
+}) {}

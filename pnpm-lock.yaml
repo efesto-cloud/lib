@@ -217,15 +217,15 @@ importers:
 
   packages/unit-of-work:
     dependencies:
-      effect:
-        specifier: ^4.1.0
-        version: 4.1.0
+      better-result:
+        specifier: ^3.0.1
+        version: 3.0.1
 
   packages/usecase:
     dependencies:
-      effect:
-        specifier: ^4.1.0
-        version: 4.1.0
+      better-result:
+        specifier: ^3.0.1
+        version: 3.0.1
 
   tests:
     dependencies:
@@ -823,6 +823,9 @@ packages:
     resolution: {integrity: sha512-pbnl5XzGBdrFU/wT4jqmJVPn2B6UHPBOhzMQkY/SPUPB6QtUXtmBHBIwCbXJol93mOpGMnQyP/+BB19q04xj7g==}
     engines: {node: '>=4'}
 
+  better-result@3.0.1:
+    resolution: {integrity: sha512-rnCeqEXkKPHmz5MO5ZroPRDyHe4YvlNPyy7qj8cVcWs/GnvSvC3086G74/220W+wWcIWlXgzvcjskFV0A4blUQ==}
+
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
@@ -848,9 +851,6 @@ packages:
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
-
-  effect@4.1.0:
-    resolution: {integrity: sha512-lGx2MJJyrXA8RZb2UpQ/0Nkb5Utaimby7oD92+18noBxLPE85IFOvptdzau8dvcxAOwfwHo9iqapbKeFzqQM/Q==}
 
   enquirer@2.4.1:
     resolution: {integrity: sha512-rRqJg/6gd538VHvR3PSrdRBb/1Vy2YfzHqzvbhGIQpDRKIa4FgV/54b5Q1xYSxOOwKvjXweS26E0Q+nAMwp2pQ==}
@@ -1736,6 +1736,8 @@ snapshots:
     dependencies:
       is-windows: 1.0.2
 
+  better-result@3.0.1: {}
+
   braces@3.0.3:
     dependencies:
       fill-range: 7.1.1
@@ -1757,8 +1759,6 @@ snapshots:
   dir-glob@3.0.1:
     dependencies:
       path-type: 4.0.0
-
-  effect@4.1.0: {}
 
   enquirer@2.4.1:
     dependencies:

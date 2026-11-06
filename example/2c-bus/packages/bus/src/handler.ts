@@ -6,7 +6,7 @@ import type {
     CommandOutput,
 } from "@expenses/commands";
 import type { UseCaseInput, UseCaseKey, UseCaseRegistry } from "@expenses/core";
-import type { Result } from "effect";
+import type { Result } from "better-result";
 
 /** Turns a command into its use case. Knows nothing about who wraps it. */
 export type Handler<K extends CommandName> = {
@@ -20,7 +20,7 @@ type UseCaseResult<U extends UseCaseKey> =
 
 /** Compiles only if what the use case returns is what the command declares. */
 type Matches<K extends CommandName, U extends UseCaseKey> =
-    UseCaseResult<U> extends Result.Result<CommandOutput<K>, CommandError<K>>
+    UseCaseResult<U> extends Result<CommandOutput<K>, CommandError<K>>
         ? unknown
         : { error: `${U} returns something ${K} does not declare` };
 

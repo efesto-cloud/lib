@@ -1,8 +1,6 @@
-import { Schema } from "effect";
+import { z } from "zod";
+import { taggedError } from "./taggedError.js";
 
-export default class InvalidFile extends Schema.TaggedError<InvalidFile>()(
-    "InvalidFile",
-    {
-        reason: Schema.String,
-    },
-) {}
+export default class InvalidFile extends taggedError("InvalidFile", {
+    reason: z.string(),
+}) {}

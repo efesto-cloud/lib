@@ -1,13 +1,14 @@
 import type IUseCase from "@efesto-cloud/usecase";
 import {
-    BusError,
     type CommandName,
     commands,
+    declaredErrors,
     InternalError,
     InvalidInput,
 } from "@expenses/commands";
 import type { IAuthorizer, IIdentifier, ResolveUseCase } from "@expenses/core";
-import { Result, Schema } from "effect";
+import { Result } from "better-result";
+import { z } from "zod";
 import { handlers } from "./handlers/index.js";
 import { policy } from "./middleware/policy.js";
 import type { Call, Middleware, Outcome } from "./middleware/types.js";
@@ -37,28 +38,26 @@ export function createDispatcher(
             token: string | null,
         ): Promise<Outcome> {
             const actor = await core.identifier.identify(token);
-            if (Result.isFailure(actor)) return actor;
+            if (Result.isError(actor)) return actor;
 
             if (!Object.hasOwn(commands, name)) {
-                return Result.fail(
+                return Result.err(
                     new InvalidInput({ issue: `Unknown command ${name}` }),
                 );
             }
             const command = commands[name as CommandName];
-            const input = Schema.decodeUnknownResult(
-                command.input as Schema.Codec<unknown>,
-            )(rawInput);
-            if (Result.isFailure(input))
-                return Result.fail(
-                    new InvalidInput({ issue: String(input.failure) }),
+            const input = (command.input as z.ZodType).safeParse(rawInput);
+            if (!input.success)
+                return Result.err(
+                    new InvalidInput({ issue: z.prettifyError(input.error) }),
                 );
 
             const handler = handlers[name as CommandName];
             const call: Call = {
                 command: name as CommandName,
                 useCase: handler.useCase,
-                input: handler.toUseCase(input.success as never),
-                context: { actor: actor.success },
+                input: handler.toUseCase(input.data as never),
+                context: { actor: actor.value },
             };
             const run = chain.reduceRight<() => Promise<Outcome>>(
                 (next, middleware) => () => middleware(call, next),
@@ -71,22 +70,22 @@ export function createDispatcher(
                     ).execute(call.input, call.context),
             );
 
-            const declared = Schema.is(
-                Schema.Union([command.errors, BusError]),
-            );
+            const errors = declaredErrors(name as CommandName);
+            const declared = (error: unknown) =>
+                errors.some((Class) => Class.is(error));
             try {
                 const outcome = await run();
-                if (Result.isFailure(outcome) && !declared(outcome.failure)) {
+                if (Result.isError(outcome) && !declared(outcome.error)) {
                     console.error(
                         `[bus] ${name}: undeclared error`,
-                        outcome.failure,
+                        outcome.error,
                     );
-                    return Result.fail(new InternalError());
+                    return Result.err(new InternalError());
                 }
                 return outcome;
             } catch (error) {
                 console.error(`[bus] ${name}:`, error);
-                return Result.fail(new InternalError());
+                return Result.err(new InternalError());
             }
         },
     };

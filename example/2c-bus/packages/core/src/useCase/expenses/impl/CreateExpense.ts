@@ -1,5 +1,5 @@
 import type { IExecutionContext } from "@efesto-cloud/usecase";
-import { Result } from "effect";
+import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import Expense from "../../../entity/Expense.js";
@@ -18,9 +18,9 @@ export default class CreateExpense implements ICreateExpense {
             ...input,
             author_id: context.actor.id,
         });
-        if (Result.isFailure(expense)) return Result.fail(expense.failure);
+        if (Result.isError(expense)) return Result.err(expense.error);
 
-        await this.expenses.save(expense.success);
-        return Result.succeed(expense.success.toDTO());
+        await this.expenses.save(expense.value);
+        return Result.ok(expense.value.toDTO());
     }
 }

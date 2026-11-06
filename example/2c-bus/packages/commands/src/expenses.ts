@@ -6,37 +6,37 @@ import {
     InvalidFile,
     InvalidTransition,
 } from "@expenses/core/client";
-import { Schema } from "effect";
+import { z } from "zod";
 import { command } from "./command.js";
 
-const ById = Schema.Struct({ expense_id: Schema.String });
-const Transition = Schema.Union([ExpenseNotFound, InvalidTransition]);
+const ById = z.object({ expense_id: z.string() });
+const Transition = [ExpenseNotFound, InvalidTransition] as const;
 
 export const listMyExpenses = command({
     kind: "query",
     description: "Le note spese dell'attore",
-    input: Schema.Struct({}),
-    output: Schema.Array(ExpenseDto),
-    errors: Schema.Never,
+    input: z.object({}),
+    output: z.array(ExpenseDto),
+    errors: [],
 });
 
 export const listSubmittedExpenses = command({
     kind: "query",
     description: "Le note spese inviate, in attesa di revisione",
-    input: Schema.Struct({}),
-    output: Schema.Array(ExpenseDto),
-    errors: Schema.Never,
+    input: z.object({}),
+    output: z.array(ExpenseDto),
+    errors: [],
 });
 
 export const createExpense = command({
     kind: "mutation",
     description: "Crea una nota spese in bozza; l'autore è l'attore",
-    input: Schema.Struct({
-        description: Schema.String,
-        amount_cents: Schema.Number,
+    input: z.object({
+        description: z.string(),
+        amount_cents: z.number(),
     }),
     output: ExpenseDto,
-    errors: InvalidAmount,
+    errors: [InvalidAmount],
 });
 
 export const submitExpense = command({
@@ -74,7 +74,7 @@ export const reimburseExpense = command({
 export const importExpenses = command({
     kind: "mutation",
     description: "Importa note spese da un file: tutte o nessuna",
-    input: Schema.Struct({ file: Schema.String }),
-    output: Schema.Struct({ created: Schema.Number }),
-    errors: Schema.Union([InvalidFile, ImportRowInvalid]),
+    input: z.object({ file: z.string() }),
+    output: z.object({ created: z.number() }),
+    errors: [InvalidFile, ImportRowInvalid],
 });

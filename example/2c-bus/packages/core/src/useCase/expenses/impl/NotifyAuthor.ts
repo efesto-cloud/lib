@@ -1,4 +1,4 @@
-import { Result } from "effect";
+import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import ExpenseNotFound from "../../../errors/ExpenseNotFound.js";
@@ -21,7 +21,7 @@ export default class NotifyAuthor implements INotifyAuthor {
     async execute(input: INotifyAuthor.Input) {
         const expense = await this.expenses.findById(input.expense_id);
         if (!expense)
-            return Result.fail(
+            return Result.err(
                 new ExpenseNotFound({ expense_id: input.expense_id }),
             );
 
@@ -33,6 +33,6 @@ export default class NotifyAuthor implements INotifyAuthor {
                 subject: `Nota spese ${dto.status}: ${dto.description}`,
             });
         }
-        return Result.void;
+        return Result.ok();
     }
 }

@@ -1,6 +1,5 @@
 import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
 import type { IExecutionContext } from "@efesto-cloud/usecase";
-import { Result } from "effect";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import type IExpenseRepository from "../../../repo/IExpenseRepository.js";
@@ -25,6 +24,6 @@ export default class RejectExpense implements IRejectExpense {
             "rejected",
             context,
         );
-        return Result.map(result, (expense) => expense.toDTO());
+        return result.map((expense) => expense.toDTO());
     }
 }

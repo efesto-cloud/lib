@@ -1,29 +1,33 @@
 import { Forbidden, Unauthenticated } from "@expenses/core/client";
-import { type Result, Schema } from "effect";
-import { InternalError, InvalidInput } from "./command.js";
+import { Result } from "better-result";
+import { z } from "zod";
+import { type ErrorClass, InternalError, InvalidInput } from "./command.js";
 import * as expenses from "./expenses.js";
 
 export const commands = { ...expenses };
 
 export type Commands = typeof commands;
 export type CommandName = keyof Commands;
-export type CommandInput<K extends CommandName> = Commands[K]["input"]["Type"];
-export type CommandOutput<K extends CommandName> =
-    Commands[K]["output"]["Type"];
+export type CommandInput<K extends CommandName> = z.output<
+    Commands[K]["input"]
+>;
+export type CommandOutput<K extends CommandName> = z.output<
+    Commands[K]["output"]
+>;
 
 /** What any command can answer with, besides its own errors. */
-export const BusError = Schema.Union([
+export const busErrors = [
     Unauthenticated,
     Forbidden,
     InvalidInput,
     InternalError,
-]);
-export type BusError = typeof BusError.Type;
+] as const;
+export type BusError = InstanceType<(typeof busErrors)[number]>;
 
 export type CommandError<K extends CommandName> =
-    | Commands[K]["errors"]["Type"]
+    | InstanceType<Commands[K]["errors"][number]>
     | BusError;
-export type CommandResult<K extends CommandName> = Result.Result<
+export type CommandResult<K extends CommandName> = Result<
     CommandOutput<K>,
     CommandError<K>
 >;
@@ -36,18 +40,45 @@ export interface Bus {
     ): Promise<CommandResult<K>>;
 }
 
+/** Every error a command may answer with: its own and the bus's. */
+export function declaredErrors(name: CommandName): readonly ErrorClass[] {
+    return [...commands[name].errors, ...busErrors];
+}
+
 /** How a command's result travels as JSON and comes back as class instances. */
-export function resultCodec(name: CommandName) {
-    const command = commands[name];
-    return Schema.toCodecJson(
-        Schema.Result(command.output, Schema.Union([command.errors, BusError])),
+export function resultCodec(
+    name: CommandName,
+): z.ZodType<Result<unknown, unknown>, unknown> {
+    const [first, ...rest] = declaredErrors(name).map((error) => error.codec());
+    const wire = z.discriminatedUnion("status", [
+        z.object({ status: z.literal("ok"), value: commands[name].output }),
+        z.object({
+            status: z.literal("error"),
+            error: z.union([first as z.ZodType, ...rest]),
+        }),
+    ]);
+    return z.codec(
+        wire,
+        z.custom<Result<unknown, unknown>>(
+            (value) =>
+                Result.isOk(value as Result<unknown, unknown>) ||
+                Result.isError(value as Result<unknown, unknown>),
+        ),
+        {
+            decode: (w) =>
+                w.status === "ok" ? Result.ok(w.value) : Result.err(w.error),
+            encode: (r) =>
+                (Result.isOk(r)
+                    ? { status: "ok", value: r.value }
+                    : { status: "error", error: r.error }) as never,
+        },
     );
 }
 
 export {
-    type AnySchema,
     type Command,
     command,
+    type ErrorClass,
     InternalError,
     InvalidInput,
 } from "./command.js";
