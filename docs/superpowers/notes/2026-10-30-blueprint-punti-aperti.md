@@ -48,8 +48,35 @@ gateway HTTP separato. Le figure del «quadro completo» e del §1 (scheda
 2·C) mostrano ancora i canali dentro il bus-server: da ridisegnare con gateway e client.
 Il deck (`blueprint/deck/`) va allineato ai giri 15 e 16.
 
-**Prossimo passo:** la prova di `better-result` su `example/2c-bus`, insieme al
-rinomina `bus-server` → `api`.
+## Prova di better-result su 2c-bus (6 novembre)
+
+Riuscita, sul branch `spike/better-result` (commit `6144c35`). `2c-bus` gira
+su `better-result` + zod senza Effect: typecheck e test verdi (core 6, bus 12,
+bootstrap 3, scenario 11×3). Gli altri gradini su quel branch non compilano
+finché non vengono riportati.
+
+- **Errori**: `taggedError(tag, shape)` nel core dà la classe di better-result e
+  il suo codec zod (`z.codec`). Sul canale passano solo `_tag` e i campi
+  dichiarati; un `_tag` non dichiarato o un campo sbagliato è rifiutato.
+  Costo: 63 righe (`taggedError`) + 39 (`resultCodec` in `commands`).
+- **Lo stack arriverebbe al client**: `toJSON()` di better-result lo include.
+  L'helper non lo usa.
+- **Una garanzia si è persa in silenzio** con la prima versione dell'helper
+  (tipi degli errori vuoti: l'handler che non combacia compilava). Trovata solo
+  rompendola apposta: servono i test di tipo (§3).
+- **Il codec va costruito su `this`** nel metodo statico, non sulla classe base,
+  altrimenti `instanceof` fallisce dall'altra parte. `biome --unsafe`
+  (`noThisInStatic`) lo rompe: c'è un `biome-ignore` con la spiegazione.
+- **pnpm 12.5**: il ciclo `core` ↔ `stub-adapter` è un errore, non un warning;
+  `pnpm -r typecheck` non parte. Spostare i fake in `core/testing` è urgente.
+- `pnpm -s typecheck` nasconde l'output di tsc: vale solo il codice d'uscita.
+
+Da decidere: `taggedError` come template in `stack/` o come pacchetto di `lib`
+(proposta: pacchetto); poi riportare gli altri gradini e `agent`.
+
+**Prossimo passo:** ragionare sui gradini (lo 0 come proof of concept
+cestinabile, il 2·A come standard, nomi al posto dei numeri), poi riportare gli
+altri gradini su better-result insieme al rinomina `bus-server` → `api`.
 
 ## Fatto
 
