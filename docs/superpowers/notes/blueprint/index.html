@@ -88,7 +88,7 @@
   <p>Documento di lavoro. Raccoglie il disegno della skill che sostituisce <code>Core:core</code> e le
     skill figlie del plugin. Si aggiorna a ogni giro; le modifiche sono nel registro (§11).</p>
   <div class="meta">
-    <span>Aggiornato <b>30/10/2026</b></span>
+    <span>Aggiornato <b>06/11/2026</b></span>
     <span>Branch <b><code>docs/32-skill-blueprint</code></b></span>
     <span>Fonti <b>lib#32</b>, nota del 23/08 sul corpus</span>
   </div>
@@ -148,12 +148,12 @@
       <line x1="665" y1="142" x2="665" y2="176"/>
     </g>
     <text x="756" y="58" font-size="12" fill="#6A6259">tutti chiamano</text>
-    <text x="756" y="74" font-size="12" fill="#6A6259"><tspan font-family="ui-monospace, monospace">bus.dispatch(nome, input)</tspan></text>
+    <text x="756" y="74" font-size="12" fill="#6A6259"><tspan font-family="ui-monospace, monospace">api.dispatch(nome, input)</tspan></text>
     <text x="756" y="128" font-size="12" fill="#6A6259">canali sostituibili</text>
 
-    <!-- bus-server -->
+    <!-- api -->
     <rect x="40" y="178" width="700" height="300" fill="#F8F4ED" stroke="#4A453F"/>
-    <text x="56" y="200" font-size="12" font-weight="650" fill="#6A6259">bus-server · un deployable, un token valido per entrare</text>
+    <text x="56" y="200" font-size="12" font-weight="650" fill="#6A6259">api · un deployable, un solo canale interno, un token valido per entrare</text>
     <rect x="60" y="214" width="160" height="52" fill="#FAF7F1" stroke="#4A453F"/>
     <text x="140" y="236" text-anchor="middle" font-weight="650" fill="#14110E">dispatcher</text>
     <text x="140" y="254" text-anchor="middle" font-size="12" fill="#4A453F">valida lo schema</text>
@@ -219,13 +219,13 @@
   </figure>
   <div class="grid3">
     <div><span class="lbl">Un contratto, molti client</span><ul>
-      <li>Webapp, CLI e agenti chiamano gli stessi comandi con <code>bus.dispatch</code></li>
+      <li>Webapp, CLI e agenti chiamano gli stessi comandi con <code>api.dispatch</code></li>
       <li>Il canale (RPC, HTTP, in-process) si cambia senza toccare chiamanti e handler</li>
       <li>I client importano <code>commands</code> e <code>core/client</code>, mai use case e adapter</li>
     </ul></div>
     <div><span class="lbl">Un punto di controllo</span><ul>
       <li>Input validato una volta, dal dispatcher</li>
-      <li>Permessi applicati una volta, dal middleware, con la policy obbligatoria per ogni comando</li>
+      <li>Permessi applicati una volta, dal middleware, con la policy obbligatoria per ogni use case</li>
       <li>Dati e segreti in un solo deployable</li>
     </ul></div>
     <div><span class="lbl">Un core che non cambia</span><ul>
@@ -250,27 +250,30 @@
         <li>Use case senza suffisso; ritornano sempre un <code>Result</code></li>
         <li>Use case che chiamano use case: consentito, a condizioni (§3)</li>
         <li>Autorizzazione fuori dagli use case; lo use case si fida del tipo</li>
-        <li>Command bus al gradino 2·C, col canale remoto; si chiama solo <code>bus.dispatch</code></li>
-        <li>Pacchetti <code>commands</code>, <code>bus</code>, <code>bus-server</code></li>
+        <li>Command bus al gradino 2·C: fuori è un'API (<code>api</code>, <code>/api/&lt;comando&gt;</code>, <code>api.dispatch</code>), dentro il pattern è un bus</li>
+        <li>Pacchetti <code>commands</code>, <code>bus</code> e il deployable <code>api</code>; ogni protocollo è un gateway; i client chiamano l'api direttamente o da un gateway (§5)</li>
         <li>L'input si valida dove arriva: route fino al 2·B, dispatcher del bus al 2·C</li>
         <li>Bus e job queue distinti; job fuori dal blueprint oltre la porta</li>
-        <li>Effect solo per i valori; pacchetti di <code>lib</code> decisi (§9)</li>
+        <li><code>better-result</code> per i valori, zod al bordo; pacchetti di <code>lib</code> decisi (§9)</li>
         <li>Inversify e i suoi decoratori restano, per ora</li>
         <li>Vocabolario in <code>CONTEXT.md</code> di <code>lib</code> e nella skill (§12)</li>
-        <li>Tre regole sui test (§3)</li>
+        <li>Sei livelli di test, ciascuno con la sua regola sul «quanto»; fake e suite di contratto in <code>core/testing</code> (§3)</li>
         <li>Policy se dipende da chi è l'attore, dominio se dipende dallo stato (§2)</li>
         <li>I client importano <code>core/client</code>; il core è tree-shakeable (§5)</li>
         <li>Il comando dichiara i suoi errori con nome (§5)</li>
-        <li>Effect 4 per i valori</li>
         <li>Prima il progetto esempio, poi la skill con gli snippet presi da lì</li>
         <li>Nessuna guida di migrazione nella skill</li>
+        <li>Policy per use case in una mappa nel core, <code>policies.ts</code> (§6)</li>
+        <li>L'api parla un canale interno; gateway (espongono l'API in un protocollo, MCP compreso) e client (la consumano); router opzionale (§5)</li>
       </ul>
     </div>
     <div>
       <span class="chip open">Da decidere</span>
       <ul>
-        <li>Dove si dichiara la policy di uno use case (§6): l'esempio propone una mappa nel core, da confermare</li>
-              </ul>
+                <li>Unit of work su D1, che non ha transazioni interattive (§3): parcheggiato, proposta sul tavolo</li>
+        <li>Rinominare <code>bus-server</code> in <code>api</code> nell'esempio e aggiungere un gateway HTTP (§5)</li>
+        <li>Prova di <code>better-result</code> su <code>2c-bus</code>: se l'helper che ricostruisce gli errori dal canale resta piccolo, si riportano gli altri gradini (§9)</li>
+      </ul>
     </div>
     <div>
       <span class="chip todo">Da scrivere</span>
@@ -535,10 +538,10 @@ adapters/
     <text x="36" y="101" font-size="14" font-weight="650" fill="#FAF7F1">commands</text>
     <text x="36" y="117" font-size="12" fill="#FAF7F1">contratto · Schema + core/client · niente use case né adapter</text>
     <rect x="20" y="136" width="440" height="30" fill="none" stroke="#5A5C60" stroke-dasharray="5 4"/>
-    <text x="36" y="156" font-size="12" fill="#5A5C60">canale remoto: Workers RPC · HTTP</text>
+    <text x="36" y="156" font-size="12" fill="#5A5C60">client e gateway (HTTP, MCP) → canale interno (RPC)</text>
     <line x1="240" y1="168" x2="240" y2="186" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
     <rect x="20" y="190" width="440" height="136" fill="none" stroke="#4A453F"/>
-    <text x="36" y="212" font-size="13" font-weight="650" fill="#14110E">bus-server (un deployable)</text>
+    <text x="36" y="212" font-size="13" font-weight="650" fill="#14110E">api (un deployable)</text>
     <rect x="36" y="224" width="408" height="38" fill="#A8481F"/>
     <text x="52" y="248" font-size="13" font-weight="650" fill="#FAF7F1">bus · handler, middleware, policy</text>
     <rect x="36" y="272" width="408" height="40" fill="#14110E"/>
@@ -548,23 +551,23 @@ adapters/
       <div><span class="lbl">Struttura</span><pre class="tree">packages/
   core/  bootstrap/
   commands/src/              <span class="c">contratto: Schema + core/client</span>
-    approveExpense.ts        <span class="c">comando + policy</span>
+    approveExpense.ts        <span class="c">comando</span>
     index.ts                 <span class="c">mappa, tipo del bus</span>
   bus/src/
     handlers/approveExpense.ts
     middleware/policy.ts  audit.ts
     channels/http.ts  in-process.ts
-  bus-server/                <span class="c">deployable: bus + bootstrap</span>
+  api/                       <span class="c">deployable: bus + bootstrap</span>
   webapp-staff/  webapp-admin/  <span class="c">commands + core/client</span>
 adapters/ …</pre></div>
     </div>
     <div class="slide-g">
-      <div><span class="lbl">Come si chiama la logica</span><pre><span class="c">// webapp: chiama il bus, non il core</span>
-<span class="k">const</span> result = <span class="k">await</span> bus.dispatch(
+      <div><span class="lbl">Come si chiama la logica</span><pre><span class="c">// webapp: chiama l'api, non il core</span>
+<span class="k">const</span> result = <span class="k">await</span> api.dispatch(
     <span class="s">"approveExpense"</span>,
     { expense_id },
 );</pre></div>
-      <dl><dt>Segnale</dt><dd>Client che non possono ospitare il core (CLI, MCP, agenti, client non JS); dati e segreti in un solo deploy; dipendenze pesanti fuori dalle webapp quando i profili non bastano; regole d'accesso che andrebbero riscritte in ogni webapp.</dd><dt>Mossa</dt><dd>Per ogni use case esposto: un comando con la sua policy in <code>commands</code> e un handler in <code>bus</code>. I client chiamano <code>bus.dispatch</code>.</dd><dt>Canale in-process</dt><dd>Non è un gradino a sé. Serve alla mock mode e al test di contratto sullo stub.</dd><dt>Pacchetti</dt><dd>+2, più il deployable del bus</dd><dt>Costo</dt><dd>Un salto di rete; un token che lo attraversa; un contratto da tenere compatibile fra deploy che non escono insieme.</dd></dl>
+      <dl><dt>Segnale</dt><dd>Client che non possono ospitare il core (CLI, MCP, agenti, client non JS); dati e segreti in un solo deploy; dipendenze pesanti fuori dalle webapp quando i profili non bastano; regole d'accesso che andrebbero riscritte in ogni webapp.</dd><dt>Mossa</dt><dd>Per ogni use case esposto: un comando in <code>commands</code> e un handler in <code>bus</code>. I client chiamano <code>api.dispatch</code>.</dd><dt>Canale in-process</dt><dd>Non è un gradino a sé. Serve alla mock mode e al test di contratto sullo stub.</dd><dt>Pacchetti</dt><dd>+2, più il deployable <code>api</code> e un gateway per protocollo</dd><dt>Costo</dt><dd>Un salto di rete; un token che lo attraversa; un contratto da tenere compatibile fra deploy che non escono insieme.</dd></dl>
     </div>
   </article>
 </div></section>
@@ -682,7 +685,7 @@ adapters/ …</pre></div>
 }</pre>
     <figcaption>Il vincolo sta in <code>IUseCase</code>: il tipo di ritorno deve essere un <code>Result</code>,
       altrimenti non compila. Così chiunque chiami (route, handler, job, un altro use case) tratta allo
-      stesso modo successo e fallimento. Il <code>Result</code> è quello di Effect 4 (§9).</figcaption>
+      stesso modo successo e fallimento. Il <code>Result</code> è quello di <code>better-result</code> (§9).</figcaption>
   </figure>
 
   <h3 style="margin-top:2rem">Use case che chiamano use case</h3>
@@ -717,13 +720,41 @@ adapters/ …</pre></div>
     corrente in un campo dell'istanza: deve vivere per richiesta, non come singleton, altrimenti due richieste
     concorrenti nello stesso processo se la contendono. Il template in <code>stack/</code> lo fa così e ha un test
     sulla concorrenza.</p>
+  <p class="small"><b>Aperto, parcheggiato il 6/11.</b> Su D1 non ci sono transazioni interattive, solo
+    <code>batch()</code>. Proposta: la porta <code>IUnitOfWork</code> resta; l'implementazione accumula le scritture e le esegue in un solo
+    <code>batch()</code> alla fine (l'unit of work nella forma originale). Regola che ne segue, per tutti gli
+    adapter: dentro la transazione uno use case non rilegge le proprie scritture.</p>
   <h3 style="margin-top:2rem">Test</h3>
-  <ul style="color:var(--stone);line-height:1.6;max-width:75ch">
-    <li>dal gradino 2·A ogni use case ha test contro lo stub;</li>
-    <li>dal gradino 2·C il test di contratto del bus gira su entrambi i canali, con lo snapshot delle policy;</li>
-    <li>i fake in memoria rispettano i vincoli reali del database (indici unici, filtri) e lo dichiarano.</li>
-  </ul>
-  <p>Fixture, factory e struttura delle cartelle dei test sono preferenze, in <code>stack/</code>.</p>
+  <p>Sei livelli. Per ciascuno una regola sul «quanto» che un agente applica senza interpretarla, niente
+    percentuali.</p>
+  <table class="t">
+    <tr><th>Livello</th><th>Cosa prova</th><th>Dove sta</th><th>Quanto</th><th>Da quando</th></tr>
+    <tr><td>1 · Dominio</td><td>entity, value object, macchina a stati: tutto puro</td>
+      <td><code>core/test/domain/</code></td><td>ogni invariante e ogni transizione, meglio a tabella</td><td>gradino 1</td></tr>
+    <tr><td>2 · Use case</td><td>lo use case con i fake delle porte</td>
+      <td><code>core/test/useCase/</code></td><td>il caso felice e un test per ogni errore della sua
+      <code>Error</code> union: il tipo è la checklist</td><td>gradino 1</td></tr>
+    <tr><td>3 · Contratto delle porte</td><td>il fake e l'adapter reale si comportano allo stesso modo (indici
+      unici, filtri, ordinamenti)</td><td>suite in <code>core/testing</code>, eseguita dal core sul fake e
+      dall'adapter sul database vero</td><td>una suite per porta, obbligatoria</td><td>gradino 2·A</td></tr>
+    <tr><td>4 · Boot</td><td>profili, variabili mancanti, binding mancanti</td>
+      <td><code>bootstrap/test/</code></td><td>uno per profilo e i casi d'errore</td><td>gradino 2·B</td></tr>
+    <tr><td>5 · Contratto del bus</td><td>lo stesso test sul canale in-process e su quello remoto, con lo
+      snapshot delle policy</td><td><code>bus/test/</code></td><td>uno per comando</td><td>gradino 2·C</td></tr>
+    <tr><td>6 · End-to-end</td><td>lo scenario attraverso HTTP</td><td><code>tests/</code></td>
+      <td>uno per flusso utente, non per errore</td><td>gradino 0</td></tr>
+  </table>
+  <p>Trasversale ai livelli: i <b>test di tipo</b> (<code>.test-d.ts</code>). Ogni promessa del blueprint del
+    tipo «non compila» (use case senza policy, handler che non combacia col comando, chiave del registro
+    sbagliata) ha un test con <code>@ts-expect-error</code>.</p>
+  <p>Il livello 3 regge gli altri: gli use case si provano sui fake, e la suite di contratto garantisce che i
+    fake non mentano. Per questo <b>fake in memoria e suite di contratto stanno nel core</b>, nel sottopercorso
+    <code>core/testing</code>, fuori da <code>core/client</code> e <code>core/server</code>: il fake sta accanto
+    alla porta che imita. <code>stub-adapter</code> si riduce a un <code>ContainerModule</code> che lega quei
+    fake e carica i dati di prova per la mock mode. Il core non dipende più dallo stub, e il ciclo
+    <code>core</code> ↔ <code>stub-adapter</code> sparisce.</p>
+  <p>Runner, fixture, factory, test nel browser (Playwright) e property-based sono preferenze, in
+    <code>stack/</code>.</p>
 </div></section>
 
 <!-- 4 -->
@@ -761,14 +792,18 @@ adapters/ …</pre></div>
 <!-- 5 -->
 <section class="s" id="bus"><div class="wrap">
   <h2><span class="num">5</span>Command bus</h2>
+  <p><b>Fuori è un'API, dentro è un bus.</b> Chi chiama vede il deployable <code>api</code>, il percorso
+    <code>/api/&lt;comando&gt;</code> e <code>api.dispatch</code>: non ha bisogno di sapere cos'è un bus. Il
+    bus è il pattern con cui l'API è fatta dentro (dispatcher, handler, middleware, canali), e
+    <code>bus</code> resta il nome del pacchetto che lo implementa.</p>
   <p>Il chiamante invia un comando e attende l'esito; non sa su quale canale viaggia né dove gira
     l'handler. In-process, Workers RPC o HTTP: la chiamata è la stessa e restituisce una
     <code>Promise</code> dell'esito.</p>
   <table class="t">
     <tr><th>Termine</th><th>Cos'è</th><th>Dove sta</th></tr>
-    <tr><td>Command</td><td>Il messaggio: nome, schema dell'input, schema dell'output, <code>kind</code>, descrizione, policy</td><td><code>commands</code></td></tr>
+    <tr><td>Command</td><td>Il messaggio: nome, schema dell'input, schema dell'output, errori, <code>kind</code>, descrizione. La policy no: sta nel core, per use case (§6)</td><td><code>commands</code></td></tr>
     <tr><td>Query</td><td>Un comando con <code>kind: "query"</code>: non modifica lo stato</td><td><code>commands</code></td></tr>
-    <tr><td>Bus</td><td>L'oggetto con <code>dispatch(nome, input)</code>; il tipo deriva dalla mappa dei comandi</td><td>tipo in <code>commands</code>, implementazione in <code>bus</code></td></tr>
+    <tr><td>API</td><td>Ciò che il client vede: l'oggetto <code>api</code> con <code>dispatch(nome, input)</code>, il tipo derivato dalla mappa dei comandi, e il deployable <code>api</code></td><td>tipo in <code>commands</code>, implementazione in <code>bus</code></td></tr>
     <tr><td>Handler</td><td>Traduce il comando nello use case: chiave del registro, <code>toUseCase</code>, <code>fromUseCase?</code></td><td><code>bus</code></td></tr>
     <tr><td>Middleware</td><td>Strati attorno a ogni handler: policy, audit, logging</td><td><code>bus</code></td></tr>
     <tr><td>Canale</td><td>Porta il comando dal chiamante al dispatcher e ne riporta l'esito: HTTP, RPC, in-process</td><td><code>bus</code> (adapter)</td></tr>
@@ -778,7 +813,7 @@ adapters/ …</pre></div>
   <g font-family="Public Sans, sans-serif">
     <rect x="20" y="70" width="190" height="80" fill="#FAF7F1" stroke="#4A453F"/>
     <text x="36" y="96" font-size="12" font-weight="650" fill="#6A6259">chiamante</text>
-    <text x="36" y="122" font-size="12.5" fill="#14110E" font-family="ui-monospace, monospace">await bus.dispatch(</text>
+    <text x="36" y="122" font-size="12.5" fill="#14110E" font-family="ui-monospace, monospace">await api.dispatch(</text>
     <text x="36" y="140" font-size="12.5" fill="#14110E" font-family="ui-monospace, monospace">  "approveExpense", {…})</text>
     <line x1="212" y1="110" x2="256" y2="110" stroke="#4A453F" stroke-width="1.5" marker-end="url(#ah)"/>
     <rect x="260" y="20" width="200" height="146" fill="none" stroke="#5A5C60" stroke-dasharray="5 4"/>
@@ -828,9 +863,38 @@ approveExpense: handler(<span class="s">"approveExpense"</span>, {
     Così l'handler riceve sempre un input del tipo dichiarato, e lo use case dietro di lui può fidarsi. Sul
     canale in-process la validazione gira lo stesso.</p>
   <p>Fino al gradino 2·B lo stesso ruolo lo ha la route, con lo stesso strumento di validazione.</p>
-  <p class="small">Si chiama solo <code>bus.dispatch(nome, input)</code>, mai una forma alternativa. Pacchetti:
+  <p class="small">Si chiama solo <code>api.dispatch(nome, input)</code>, mai una forma alternativa. Pacchetti:
     <code>commands</code> (contratto), <code>bus</code> (dispatcher, handler, middleware, canali),
-    <code>bus-server</code> (deployable). Nomi delle funzioni indicativi: si fissano nel progetto esempio.</p>
+    <code>api</code> (deployable). Nomi delle funzioni indicativi: si fissano nel progetto esempio.</p>
+  <h3 style="margin-top:2rem">L'api, i gateway e i client</h3>
+  <p>L'API è il contratto, cioè i comandi in <code>commands</code>. Il deployable <code>api</code> è il vecchio
+    bus-server senza la parte HTTP: possiede i dati, valida, applica le policy, esegue, e parla <b>un solo
+    canale interno</b>. Non vede mai una <code>Request</code>. Intorno a lui ci sono due tipi di pezzi.</p>
+  <table class="t">
+    <tr><th>Tipo</th><th>Cosa fa</th><th>Esempi</th><th>Quando</th></tr>
+    <tr><td><b>gateway</b></td><td><i>espone</i> l'API in un protocollo: traduce uno a uno in
+      <code>dispatch</code>, senza logica né interfaccia. Chi sta dietro vede lo stesso contratto dell'api</td>
+      <td>HTTP/JSON (<code>POST /api/&lt;comando&gt;</code>), GraphQL, JSON-RPC, MCP</td>
+      <td>quando arriva un client che parla quel protocollo</td></tr>
+    <tr><td><b>client</b></td><td><i>consuma</i> l'API per sé: compone comandi, ha un'interfaccia o un
+      lavoro suo</td><td>webapp con rendering lato server, CLI, consumer dei job, app mobile</td>
+      <td>la webapp di solito è il primo</td></tr>
+  </table>
+  <p>Un client si collega <b>direttamente</b> all'api se gira dentro la piattaforma e vede il canale interno
+    (la webapp su un Worker con il binding). Altrimenti passa da un <b>gateway</b>: la CLI sul portatile, una
+    SPA nel browser, il server di un partner. Il confine fra i due tipi è la trasparenza: il gateway inoltra e
+    basta; il client aggiunge qualcosa di suo. Se un client finisce per inoltrare soltanto, è diventato un
+    gateway, e va chiamato così.</p>
+  <p><b>Router</b>, opzionale: possiede l'hostname e smista per percorso, senza logica. Serve solo per tenere
+    tutto sotto un dominio. Router e gateway non sono la stessa cosa: il router decide <i>dove</i> vanno le
+    richieste, il gateway <i>traduce</i>. Con un hostname per pezzo il router sparisce, ma il gateway resta
+    finché c'è un client esterno (per esempio <code>api.&lt;dominio&gt;</code>). Un dominio solo o uno per pezzo è
+    una scelta di UX (un indirizzo, una application di Access, cookie condivisi): la decide il progetto.</p>
+  <p>Principio: ogni protocollo sta fuori dal dispatcher. Preferenza: su Cloudflare ogni gateway è un worker a
+    sé legato all'api con un service binding, che costa quasi niente; altrove può essere un modulo nello stesso
+    processo, purché resti separato nel codice. Su ogni canale remoto, RPC compreso, il risultato viaggia
+    codificato col codec del comando, altrimenti un errore con nome arriva come oggetto qualunque. Forma
+    provata in <code>efesto-cloud/agent</code> (ADR 0002).</p>
   <h3 style="margin-top:2rem">Cosa importano i client</h3>
   <p>Il peso non sta nel core ma negli adapter. Un core senza tecnologia e tree-shakeable
     (<code>"sideEffects": false</code>, un'uscita <code>core/client</code> separata da quella server) si importa a
@@ -850,7 +914,7 @@ approveExpense: handler(<span class="s">"approveExpense"</span>, {
     <rect x="160" y="15" width="640" height="300" fill="#EFE8DC"/>
     <text x="178" y="40" font-size="13" font-weight="650" fill="#4A453F">audit, logging: attore, comando, input, esito</text>
     <rect x="215" y="56" width="530" height="240" fill="#FAF7F1" stroke="#B84A1E" stroke-width="2"/>
-    <text x="233" y="80" font-size="13" font-weight="650" fill="#A8481F">policy: legge la policy dichiarata nel comando</text>
+    <text x="233" y="80" font-size="13" font-weight="650" fill="#A8481F">policy: legge la policy dello use case dal core</text>
     <rect x="270" y="96" width="420" height="180" fill="#A8481F"/>
     <text x="288" y="120" font-size="13" font-weight="650" fill="#FAF7F1">handler: comando → use case</text>
     <rect x="330" y="140" width="300" height="116" fill="#14110E"/>
@@ -874,7 +938,7 @@ approveExpense: handler(<span class="s">"approveExpense"</span>, {
     <div class="col">
       <span class="lbl">Policy obbligatoria</span>
       <ul>
-        <li>Dato nel comando: CLI e agenti la leggono</li>
+        <li>Una per use case, in una mappa nel core (<code>policies.ts</code>): uno use case senza policy non compila. CLI e agenti la leggono nello snapshot comando → use case → policy</li>
         <li>Accessibile a ogni utente autenticato: <code>anyMember</code>, scritto esplicitamente</li>
         <li>Nessun accesso anonimo: il bus si apre solo con un token valido</li>
         <li>Scartati i default: «nega se manca» sposta l'errore a runtime, «consenti se manca» lascia buchi silenziosi</li>
@@ -945,8 +1009,8 @@ approveExpense: handler(<span class="s">"approveExpense"</span>, {
     <tr><td>Repository pattern; implementazione in un adapter</td><td>Prisma</td><td>Drizzle, query dirette</td></tr>
     <tr><td>Il core non dipende dal runtime</td><td>Cloudflare Workers, D1</td><td>container, Postgres</td></tr>
     <tr><td>Porte risolte per iniezione nel costruttore</td><td>Inversify</td><td>tsyringe, TypeDI</td></tr>
-    <tr><td>Ogni use case ritorna un <code>Result</code> con errori con nome</td><td><code>Result</code> e <code>Schema.TaggedError</code> di Effect 4</td><td>una libreria propria con la stessa forma</td></tr>
-    <tr><td>Input validato al bordo</td><td><code>Schema</code> di Effect 4</td><td>zod</td></tr>
+    <tr><td>Ogni use case ritorna un <code>Result</code> con errori con nome</td><td><code>Result</code> e <code>TaggedError</code> di <code>better-result</code></td><td>i valori di Effect 4, una libreria propria con la stessa forma</td></tr>
+    <tr><td>Input validato al bordo</td><td>zod 4 (Standard Schema)</td><td>valibot, <code>Schema</code> di Effect</td></tr>
     <tr><td>Canale sostituibile fra chiamante e bus</td><td>Workers RPC</td><td>HTTP, altro RPC</td></tr>
     <tr><td>Coda e scheduler dietro una porta</td><td>Cloudflare Queues, Cron Trigger</td><td>pg-boss, croner</td></tr>
     <tr><td>Interfaccia separata dalla logica</td><td>React Router (framework mode)</td><td>—</td></tr>
@@ -956,13 +1020,14 @@ approveExpense: handler(<span class="s">"approveExpense"</span>, {
 <!-- 9 -->
 <section class="s" id="librerie"><div class="wrap">
   <h2><span class="num">9</span>Librerie in <code>lib</code></h2>
-  <p>Due proposte che riducono <code>lib</code>: usare i valori di Effect al posto dei nostri
+  <p>Due proposte che riducono <code>lib</code>: usare <code>better-result</code> al posto dei nostri
     <code>Result</code> ed errori taggati; spostare il codice specifico di un ORM dai pacchetti ai template della skill, così che ogni
     progetto lo scriva nel proprio adapter.</p>
   <table class="t">
     <tr><th>Pacchetti</th><th>Decisione</th><th>Note</th></tr>
     <tr><td><code>result</code>, <code>result-async</code>, <code>maybe</code>, <code>maybe-async</code>, <code>tagged-error</code>, <code>result-codec</code></td>
-      <td>Ritirare per i progetti nuovi</td><td>Al loro posto i valori di Effect</td></tr>
+      <td>Ritirare per i progetti nuovi</td><td>Al loro posto <code>better-result</code> (anche il codec per i
+      confini) e zod</td></tr>
     <tr><td><code>prisma-unit-of-work</code>, <code>mongodb-unit-of-work</code>, <code>prisma-expand</code>, <code>mongodb-expand</code></td>
       <td>Ritirare</td><td>Diventano template in <code>stack/*</code>, verificati nel progetto esempio</td></tr>
     <tr><td><code>entity</code>, <code>usecase</code>, <code>unit-of-work</code>, <code>expand</code>, <code>metadata</code>, <code>teardown</code></td>
@@ -970,7 +1035,7 @@ approveExpense: handler(<span class="s">"approveExpense"</span>, {
     <tr><td><code>publisher</code>, <code>observable</code>, <code>react-observable</code>, <code>computed</code></td>
       <td>Tenere</td><td>Usati spesso; altrimenti si riscrivono ogni volta</td></tr>
     <tr><td><code>toast</code></td><td>Da riallineare</td><td>È un <code>Result</code> con un messaggio e dipende da
-      <code>result</code> e <code>maybe</code>: va riscritto sui valori di Effect o ritirato insieme a loro</td></tr>
+      <code>result</code> e <code>maybe</code>: va riscritto su <code>better-result</code> o ritirato insieme a loro</td></tr>
     <tr><td><code>env</code></td><td>Tenere, da rivedere</td><td>Oggi legge <code>process.env</code>: deve funzionare
       anche dove <code>process</code> non c'è (Workers), ricevendo l'ambiente da chi lo chiama</td></tr>
     <tr><td><code>outbox</code></td><td>Sospeso</td><td>Era un tentativo per i job (outbox → coda); si decide
@@ -981,19 +1046,24 @@ approveExpense: handler(<span class="s">"approveExpense"</span>, {
   </table>
   <div class="two">
     <div class="col">
-      <span class="lbl">Effect: cosa si prende</span>
+      <span class="lbl">better-result: cosa si prende</span>
       <ul>
-        <li>Il modello: ogni operazione fallibile ritorna successo o errore con nome, errori taggati,
-          schema per validare al bordo</li>
-        <li>Lo si rende obbligatorio negli use case (§3)</li>
-        <li>Si può adottare la libreria per i soli valori (<code>Result</code>, <code>Data.TaggedError</code>,
-          <code>Schema</code>) oppure tenere la nostra con la stessa forma</li>
+        <li>Il modello: ogni operazione fallibile ritorna successo o errore con nome</li>
+        <li><code>Result</code>, <code>TaggedError</code> (<code>_tag</code>, <code>.is()</code>,
+          <code>matchError</code> esaustivo), <code>Result.gen</code>, <code>Result.tryPromise</code> ai bordi,
+          <code>Result.codec</code> per i confini</li>
+        <li>Lo schema al bordo è un Standard Schema qualunque: oggi zod 4</li>
+        <li>Versione fissata: un solo maintainer, tre major finora</li>
       </ul>
     </div>
     <div class="col cold">
-      <span class="lbl">Effect: cosa non si prende</span>
+      <span class="lbl">Perché non Effect</span>
       <ul>
-        <li>Il runtime: use case come <code>Effect&lt;A, E, R&gt;</code>, porte come <code>Context.Tag</code>, adapter come <code>Layer</code></li>
+        <li>Degli use case serve il <code>Result</code>, non un runtime: con Effect gli agenti scivolano verso
+          <code>Effect.gen</code>, <code>Layer</code>, <code>Context.Tag</code>, e il core diventa metà e metà</li>
+        <li>Il costo: gli errori non sono più anche schemi, quindi al 2·C serve un helper in
+          <code>commands</code> che li ricostruisce dal <code>_tag</code>. Si misura con la prova su
+          <code>2c-bus</code></li>
         <li>Restano classi, iniezione nel costruttore, <code>execute(input, ctx)</code>, il command bus del §5</li>
       </ul>
     </div>
@@ -1014,7 +1084,8 @@ approveExpense: handler(<span class="s">"approveExpense"</span>, {
     <code>toResolvedValue</code>) renderebbe il core indipendente dal container. Deciso: per ora restano
     Inversify e i suoi decoratori. Una migrazione futura costa di più, ma resta fattibile se valgono le tre
     condizioni sopra.</p>
-  <p>Deciso: i valori (risultato, errori con tag, schema) vengono da Effect 4; i nostri pacchetti
+  <p>Deciso (giro 15, sostituisce Effect 4 del giro 12): risultato ed errori con tag vengono da
+    <code>better-result</code>, lo schema al bordo da zod; i nostri pacchetti
     <code>result</code>, <code>maybe</code> e <code>tagged-error</code> si ritirano. La PR #31 non si fonde.
     I progetti esistenti restano come sono: la skill non contiene una guida di migrazione.</p>
 </div></section>
@@ -1037,7 +1108,7 @@ approveExpense: handler(<span class="s">"approveExpense"</span>, {
                webapp-admin  consumer
     adapters/  db  stub  mail  queue
   2c-bus/
-    packages/  … + commands  bus  bus-server
+    packages/  … + commands  bus  api
 
 <span class="c"># la mossa da 2·B a 2·C:</span>
 diff -r example/2b-bootstrap example/2c-bus</pre>
@@ -1051,7 +1122,7 @@ diff -r example/2b-bootstrap example/2c-bus</pre>
         <tr><td>Composizione</td><td><code>ImportExpenses</code> usa <code>CreateExpense</code></td></tr>
         <tr><td>Due webapp</td><td><code>webapp-staff</code> crea e invia le proprie note; <code>webapp-admin</code> approva e rimborsa</td></tr>
         <tr><td>Policy</td><td><code>expenses.approve</code>, <code>expenses.reimburse</code>, <code>anyMember</code></td></tr>
-        <tr><td>Test</td><td>use case sullo stub; contratto del bus in-process e remoto; snapshot delle policy</td></tr>
+        <tr><td>Test</td><td>i sei livelli del §3; oggi mancano il livello 1 (dominio) e il 3 (contratto delle porte)</td></tr>
       </table>
     </div>
   </div>
@@ -1084,6 +1155,8 @@ diff -r example/2b-bootstrap example/2c-bus</pre>
     <tr><td>Boot</td><td><code>MissingEnv</code> elenca le variabili mancanti; <code>UseCaseUnavailable</code>
       quando un profilo non lega le porte di uno use case.</td></tr>
   </table>
+  <p>Le righe «Errori» e «Contratto» descrivono l'esempio com'è oggi, su Effect. Dal giro 15 vanno riportate
+    su <code>better-result</code> e zod, partendo da <code>2c-bus</code>.</p>
   <p>Al passaggio 2·B → 2·C il core cambia in un file solo (<code>server.ts</code>, che esporta le
     policy): cambia chi chiama gli use case, non come sono scritti.</p>
 </div></section>
@@ -1141,6 +1214,19 @@ diff -r example/2b-bootstrap example/2c-bus</pre>
     <tr><td>30/10, giro 14</td><td>Scritto <code>lib/example</code> dal gradino 0 al 2·C. In <code>lib</code>:
       <code>IUseCase</code> vincolato al <code>Result</code> di Effect, <code>IUnitOfWork</code> che fa rollback
       sul fallimento, <code>audit</code> rimosso. Proposta per la Q11: policy in una mappa nel core.</td></tr>
+    <tr><td>06/11, giro 15</td><td><code>better-result</code> al posto di Effect per i valori, zod al bordo: degli
+      use case serve il <code>Result</code>, non un runtime. Da provare prima su <code>2c-bus</code>, dove costa di
+      più (errori sul canale). Test in sei livelli con la regola sul «quanto»: dominio, use case (un test per
+      errore dichiarato), contratto delle porte, boot, contratto del bus, end-to-end, più i test di tipo. Fake e
+      suite di contratto in <code>core/testing</code>; lo stub si riduce a un modulo che li lega, e il ciclo
+      <code>core</code> ↔ <code>stub-adapter</code> sparisce.</td></tr>
+    <tr><td>06/11, giro 16</td><td>Dal confronto con <code>efesto-cloud/agent</code>, primo progetto sul 2·C. Fuori è
+      un'API, dentro un bus: <code>bus-server</code> diventa <code>api</code>, si chiama <code>api.dispatch</code>
+      su <code>/api/&lt;comando&gt;</code>. L'api parla un solo canale interno; HTTP, MCP e webapp sono bordi, ciascuno
+      col suo segnale, e il router per un dominio unico è opzionale. Poi precisato: i pezzi intorno all'api sono gateway, che espongono
+      l'API in un protocollo (HTTP/JSON, GraphQL, JSON-RPC, MCP), e client, che la consumano direttamente o da un gateway. Nessun gradino nuovo. Bordo separato: principio
+      nel codice, deployable a sé come preferenza. Q11 chiusa: policy per use case nel core. Migrazione di
+      <code>agent</code> da Effect a <code>better-result</code> dopo la prova. Unit of work su D1 parcheggiato.</td></tr>
   </table>
 </div></section>
 
