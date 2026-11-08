@@ -1,8 +1,8 @@
+import type { IListSubmittedExpenses } from "@expenses/contract/useCase/expenses/ListSubmittedExpenses";
 import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import type IExpenseRepository from "../../../repo/IExpenseRepository.js";
-import type IListSubmittedExpenses from "../IListSubmittedExpenses.js";
 
 @injectable()
 export default class ListSubmittedExpenses implements IListSubmittedExpenses {

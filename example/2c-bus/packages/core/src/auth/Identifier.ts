@@ -1,7 +1,7 @@
+import Unauthenticated from "@expenses/contract/errors/Unauthenticated";
 import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../di/Port.js";
-import Unauthenticated from "../errors/Unauthenticated.js";
 import type IMemberRepository from "../repo/IMemberRepository.js";
 import type IIdentifier from "./IIdentifier.js";
 

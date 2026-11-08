@@ -1,13 +1,10 @@
-import {
-    Auth,
-    AuthModule,
-    ExpensesModule,
-    type IAuthorizer,
-    type IIdentifier,
-    type IJobSource,
-    Port,
-    type ResolveUseCase,
-} from "@expenses/core";
+import type { ResolveUseCase } from "@expenses/contract/registry";
+import { Auth, AuthModule } from "@expenses/core/auth/AuthModule";
+import type IAuthorizer from "@expenses/core/auth/IAuthorizer";
+import type IIdentifier from "@expenses/core/auth/IIdentifier";
+import { Port } from "@expenses/core/di/Port";
+import type { IJobSource } from "@expenses/core/service/IJobQueue";
+import { ExpensesModule } from "@expenses/core/useCase/expenses/ExpensesModule";
 import { Database, installDb } from "@expenses/db-adapter";
 import { installMail } from "@expenses/mail-adapter";
 import { installQueue } from "@expenses/queue-adapter";

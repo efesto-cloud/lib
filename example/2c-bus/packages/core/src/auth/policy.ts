@@ -1,4 +1,4 @@
-import type { MemberDto } from "../dto/MemberDto.js";
+import type { MemberDto } from "@expenses/contract/dto/MemberDto";
 import type IExpenseRepository from "../repo/IExpenseRepository.js";
 import { PERMISSIONS, type Permission } from "./Permission.js";
 

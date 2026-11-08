@@ -4,8 +4,7 @@
     "type": "module",
     "sideEffects": false,
     "exports": {
-        ".": "./src/server.ts",
-        "./client": "./src/client.ts"
+        "./*": "./src/*.ts"
     },
     "scripts": {
         "typecheck": "tsc --noEmit",
@@ -15,6 +14,7 @@
         "@efesto-cloud/entity": "file:../../../../packages/entity",
         "@efesto-cloud/unit-of-work": "file:../../../../packages/unit-of-work",
         "@efesto-cloud/usecase": "file:../../../../packages/usecase",
+        "@expenses/contract": "workspace:*",
         "better-result": "3.0.1",
         "inversify": "8.2.3",
         "luxon": "^3.7.2",

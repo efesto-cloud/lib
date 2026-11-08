@@ -1,12 +1,12 @@
-import type { IExecutionContext } from "@efesto-cloud/usecase";
+import type Forbidden from "@expenses/contract/errors/Forbidden";
+import type { UseCaseInput, UseCaseKey } from "@expenses/contract/registry";
+import type { ExecutionContext } from "@expenses/contract/useCase";
 import type { Result } from "better-result";
-import type { UseCaseInput, UseCaseKey } from "../di/UseCaseRegistry.js";
-import type Forbidden from "../errors/Forbidden.js";
 
 export default interface IAuthorizer {
     authorize<K extends UseCaseKey>(
         key: K,
         input: UseCaseInput<K>,
-        context: IExecutionContext,
+        context: ExecutionContext,
     ): Promise<Result<void, Forbidden>>;
 }

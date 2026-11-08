@@ -1,4 +1,4 @@
-import type { IMailer } from "@expenses/core";
+import type IMailer from "@expenses/core/service/IMailer";
 
 /** Posts to the mail provider's HTTP endpoint. */
 export default class HttpMailer implements IMailer {

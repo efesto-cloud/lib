@@ -13,6 +13,9 @@ importers:
       '@efesto-cloud/unit-of-work':
         specifier: file:../../../../packages/unit-of-work
         version: file:../../packages/unit-of-work
+      '@expenses/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
       '@expenses/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -32,6 +35,9 @@ importers:
 
   adapters/file-adapter:
     dependencies:
+      '@expenses/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
       '@expenses/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -70,6 +76,9 @@ importers:
       '@efesto-cloud/usecase':
         specifier: file:../../../../packages/usecase
         version: file:../../packages/usecase
+      '@expenses/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
       '@expenses/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -92,6 +101,9 @@ importers:
       '@efesto-cloud/usecase':
         specifier: file:../../../../packages/usecase
         version: file:../../packages/usecase
+      '@expenses/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
       '@expenses/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -111,6 +123,9 @@ importers:
 
   packages/bootstrap:
     dependencies:
+      '@expenses/contract':
+        specifier: workspace:*
+        version: link:../contract
       '@expenses/core':
         specifier: workspace:*
         version: link:../core
@@ -148,9 +163,9 @@ importers:
       '@efesto-cloud/usecase':
         specifier: file:../../../../packages/usecase
         version: file:../../packages/usecase
-      '@expenses/commands':
+      '@expenses/contract':
         specifier: workspace:*
-        version: link:../commands
+        version: link:../contract
       '@expenses/core':
         specifier: workspace:*
         version: link:../core
@@ -193,25 +208,6 @@ importers:
         specifier: ^6.0.2
         version: 6.0.3
 
-  packages/commands:
-    dependencies:
-      '@expenses/core':
-        specifier: workspace:*
-        version: link:../core
-      better-result:
-        specifier: 3.0.1
-        version: 3.0.1
-      zod:
-        specifier: 4.6.7
-        version: 4.6.7
-    devDependencies:
-      '@types/node':
-        specifier: ^24
-        version: 24.19.2
-      typescript:
-        specifier: ^6.0.2
-        version: 6.0.3
-
   packages/consumer:
     dependencies:
       '@efesto-cloud/usecase':
@@ -234,6 +230,25 @@ importers:
         specifier: ^6.0.2
         version: 6.0.3
 
+  packages/contract:
+    dependencies:
+      '@efesto-cloud/usecase':
+        specifier: file:../../../../packages/usecase
+        version: file:../../packages/usecase
+      better-result:
+        specifier: 3.0.1
+        version: 3.0.1
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^24
+        version: 24.19.2
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.3
+
   packages/core:
     dependencies:
       '@efesto-cloud/entity':
@@ -245,6 +260,9 @@ importers:
       '@efesto-cloud/usecase':
         specifier: file:../../../../packages/usecase
         version: file:../../packages/usecase
+      '@expenses/contract':
+        specifier: workspace:*
+        version: link:../contract
       better-result:
         specifier: 3.0.1
         version: 3.0.1
@@ -279,9 +297,9 @@ importers:
       '@expenses/bus':
         specifier: workspace:*
         version: link:../bus
-      '@expenses/commands':
+      '@expenses/contract':
         specifier: workspace:*
-        version: link:../commands
+        version: link:../contract
       better-result:
         specifier: 3.0.1
         version: 3.0.1
@@ -298,9 +316,9 @@ importers:
       '@expenses/bus':
         specifier: workspace:*
         version: link:../bus
-      '@expenses/commands':
+      '@expenses/contract':
         specifier: workspace:*
-        version: link:../commands
+        version: link:../contract
       better-result:
         specifier: 3.0.1
         version: 3.0.1
@@ -320,12 +338,12 @@ importers:
       '@expenses/bus-server':
         specifier: workspace:*
         version: link:../packages/bus-server
-      '@expenses/commands':
-        specifier: workspace:*
-        version: link:../packages/commands
       '@expenses/consumer':
         specifier: workspace:*
         version: link:../packages/consumer
+      '@expenses/contract':
+        specifier: workspace:*
+        version: link:../packages/contract
       '@expenses/db-adapter':
         specifier: workspace:*
         version: link:../adapters/db-adapter

@@ -1,12 +1,12 @@
 import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
-import type { IExecutionContext } from "@efesto-cloud/usecase";
+import type { ExecutionContext } from "@expenses/contract/useCase";
+import type { IApproveExpense } from "@expenses/contract/useCase/expenses/ApproveExpense";
 import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import type IExpenseRepository from "../../../repo/IExpenseRepository.js";
 import type IExpenseStatusChangeRepository from "../../../repo/IExpenseStatusChangeRepository.js";
 import type IJobQueue from "../../../service/IJobQueue.js";
-import type IApproveExpense from "../IApproveExpense.js";
 import transitionExpense from "./transitionExpense.js";
 
 @injectable()
@@ -20,7 +20,7 @@ export default class ApproveExpense implements IApproveExpense {
         @inject(Port.JobQueue) private readonly jobs: IJobQueue,
     ) {}
 
-    async execute(input: IApproveExpense.Input, context: IExecutionContext) {
+    async execute(input: IApproveExpense.Input, context: ExecutionContext) {
         const result = await transitionExpense(
             { uow: this.uow, expenses: this.expenses, history: this.history },
             input.expense_id,

@@ -1,6 +1,6 @@
+import type { MemberDto } from "@expenses/contract/dto/MemberDto";
+import type Unauthenticated from "@expenses/contract/errors/Unauthenticated";
 import type { Result } from "better-result";
-import type { MemberDto } from "../dto/MemberDto.js";
-import type Unauthenticated from "../errors/Unauthenticated.js";
 
 /** Turns a credential into the actor. How the credential works is the app's choice. */
 export default interface IIdentifier {

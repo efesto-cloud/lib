@@ -10,7 +10,7 @@
     },
     "dependencies": {
         "@expenses/bus": "workspace:*",
-        "@expenses/commands": "workspace:*",
+        "@expenses/contract": "workspace:*",
         "better-result": "3.0.1"
     },
     "devDependencies": {

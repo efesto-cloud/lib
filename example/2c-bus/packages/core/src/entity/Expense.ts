@@ -1,12 +1,12 @@
 import Entity from "@efesto-cloud/entity";
+import type { ExpenseDto } from "@expenses/contract/dto/ExpenseDto";
+import type InvalidAmount from "@expenses/contract/errors/InvalidAmount";
+import InvalidTransition from "@expenses/contract/errors/InvalidTransition";
+import { canTransition } from "@expenses/contract/rules/expenseStateMachine";
+import type { ExpenseStatus } from "@expenses/contract/type/ExpenseStatus";
 import { Result } from "better-result";
-import type { ExpenseDto } from "../dto/ExpenseDto.js";
-import type InvalidAmount from "../errors/InvalidAmount.js";
-import InvalidTransition from "../errors/InvalidTransition.js";
-import type { ExpenseStatus } from "../type/ExpenseStatus.js";
 import Amount from "../value_object/Amount.js";
 import type ExpenseStatusChange from "./ExpenseStatusChange.js";
-import { canTransition } from "./expenseStateMachine.js";
 
 type ExpenseProps = {
     author_id: string;

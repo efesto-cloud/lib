@@ -1,9 +1,7 @@
-import type {
-    ExpenseDto,
-    ExpenseStatusChange,
-    Job,
-    MemberDto,
-} from "@expenses/core";
+import type { ExpenseDto } from "@expenses/contract/dto/ExpenseDto";
+import type { MemberDto } from "@expenses/contract/dto/MemberDto";
+import type ExpenseStatusChange from "@expenses/core/entity/ExpenseStatusChange";
+import type { Job } from "@expenses/core/service/IJobQueue";
 
 type State = {
     members: Map<string, MemberDto & { token: string }>;

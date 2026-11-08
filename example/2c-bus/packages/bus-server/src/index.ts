@@ -3,12 +3,9 @@ import {
     bootstrapBus,
     type Env,
 } from "@expenses/bootstrap/bus";
-import {
-    type AuditEntry,
-    audit,
-    createDispatcher,
-    httpChannel,
-} from "@expenses/bus";
+import { httpChannel } from "@expenses/bus/channels/http-server";
+import { createDispatcher } from "@expenses/bus/dispatcher";
+import { type AuditEntry, audit } from "@expenses/bus/middleware/audit";
 
 /**
  * The deployable: bootstrap, then the bus behind its channels. Data, secrets

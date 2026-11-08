@@ -41,6 +41,7 @@ export function taggedError<Tag extends string, Shape extends z.ZodRawShape>(
             // `this`, not `Tagged`: the codec must decode into the subclass that
             // calls it (ExpenseNotFound), or `instanceof` fails on the other side.
             // biome-ignore lint/complexity/noThisInStatic: see above
+            // biome-ignore lint/complexity/noUselessThisAlias: two safe fixes in a row turn `this` into `Tagged`
             const Class = this;
             let codec = codecs.get(Class);
             if (!codec) {

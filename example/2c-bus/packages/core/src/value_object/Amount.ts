@@ -1,5 +1,5 @@
+import InvalidAmount from "@expenses/contract/errors/InvalidAmount";
 import { Result } from "better-result";
-import InvalidAmount from "../errors/InvalidAmount.js";
 
 /** A positive amount in euro cents. */
 export default class Amount {

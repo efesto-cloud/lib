@@ -2,7 +2,7 @@ import { Result } from "better-result";
 import type { Middleware } from "./types.js";
 
 export type AuditEntry = {
-    command: string;
+    useCase: string;
     actor_id: string;
     input: unknown;
     outcome: string;
@@ -13,7 +13,7 @@ export function audit(write: (entry: AuditEntry) => void): Middleware {
     return async (call, next) => {
         const outcome = await next();
         write({
-            command: call.command,
+            useCase: call.useCase,
             actor_id: call.context.actor.id,
             input: call.input,
             outcome: Result.isOk(outcome)

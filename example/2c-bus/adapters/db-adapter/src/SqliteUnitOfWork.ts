@@ -1,5 +1,5 @@
 import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
-import { Port } from "@expenses/core";
+import { Port } from "@expenses/core/di/Port";
 import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import type Database from "./Database.js";

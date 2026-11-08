@@ -1,12 +1,12 @@
 import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
-import type { IExecutionContext } from "@efesto-cloud/usecase";
+import ExpenseNotFound from "@expenses/contract/errors/ExpenseNotFound";
+import type InvalidTransition from "@expenses/contract/errors/InvalidTransition";
+import type { ExpenseStatus } from "@expenses/contract/type/ExpenseStatus";
+import type { ExecutionContext } from "@expenses/contract/useCase";
 import { Result } from "better-result";
 import type Expense from "../../../entity/Expense.js";
-import ExpenseNotFound from "../../../errors/ExpenseNotFound.js";
-import type InvalidTransition from "../../../errors/InvalidTransition.js";
 import type IExpenseRepository from "../../../repo/IExpenseRepository.js";
 import type IExpenseStatusChangeRepository from "../../../repo/IExpenseStatusChangeRepository.js";
-import type { ExpenseStatus } from "../../../type/ExpenseStatus.js";
 
 /** Load → mutate → save, with the history row in the same transaction. */
 export default function transitionExpense(
@@ -17,7 +17,7 @@ export default function transitionExpense(
     },
     expense_id: string,
     to: ExpenseStatus,
-    context: IExecutionContext,
+    context: ExecutionContext,
 ): Promise<Result<Expense, ExpenseNotFound | InvalidTransition>> {
     return deps.uow.runWithTransaction<
         Expense,

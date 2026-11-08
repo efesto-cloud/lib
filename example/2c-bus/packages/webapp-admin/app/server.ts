@@ -1,9 +1,9 @@
-import type { Bus } from "@expenses/commands";
+import type { Api } from "@expenses/contract/api";
 import { json } from "./http.js";
 import * as expenses from "./routes/expenses.js";
 
 /** No core, no container: the webapp talks to the bus with the user's token. */
-export function createApp(options: { busFor: (token: string | null) => Bus }) {
+export function createApp(options: { busFor: (token: string | null) => Api }) {
     return async function handle(request: Request): Promise<Response> {
         const token =
             request.headers.get("authorization")?.replace(/^Bearer /, "") ??

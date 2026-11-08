@@ -1,11 +1,11 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { inProcessBus } from "@expenses/bus";
-import { httpBus } from "@expenses/bus/client";
+import { httpApi } from "@expenses/bus/channels/http-client";
+import { inProcessApi } from "@expenses/bus/channels/in-process";
 import { createBusServer } from "@expenses/bus-server";
-import type { Bus } from "@expenses/commands";
 import { createConsumer } from "@expenses/consumer";
+import type { Api } from "@expenses/contract/api";
 import { Database } from "@expenses/db-adapter";
 import { seededStore } from "@expenses/stub-adapter";
 import { createApp as createAdmin } from "@expenses/webapp-admin";
@@ -52,14 +52,14 @@ export async function start() {
     }
 
     const server = await createBusServer(env, { ...options, audit: () => {} });
-    const busFor = (token: string | null): Bus =>
+    const busFor = (token: string | null): Api =>
         process.env.CHANNEL === "http"
-            ? httpBus({
+            ? httpApi({
                   url: "http://bus.test",
                   token,
                   fetch: (request) => server.handle(request as Request),
               })
-            : inProcessBus(server.dispatcher, token);
+            : inProcessApi(server.dispatcher, token);
 
     const staff = createStaff({ busFor });
     const admin = createAdmin({ busFor });

@@ -1,12 +1,12 @@
-import type { IExecutionContext } from "@efesto-cloud/usecase";
-import type { UseCaseInput, UseCaseKey } from "../di/UseCaseRegistry.js";
+import type { UseCaseInput, UseCaseKey } from "@expenses/contract/registry";
+import type { ExecutionContext } from "@expenses/contract/useCase";
 
 /** A use case to run later, by a consumer, with the context of who asked. */
 export type Job = {
     [K in UseCaseKey]: {
         key: K;
         input: UseCaseInput<K>;
-        context: IExecutionContext;
+        context: ExecutionContext;
     };
 }[UseCaseKey];
 
@@ -15,7 +15,7 @@ export default interface IJobQueue {
     enqueue<K extends UseCaseKey>(
         key: K,
         input: UseCaseInput<K>,
-        context: IExecutionContext,
+        context: ExecutionContext,
     ): Promise<void>;
 }
 

@@ -1,8 +1,6 @@
-import {
-    type ExpenseRow,
-    type IExpenseFileReader,
-    InvalidFile,
-} from "@expenses/core";
+import InvalidFile from "@expenses/contract/errors/InvalidFile";
+import type IExpenseFileReader from "@expenses/core/service/IExpenseFileReader";
+import type { ExpenseRow } from "@expenses/core/service/IExpenseFileReader";
 import { Result } from "better-result";
 
 /** Stands in for a real spreadsheet library, the kind of dependency that weighs. */

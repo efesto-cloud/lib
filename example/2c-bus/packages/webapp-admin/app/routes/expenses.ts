@@ -1,22 +1,22 @@
-import type { Bus } from "@expenses/commands";
+import type { Api } from "@expenses/contract/api";
 import { send } from "../http.js";
 
-export const listSubmitted = (bus: Bus) =>
-    send(bus.dispatch("listSubmittedExpenses", {}));
+export const listSubmitted = (bus: Api) =>
+    send(bus.dispatch("expenses.ListSubmittedExpenses", {}));
 
-export const importFile = (bus: Bus, file: string) =>
-    send(bus.dispatch("importExpenses", { file }), 201);
+export const importFile = (bus: Api, file: string) =>
+    send(bus.dispatch("expenses.ImportExpenses", { file }), 201);
 
-const COMMANDS = {
-    approve: "approveExpense",
-    reject: "rejectExpense",
-    reimburse: "reimburseExpense",
+const USE_CASES = {
+    approve: "expenses.ApproveExpense",
+    reject: "expenses.RejectExpense",
+    reimburse: "expenses.ReimburseExpense",
 } as const;
 
 export function review(
-    bus: Bus,
+    bus: Api,
     expense_id: string,
-    action: keyof typeof COMMANDS,
+    action: keyof typeof USE_CASES,
 ) {
-    return send(bus.dispatch(COMMANDS[action], { expense_id }));
+    return send(bus.dispatch(USE_CASES[action], { expense_id }));
 }

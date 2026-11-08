@@ -1,4 +1,4 @@
-import { Port } from "@expenses/core";
+import { Port } from "@expenses/core/di/Port";
 import { ContainerModule } from "inversify";
 import Database from "./Database.js";
 import ExpenseRepository from "./ExpenseRepository.js";

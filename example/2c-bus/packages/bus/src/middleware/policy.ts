@@ -1,4 +1,4 @@
-import type { IAuthorizer } from "@expenses/core";
+import type IAuthorizer from "@expenses/core/auth/IAuthorizer";
 import { Result } from "better-result";
 import type { Middleware } from "./types.js";
 

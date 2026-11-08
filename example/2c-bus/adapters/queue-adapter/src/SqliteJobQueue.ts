@@ -1,12 +1,8 @@
 import { DatabaseSync } from "node:sqlite";
-import type { IExecutionContext } from "@efesto-cloud/usecase";
-import type {
-    IJobQueue,
-    IJobSource,
-    Job,
-    UseCaseInput,
-    UseCaseKey,
-} from "@expenses/core";
+import type { UseCaseInput, UseCaseKey } from "@expenses/contract/registry";
+import type { ExecutionContext } from "@expenses/contract/useCase";
+import type IJobQueue from "@expenses/core/service/IJobQueue";
+import type { IJobSource, Job } from "@expenses/core/service/IJobQueue";
 
 /**
  * A queue in its own SQLite file. It stands in for a managed queue; the
@@ -25,7 +21,7 @@ export default class SqliteJobQueue implements IJobQueue, IJobSource {
     async enqueue<K extends UseCaseKey>(
         key: K,
         input: UseCaseInput<K>,
-        context: IExecutionContext,
+        context: ExecutionContext,
     ) {
         this.conn
             .prepare("insert into job (payload) values (?)")

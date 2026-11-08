@@ -1,4 +1,4 @@
-import type { ExpenseStatus } from "../type/ExpenseStatus.js";
+import type { ExpenseStatus } from "@expenses/contract/type/ExpenseStatus";
 
 /** One row of an expense's history, written together with the expense. */
 export default interface ExpenseStatusChange {

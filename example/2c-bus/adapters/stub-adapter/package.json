@@ -12,9 +12,10 @@
     "dependencies": {
         "@efesto-cloud/unit-of-work": "file:../../../../packages/unit-of-work",
         "@efesto-cloud/usecase": "file:../../../../packages/usecase",
+        "@expenses/contract": "workspace:*",
         "@expenses/core": "workspace:*",
-        "inversify": "8.2.3",
-        "better-result": "3.0.1"
+        "better-result": "3.0.1",
+        "inversify": "8.2.3"
     },
     "devDependencies": {
         "@types/node": "^24",

@@ -1,10 +1,8 @@
-import {
-    Amount,
-    Expense,
-    type ExpenseDto,
-    type ExpenseStatus,
-    type IExpenseRepository,
-} from "@expenses/core";
+import type { ExpenseDto } from "@expenses/contract/dto/ExpenseDto";
+import type { ExpenseStatus } from "@expenses/contract/type/ExpenseStatus";
+import Expense from "@expenses/core/entity/Expense";
+import type IExpenseRepository from "@expenses/core/repo/IExpenseRepository";
+import Amount from "@expenses/core/value_object/Amount";
 import type StubStore from "./StubStore.js";
 
 /**

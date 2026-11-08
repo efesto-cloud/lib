@@ -1,10 +1,10 @@
-import type { IExecutionContext } from "@efesto-cloud/usecase";
+import type { ExecutionContext } from "@expenses/contract/useCase";
+import type { ICreateExpense } from "@expenses/contract/useCase/expenses/CreateExpense";
 import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
 import Expense from "../../../entity/Expense.js";
 import type IExpenseRepository from "../../../repo/IExpenseRepository.js";
-import type ICreateExpense from "../ICreateExpense.js";
 
 @injectable()
 export default class CreateExpense implements ICreateExpense {
@@ -13,7 +13,7 @@ export default class CreateExpense implements ICreateExpense {
         private readonly expenses: IExpenseRepository,
     ) {}
 
-    async execute(input: ICreateExpense.Input, context: IExecutionContext) {
+    async execute(input: ICreateExpense.Input, context: ExecutionContext) {
         const expense = Expense.create({
             ...input,
             author_id: context.actor.id,

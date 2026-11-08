@@ -1,8 +1,6 @@
-import {
-    type ExpenseStatusChange,
-    type IExpenseStatusChangeRepository,
-    Port,
-} from "@expenses/core";
+import { Port } from "@expenses/core/di/Port";
+import type ExpenseStatusChange from "@expenses/core/entity/ExpenseStatusChange";
+import type IExpenseStatusChangeRepository from "@expenses/core/repo/IExpenseStatusChangeRepository";
 import { inject, injectable } from "inversify";
 import type Database from "./Database.js";
 

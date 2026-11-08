@@ -1,11 +1,11 @@
+import ExpenseNotFound from "@expenses/contract/errors/ExpenseNotFound";
+import type { INotifyAuthor } from "@expenses/contract/useCase/expenses/NotifyAuthor";
 import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
-import ExpenseNotFound from "../../../errors/ExpenseNotFound.js";
 import type IExpenseRepository from "../../../repo/IExpenseRepository.js";
 import type IMemberRepository from "../../../repo/IMemberRepository.js";
 import type IMailer from "../../../service/IMailer.js";
-import type INotifyAuthor from "../INotifyAuthor.js";
 
 /** Runs as a job. It does not know it runs later: it is a use case like the others. */
 @injectable()

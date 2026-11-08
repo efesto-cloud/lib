@@ -1,12 +1,12 @@
 import type { IUnitOfWork } from "@efesto-cloud/unit-of-work";
-import type { IExecutionContext } from "@efesto-cloud/usecase";
+import ImportRowInvalid from "@expenses/contract/errors/ImportRowInvalid";
+import type { ExecutionContext } from "@expenses/contract/useCase";
+import type { ICreateExpense } from "@expenses/contract/useCase/expenses/CreateExpense";
+import type { IImportExpenses } from "@expenses/contract/useCase/expenses/ImportExpenses";
 import { Result } from "better-result";
 import { inject, injectable } from "inversify";
 import { Port } from "../../../di/Port.js";
-import ImportRowInvalid from "../../../errors/ImportRowInvalid.js";
 import type IExpenseFileReader from "../../../service/IExpenseFileReader.js";
-import type ICreateExpense from "../ICreateExpense.js";
-import type IImportExpenses from "../IImportExpenses.js";
 
 /**
  * Calls another use case: by interface, through DI, with the same context.
@@ -22,7 +22,7 @@ export default class ImportExpenses implements IImportExpenses {
         private readonly create: ICreateExpense,
     ) {}
 
-    async execute(input: IImportExpenses.Input, context: IExecutionContext) {
+    async execute(input: IImportExpenses.Input, context: ExecutionContext) {
         const rows = this.reader.read(input.file);
         if (Result.isError(rows)) return Result.err(rows.error);
 

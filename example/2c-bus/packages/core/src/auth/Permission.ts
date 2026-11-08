@@ -1,4 +1,4 @@
-import type { Role } from "../type/Role.js";
+import type { Role } from "@expenses/contract/type/Role";
 
 export type Permission =
     | "expenses.create"

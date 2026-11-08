@@ -1,5 +1,5 @@
+import type { ExpenseStatus } from "@expenses/contract/type/ExpenseStatus";
 import type Expense from "../entity/Expense.js";
-import type { ExpenseStatus } from "../type/ExpenseStatus.js";
 
 export default interface IExpenseRepository {
     findById(id: string): Promise<Expense | null>;

@@ -1,4 +1,6 @@
-import { type IMemberRepository, type MemberDto, Port } from "@expenses/core";
+import type { MemberDto } from "@expenses/contract/dto/MemberDto";
+import { Port } from "@expenses/core/di/Port";
+import type IMemberRepository from "@expenses/core/repo/IMemberRepository";
 import { inject, injectable } from "inversify";
 import type Database from "./Database.js";
 

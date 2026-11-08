@@ -1,4 +1,4 @@
-import type { MemberDto } from "../dto/MemberDto.js";
+import type { MemberDto } from "@expenses/contract/dto/MemberDto";
 
 export default interface IMemberRepository {
     findById(id: string): Promise<MemberDto | null>;

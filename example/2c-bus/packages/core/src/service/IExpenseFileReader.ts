@@ -1,5 +1,5 @@
+import type InvalidFile from "@expenses/contract/errors/InvalidFile";
 import type { Result } from "better-result";
-import type InvalidFile from "../errors/InvalidFile.js";
 
 export type ExpenseRow = { description: string; amount_cents: number };
 

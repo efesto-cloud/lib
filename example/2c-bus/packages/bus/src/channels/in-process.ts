@@ -1,15 +1,15 @@
-import type { Bus, CommandResult } from "@expenses/commands";
+import type { Api, CallResult } from "@expenses/contract/api";
 import type { Dispatcher } from "../dispatcher.js";
 
 /** Same call, no network: mock mode and the contract test. */
-export function inProcessBus(
+export function inProcessApi(
     dispatcher: Dispatcher,
     token: string | null,
-): Bus {
+): Api {
     return {
         dispatch: (name, input) =>
             dispatcher.dispatch(name, input, token) as Promise<
-                CommandResult<typeof name>
+                CallResult<typeof name>
             >,
     };
 }

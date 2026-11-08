@@ -1,4 +1,4 @@
-import type { UseCaseInput, UseCaseKey } from "../di/UseCaseRegistry.js";
+import type { UseCaseInput, UseCaseKey } from "@expenses/contract/registry";
 import {
     anyMember,
     authorOfExpense,

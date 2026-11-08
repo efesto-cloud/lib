@@ -1,4 +1,4 @@
-import type { IMailer } from "@expenses/core";
+import type IMailer from "@expenses/core/service/IMailer";
 import type StubStore from "./StubStore.js";
 
 export default class StubMailer implements IMailer {

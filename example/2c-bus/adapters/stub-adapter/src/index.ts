@@ -1,4 +1,4 @@
-import { Port } from "@expenses/core";
+import { Port } from "@expenses/core/di/Port";
 import { ContainerModule } from "inversify";
 import InMemoryExpenseRepository from "./InMemoryExpenseRepository.js";
 import InMemoryExpenseStatusChangeRepository from "./InMemoryExpenseStatusChangeRepository.js";

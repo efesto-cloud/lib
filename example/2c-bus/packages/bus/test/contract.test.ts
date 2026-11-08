@@ -2,28 +2,28 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 import { bootstrapBus } from "@expenses/bootstrap/bus";
-import { type Bus, InternalError, InvalidInput } from "@expenses/commands";
-import { Forbidden, InvalidTransition, Unauthenticated } from "@expenses/core";
+import type { Api } from "@expenses/contract/api";
+import Forbidden from "@expenses/contract/errors/Forbidden";
+import InternalError from "@expenses/contract/errors/InternalError";
+import InvalidInput from "@expenses/contract/errors/InvalidInput";
+import InvalidTransition from "@expenses/contract/errors/InvalidTransition";
+import Unauthenticated from "@expenses/contract/errors/Unauthenticated";
 import { seededStore } from "@expenses/stub-adapter";
 import { Result } from "better-result";
-import { httpBus } from "../src/client.js";
-import {
-    type AuditEntry,
-    audit,
-    createDispatcher,
-    type Dispatcher,
-    httpChannel,
-    inProcessBus,
-} from "../src/index.js";
+import { httpApi } from "../src/channels/http-client.js";
+import { httpChannel } from "../src/channels/http-server.js";
+import { inProcessApi } from "../src/channels/in-process.js";
+import { createDispatcher, type Dispatcher } from "../src/dispatcher.js";
+import { type AuditEntry, audit } from "../src/middleware/audit.js";
 
 const channels: Record<
     string,
-    (dispatcher: Dispatcher, token: string | null) => Bus
+    (dispatcher: Dispatcher, token: string | null) => Api
 > = {
-    "in-process": inProcessBus,
+    "in-process": inProcessApi,
     http: (dispatcher, token) => {
         const handle = httpChannel(dispatcher);
-        return httpBus({
+        return httpApi({
             url: "http://bus.test",
             token,
             fetch: (request) => handle(request as Request),
@@ -49,7 +49,10 @@ for (const [channel, connect] of Object.entries(channels)) {
         });
 
         it("refuses a call without a valid token", async () => {
-            const result = await as("nope").dispatch("listMyExpenses", {});
+            const result = await as("nope").dispatch(
+                "expenses.ListMyExpenses",
+                {},
+            );
             assert.ok(
                 Result.isError(result) &&
                     result.error instanceof Unauthenticated,
@@ -57,9 +60,12 @@ for (const [channel, connect] of Object.entries(channels)) {
         });
 
         it("validates the input before the policy and the handler", async () => {
-            const result = await as("carla-token").dispatch("createExpense", {
-                description: "Taxi",
-            } as never);
+            const result = await as("carla-token").dispatch(
+                "expenses.CreateExpense",
+                {
+                    description: "Taxi",
+                } as never,
+            );
             assert.ok(
                 Result.isError(result) && result.error instanceof InvalidInput,
             );
@@ -68,7 +74,7 @@ for (const [channel, connect] of Object.entries(channels)) {
 
         it("applies the policy and names it", async () => {
             const result = await as("anna-token").dispatch(
-                "listSubmittedExpenses",
+                "expenses.ListSubmittedExpenses",
                 {},
             );
             assert.ok(
@@ -78,14 +84,20 @@ for (const [channel, connect] of Object.entries(channels)) {
         });
 
         it("brings a declared error back as an instance of its class", async () => {
-            const created = await as("anna-token").dispatch("createExpense", {
-                description: "Taxi",
-                amount_cents: 2400,
-            });
+            const created = await as("anna-token").dispatch(
+                "expenses.CreateExpense",
+                {
+                    description: "Taxi",
+                    amount_cents: 2400,
+                },
+            );
             const expense = created.unwrap();
-            const result = await as("carla-token").dispatch("approveExpense", {
-                expense_id: expense.id,
-            });
+            const result = await as("carla-token").dispatch(
+                "expenses.ApproveExpense",
+                {
+                    expense_id: expense.id,
+                },
+            );
             assert.ok(
                 Result.isError(result) &&
                     result.error instanceof InvalidTransition,
@@ -94,10 +106,10 @@ for (const [channel, connect] of Object.entries(channels)) {
         });
 
         it("lets the middleware see command, actor, input and outcome", async () => {
-            await as("anna-token").dispatch("listMyExpenses", {});
+            await as("anna-token").dispatch("expenses.ListMyExpenses", {});
             assert.deepEqual(entries, [
                 {
-                    command: "listMyExpenses",
+                    useCase: "expenses.ListMyExpenses",
                     actor_id: "m-anna",
                     input: {},
                     outcome: "ok",
@@ -125,7 +137,7 @@ describe("undeclared errors", () => {
         console.error = () => {};
         const result = await channels
             .http?.(failing, "anna-token")
-            .dispatch("listMyExpenses", {});
+            .dispatch("expenses.ListMyExpenses", {});
         console.error = original;
         assert.ok(
             result &&

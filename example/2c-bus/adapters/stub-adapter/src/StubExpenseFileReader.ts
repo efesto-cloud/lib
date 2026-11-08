@@ -1,8 +1,6 @@
-import {
-    type ExpenseRow,
-    type IExpenseFileReader,
-    InvalidFile,
-} from "@expenses/core";
+import InvalidFile from "@expenses/contract/errors/InvalidFile";
+import type IExpenseFileReader from "@expenses/core/service/IExpenseFileReader";
+import type { ExpenseRow } from "@expenses/core/service/IExpenseFileReader";
 import { Result } from "better-result";
 
 /** Same format as the real reader, without the heavy library behind it. */

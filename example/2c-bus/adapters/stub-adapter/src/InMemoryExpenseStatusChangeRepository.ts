@@ -1,7 +1,5 @@
-import type {
-    ExpenseStatusChange,
-    IExpenseStatusChangeRepository,
-} from "@expenses/core";
+import type ExpenseStatusChange from "@expenses/core/entity/ExpenseStatusChange";
+import type IExpenseStatusChangeRepository from "@expenses/core/repo/IExpenseStatusChangeRepository";
 import type StubStore from "./StubStore.js";
 
 export default class InMemoryExpenseStatusChangeRepository

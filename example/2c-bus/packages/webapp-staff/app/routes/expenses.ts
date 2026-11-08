@@ -1,14 +1,16 @@
-import { type Bus, commands } from "@expenses/commands";
+import type { Api } from "@expenses/contract/api";
+import { useCases } from "@expenses/contract/registry";
 import { failure, send } from "../http.js";
 
-export const listMine = (bus: Bus) => send(bus.dispatch("listMyExpenses", {}));
+export const listMine = (bus: Api) =>
+    send(bus.dispatch("expenses.ListMyExpenses", {}));
 
-/** The client may validate with the command's schema to answer early; the bus validates anyway. */
-export function create(bus: Bus, body: unknown) {
-    const input = commands.createExpense.input.safeParse(body);
+/** The client may validate with the use case.s schema to answer early; the bus validates anyway. */
+export function create(bus: Api, body: unknown) {
+    const input = useCases["expenses.CreateExpense"].input.safeParse(body);
     if (!input.success) return failure({ _tag: "InvalidInput" });
-    return send(bus.dispatch("createExpense", input.data), 201);
+    return send(bus.dispatch("expenses.CreateExpense", input.data), 201);
 }
 
-export const submit = (bus: Bus, expense_id: string) =>
-    send(bus.dispatch("submitExpense", { expense_id }));
+export const submit = (bus: Api, expense_id: string) =>
+    send(bus.dispatch("expenses.SubmitExpense", { expense_id }));

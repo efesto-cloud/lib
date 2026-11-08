@@ -1,11 +1,7 @@
-import type { IExecutionContext } from "@efesto-cloud/usecase";
-import type {
-    IJobQueue,
-    IJobSource,
-    Job,
-    UseCaseInput,
-    UseCaseKey,
-} from "@expenses/core";
+import type { UseCaseInput, UseCaseKey } from "@expenses/contract/registry";
+import type { ExecutionContext } from "@expenses/contract/useCase";
+import type IJobQueue from "@expenses/core/service/IJobQueue";
+import type { IJobSource, Job } from "@expenses/core/service/IJobQueue";
 import type StubStore from "./StubStore.js";
 
 export default class InMemoryJobQueue implements IJobQueue, IJobSource {
@@ -14,7 +10,7 @@ export default class InMemoryJobQueue implements IJobQueue, IJobSource {
     async enqueue<K extends UseCaseKey>(
         key: K,
         input: UseCaseInput<K>,
-        context: IExecutionContext,
+        context: ExecutionContext,
     ) {
         this.store.state.jobs.push(
             structuredClone({ key, input, context }) as Job,

@@ -12,6 +12,7 @@
         "test": "tsx --tsconfig ../../tsconfig.base.json --test \"test/**/*.test.ts\""
     },
     "dependencies": {
+        "@expenses/contract": "workspace:*",
         "@expenses/core": "workspace:*",
         "@expenses/db-adapter": "workspace:*",
         "@expenses/file-adapter": "workspace:*",

@@ -1,4 +1,5 @@
-import type { IMemberRepository, MemberDto } from "@expenses/core";
+import type { MemberDto } from "@expenses/contract/dto/MemberDto";
+import type IMemberRepository from "@expenses/core/repo/IMemberRepository";
 import type StubStore from "./StubStore.js";
 
 export default class InMemoryMemberRepository implements IMemberRepository {

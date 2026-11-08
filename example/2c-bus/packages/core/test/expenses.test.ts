@@ -1,6 +1,10 @@
 // Use cases tested against the stub: no database, no network.
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
+import type { MemberDto } from "@expenses/contract/dto/MemberDto";
+import type { ResolveUseCase } from "@expenses/contract/registry";
+import { AuthModule } from "@expenses/core/auth/AuthModule";
+import { ExpensesModule } from "@expenses/core/useCase/expenses/ExpensesModule";
 import {
     installStub,
     type StubStore,
@@ -8,12 +12,6 @@ import {
 } from "@expenses/stub-adapter";
 import { Result } from "better-result";
 import { Container } from "inversify";
-import {
-    AuthModule,
-    ExpensesModule,
-    type MemberDto,
-    type ResolveUseCase,
-} from "../src/server.js";
 
 const anna: MemberDto = {
     id: "m-anna",
