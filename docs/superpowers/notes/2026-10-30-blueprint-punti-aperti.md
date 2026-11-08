@@ -107,10 +107,39 @@ Registrato nel documento, sezione «La forma» con tre figure:
 5. **Prototipo**: un pacchetto solo, senza divisione in cartelle.
 
 
-**Poi:** provare il giro 17 su `example/2c-bus` nel branch
-`spike/better-result` (contract, niente handler, niente barrel, registro
-composto); poi riscrivere §1, §5 e «Il quadro completo», e ridurre l'esempio a
-tre cartelle.
+### Prova del giro 17 su 2c-bus (8 novembre, sera)
+
+Riuscita, sul branch `spike/better-result` (commit `94af078`, non pushato).
+Typecheck verde su tutti i 14 pacchetti, eseguito con tsc pacchetto per
+pacchetto. Test verdi: core 7, bus 11, bootstrap 3, scenario 11×3.
+
+- **`commands` sparisce** (232 righe), con `handler.ts` e `handlers/` (77).
+  Nel contract arrivano `useCase.ts` (53), `registry.ts` (16) e `api.ts` (65).
+- **Il nome della chiamata è la chiave dello use case**:
+  `dispatch("expenses.ApproveExpense")`, `POST /api/expenses.ApproveExpense`.
+- **Niente barrel**: ogni pacchetto esporta `"./*"`, gli import vanno per
+  percorso.
+- **Garanzie rotte apposta, e il compilatore se ne accorge**:
+  - implementazione mancante in `ExpensesModule`;
+  - errore non dichiarato restituito da uno use case;
+  - campo sbagliato nell'input di una webapp;
+  - chiave inesistente.
+- **Lo snapshot delle policy passa nel core** (use case → policy). Adesso
+  compare anche `NotifyAuthor → internal`, che prima mancava perché non era un
+  comando.
+- **Biome, di nuovo**: anche senza `--unsafe`, `--write` rompe `taggedError`.
+  Due fix sicuri in fila: `noUselessThisAlias` toglie l'alias insieme al suo
+  `biome-ignore`, poi `noThisInStatic` cambia `this` in `Tagged`. Se ne è
+  accorto il test di contratto del bus (5 rossi). Ora le due regole sono
+  soppresse entrambe. Lezione: dopo `biome --write` si rilanciano i test, non
+  solo il typecheck.
+- Non eseguiti: `knip` e `pnpm -r` dalla radice, perché gli altri gradini sul
+  branch non compilano. Restano anche gli `index.ts` degli adapter, che sono
+  moduli d'ingresso e non barrel.
+
+**Prossimo passo:** riscrivere §1, §5 e «Il quadro completo» del documento sulla
+base della prova. Poi ridurre l'esempio a tre cartelle e riportare gli altri
+gradini e `agent`. Da decidere: se pushare `spike/better-result`.
 
 ## Fatto
 
