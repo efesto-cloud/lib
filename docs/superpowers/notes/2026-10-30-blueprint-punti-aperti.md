@@ -74,9 +74,25 @@ finché non vengono riportati.
 Da decidere: `taggedError` come template in `stack/` o come pacchetto di `lib`
 (proposta: pacchetto); poi riportare gli altri gradini e `agent`.
 
-**Prossimo passo:** ragionare sui gradini (lo 0 come proof of concept
-cestinabile, il 2·A come standard, nomi al posto dei numeri), poi riportare gli
-altri gradini su better-result insieme al rinomina `bus-server` → `api`.
+## Giro 17 (8 novembre)
+
+Registrato nel documento, sezione «La forma» con tre figure:
+
+- **Prototipo**: forma leggera, usa e getta ma in ordine; etichettato `poc-`.
+- **Standard** = 1 + 2·A: uno spettro su dove stanno le implementazioni (nel core
+  o in adapter); la porta c'è sempre.
+- **Bootstrap condiviso** e **API**: estensioni con il loro segnale, non gradini.
+- **`contract` + `core`**: il contract è il bordo verso i driver (DTO, schemi
+  degli input, errori, interfacce degli use case, registro, metadati dei
+  comandi, regole pure) e assorbe `commands`. Le porte driven restano nel core
+  perché parlano di entity.
+- **Comando = use case esposto**, stesso nome: gli handler spariscono.
+- **Niente barrel**; registro composto, senza `declare module`.
+
+**Prossimo passo:** provare il giro 17 su `example/2c-bus` nel branch
+`spike/better-result` (contract, niente handler, niente barrel, registro
+composto); poi riscrivere §1, §5 e «Il quadro completo», e ridurre l'esempio a
+tre cartelle.
 
 ## Fatto
 

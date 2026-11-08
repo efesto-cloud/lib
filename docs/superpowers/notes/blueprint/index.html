@@ -88,13 +88,14 @@
   <p>Documento di lavoro. Raccoglie il disegno della skill che sostituisce <code>Core:core</code> e le
     skill figlie del plugin. Si aggiorna a ogni giro; le modifiche sono nel registro (§11).</p>
   <div class="meta">
-    <span>Aggiornato <b>06/11/2026</b></span>
+    <span>Aggiornato <b>08/11/2026</b></span>
     <span>Branch <b><code>docs/32-skill-blueprint</code></b></span>
     <span>Fonti <b>lib#32</b>, nota del 23/08 sul corpus</span>
   </div>
 </div></header>
 
 <nav class="toc" aria-label="Indice"><ol>
+  <li><a href="#forma">La forma</a></li>
   <li><a href="#quadro">Il quadro</a></li>
   <li><a href="#stato">0 Stato</a></li>
   <li><a href="#gradini">1 Gradini</a></li>
@@ -112,6 +113,201 @@
 </ol></nav>
 
 <main>
+
+<section class="s" id="forma"><div class="wrap">
+  <h2>La forma, al giro 17</h2>
+  <p>Tre figure riassumono le decisioni del 6 e dell'8 novembre. Dove il resto del documento dice altro, valgono queste.</p>
+
+  <h3 style="margin-top:1.75rem">Il contratto è il bordo verso chi chiama</h3>
+  <figure>
+<svg viewBox="0 0 960 470" role="img" aria-label="Driver, contract, core e adapter driven">
+  <g font-family="Public Sans, sans-serif">
+    <text x="20" y="30" font-size="13" font-weight="650" fill="#6A6259">driver: chi chiama</text>
+    <g font-size="15" font-weight="650" fill="#14110E" text-anchor="middle">
+      <rect x="20" y="60" width="170" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="105" y="91">webapp</text>
+      <rect x="20" y="130" width="170" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="105" y="161">CLI</text>
+      <rect x="20" y="200" width="170" height="52" fill="#FAF7F1" stroke="#4A453F" stroke-dasharray="5 4"/><text x="105" y="231">gateway HTTP</text>
+      <rect x="20" y="270" width="170" height="52" fill="#FAF7F1" stroke="#4A453F" stroke-dasharray="5 4"/><text x="105" y="301">MCP</text>
+    </g>
+    <g stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)">
+      <line x1="192" y1="86" x2="246" y2="86"/><line x1="192" y1="156" x2="246" y2="156"/>
+      <line x1="192" y1="226" x2="246" y2="226"/><line x1="192" y1="296" x2="246" y2="296"/>
+    </g>
+
+    <rect x="250" y="44" width="240" height="300" fill="#FAF7F1" stroke="#B84A1E" stroke-width="3"/>
+    <text x="270" y="80" font-size="24" font-weight="700" fill="#A8481F">contract</text>
+    <text x="270" y="102" font-size="12.5" fill="#6A6259">ciò che un driver vede o manda</text>
+    <g font-size="14" fill="#14110E">
+      <text x="270" y="140">DTO</text>
+      <text x="270" y="168">schemi degli input</text>
+      <text x="270" y="196">errori con nome</text>
+      <text x="270" y="224" font-weight="650">interfacce degli use case</text>
+      <text x="270" y="252" font-weight="650">registro: chiave → interfaccia</text>
+      <text x="270" y="280">metadati dei comandi</text>
+      <text x="270" y="308">regole pure condivise</text>
+    </g>
+    <text x="270" y="334" font-size="11.5" fill="#6A6259">dipende solo da zod e better-result</text>
+
+    <line x1="548" y1="194" x2="494" y2="194" stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)"/>
+
+    <rect x="550" y="44" width="250" height="300" fill="#14110E"/>
+    <text x="570" y="80" font-size="24" font-weight="700" fill="#FAF7F1">core</text>
+    <text x="570" y="102" font-size="12.5" fill="#8A8178">il dominio e ciò di cui ha bisogno</text>
+    <g font-size="14" fill="#FAF7F1">
+      <text x="570" y="140">entity · value object</text>
+      <text x="570" y="168">implementazioni degli use case</text>
+      <text x="570" y="196" fill="#FAC775" font-weight="650">porte driven</text>
+      <text x="570" y="214" font-size="12" fill="#FAC775">repository · mailer · coda</text>
+      <text x="570" y="244">moduli DI · policy</text>
+      <text x="570" y="272">core/testing: fake e contratti</text>
+    </g>
+    <rect x="566" y="290" width="218" height="40" fill="none" stroke="#8A8178" stroke-dasharray="4 4"/>
+    <text x="675" y="315" font-size="12" fill="#8A8178" text-anchor="middle">implementazioni, se «tutto dentro»</text>
+
+    <text x="820" y="30" font-size="13" font-weight="650" fill="#6A6259">driven: adapter</text>
+    <g font-size="15" font-weight="650" fill="#14110E" text-anchor="middle">
+      <rect x="850" y="60" width="100" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="900" y="91">db</text>
+      <rect x="850" y="130" width="100" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="900" y="161">mail</text>
+      <rect x="850" y="200" width="100" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="900" y="231">coda</text>
+      <rect x="850" y="270" width="100" height="52" fill="#FAF7F1" stroke="#4A453F" stroke-dasharray="5 4"/><text x="900" y="301">stub</text>
+    </g>
+    <g stroke="#B84A1E" stroke-width="1.8" marker-end="url(#ahf)">
+      <line x1="848" y1="86" x2="804" y2="86"/><line x1="848" y1="156" x2="804" y2="156"/>
+      <line x1="848" y1="226" x2="804" y2="226"/><line x1="848" y1="296" x2="804" y2="296"/>
+    </g>
+
+    <g font-size="13" fill="#4A453F">
+      <line x1="250" y1="400" x2="300" y2="400" stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)"/>
+      <text x="312" y="405">importa</text>
+      <line x1="420" y1="400" x2="470" y2="400" stroke="#B84A1E" stroke-width="1.8" marker-end="url(#ahf)"/>
+      <text x="482" y="405">implementa una porta del core</text>
+      <rect x="720" y="390" width="30" height="20" fill="none" stroke="#4A453F" stroke-dasharray="5 4"/>
+      <text x="760" y="405">quando serve</text>
+    </g>
+    <text x="250" y="444" font-size="14" fill="#14110E">I driver non importano mai <tspan font-weight="650">core</tspan>: il confine lo garantisce il grafo delle dipendenze.</text>
+  </g>
+</svg>
+  </figure>
+
+  <h3 style="margin-top:2.25rem">Si parte sempre dallo standard</h3>
+  <figure>
+<svg viewBox="0 0 960 450" role="img" aria-label="Prototipo, standard come spettro, estensioni">
+  <defs>
+    <linearGradient id="spettro" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#FAC775"/><stop offset="1" stop-color="#B84A1E"/>
+    </linearGradient>
+  </defs>
+  <g font-family="Public Sans, sans-serif">
+    <rect x="20" y="30" width="220" height="400" fill="none" stroke="#5A5C60" stroke-width="1.6" stroke-dasharray="7 5"/>
+    <text x="40" y="68" font-size="22" font-weight="700" fill="#5A5C60">Prototipo</text>
+    <text x="40" y="90" font-size="12.5" fill="#6A6259">usa e getta, ma in ordine</text>
+    <g font-size="14" fill="#14110E">
+      <text x="40" y="136">un pacchetto solo</text>
+      <text x="40" y="166">la forma del core dentro</text>
+      <text x="40" y="196">use case → Result</text>
+      <text x="40" y="226">errori con nome</text>
+      <text x="40" y="256">un test end-to-end</text>
+    </g>
+    <g font-size="13" fill="#5A5C60">
+      <text x="40" y="320">nome poc-…, mai in</text>
+      <text x="40" y="338">produzione</text>
+      <text x="40" y="380" font-weight="650">se sopravvive, si riscrive</text>
+      <text x="40" y="398" font-weight="650">nello standard</text>
+    </g>
+
+    <rect x="270" y="30" width="325" height="100" fill="#A8481F"/>
+    <text x="290" y="64" font-size="20" font-weight="700" fill="#FAF7F1">+ API</text>
+    <text x="290" y="88" font-size="13" fill="#FAF7F1">bus dentro, gateway intorno</text>
+    <text x="290" y="108" font-size="12" fill="#FAC775">segnale: il secondo client che riscriverebbe</text>
+    <text x="290" y="123" font-size="12" fill="#FAC775">le regole d'accesso</text>
+    <rect x="615" y="30" width="325" height="100" fill="#F8F4ED" stroke="#4A453F"/>
+    <text x="635" y="64" font-size="20" font-weight="700" fill="#14110E">+ Bootstrap condiviso</text>
+    <text x="635" y="88" font-size="13" fill="#4A453F">un profilo per processo</text>
+    <text x="635" y="112" font-size="12" fill="#6A6259">segnale: il secondo processo</text>
+    <g stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)">
+      <line x1="432" y1="132" x2="432" y2="166"/><line x1="777" y1="132" x2="777" y2="166"/>
+    </g>
+    <text x="605" y="155" font-size="12" fill="#6A6259" text-anchor="middle">estensioni, indipendenti</text>
+
+    <rect x="270" y="170" width="670" height="260" fill="#14110E"/>
+    <text x="290" y="206" font-size="22" font-weight="700" fill="#FAF7F1">Standard</text>
+    <text x="410" y="206" font-size="13" fill="#FAC775">porta sempre · test sui fake · è da qui che si parte</text>
+    <rect x="300" y="226" width="610" height="12" fill="url(#spettro)"/>
+    <text x="300" y="258" font-size="12.5" fill="#FAF7F1">tutto nel core</text>
+    <text x="910" y="258" font-size="12.5" fill="#FAF7F1" text-anchor="end">tutto in adapter</text>
+
+    <g font-size="11.5" text-anchor="middle">
+      <rect x="310" y="280" width="170" height="100" fill="none" stroke="#FAF7F1"/>
+      <text x="395" y="300" fill="#FAF7F1">core</text>
+      <rect x="326" y="312" width="64" height="24" fill="none" stroke="#FAC775"/><text x="358" y="328" fill="#FAC775">porta</text>
+      <rect x="400" y="312" width="64" height="24" fill="#4A453F"/><text x="432" y="328" fill="#FAF7F1">impl db</text>
+      <rect x="326" y="344" width="64" height="24" fill="none" stroke="#FAC775"/><text x="358" y="360" fill="#FAC775">porta</text>
+      <rect x="400" y="344" width="64" height="24" fill="#4A453F"/><text x="432" y="360" fill="#FAF7F1">impl mail</text>
+
+      <rect x="530" y="280" width="170" height="100" fill="none" stroke="#FAF7F1"/>
+      <text x="615" y="300" fill="#FAF7F1">core</text>
+      <rect x="620" y="344" width="64" height="24" fill="#4A453F"/><text x="652" y="360" fill="#FAF7F1">impl mail</text>
+      <rect x="546" y="312" width="64" height="24" fill="none" stroke="#FAC775"/><text x="578" y="328" fill="#FAC775">porta</text>
+      <rect x="546" y="344" width="64" height="24" fill="none" stroke="#FAC775"/><text x="578" y="360" fill="#FAC775">porta</text>
+      <rect x="616" y="344" width="0" height="0" fill="none"/>
+      <rect x="712" y="312" width="40" height="24" fill="#B84A1E"/><text x="732" y="328" fill="#FAF7F1">db</text>
+
+      <rect x="780" y="280" width="90" height="100" fill="none" stroke="#FAF7F1"/>
+      <text x="825" y="300" fill="#FAF7F1">core</text>
+      <rect x="793" y="312" width="64" height="24" fill="none" stroke="#FAC775"/><text x="825" y="328" fill="#FAC775">porta</text>
+      <rect x="793" y="344" width="64" height="24" fill="none" stroke="#FAC775"/><text x="825" y="360" fill="#FAC775">porta</text>
+      <rect x="878" y="312" width="44" height="24" fill="#B84A1E"/><text x="900" y="328" fill="#FAF7F1">db</text>
+      <rect x="878" y="344" width="44" height="24" fill="#B84A1E"/><text x="900" y="360" fill="#FAF7F1">mail</text>
+    </g>
+    <text x="605" y="412" font-size="13" fill="#8A8178" text-anchor="middle">dove stanno le implementazioni lo decide l'applicazione; portarle fuori è spostare una cartella</text>
+  </g>
+</svg>
+  </figure>
+
+  <h3 style="margin-top:2.25rem">Un comando è uno use case esposto</h3>
+  <figure>
+<svg viewBox="0 0 960 380" role="img" aria-label="Prima gli handler, ora il nome del comando è la chiave dello use case">
+  <g font-family="Public Sans, sans-serif" font-size="14">
+    <g opacity=".5">
+      <text x="20" y="30" font-size="13" font-weight="650" fill="#6A6259">prima</text>
+      <rect x="20" y="44" width="250" height="56" fill="#FAF7F1" stroke="#4A453F"/>
+      <text x="145" y="77" text-anchor="middle" font-family="ui-monospace, monospace" font-size="13" fill="#14110E">dispatch("approveExpense")</text>
+      <line x1="272" y1="72" x2="346" y2="72" stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)"/>
+      <rect x="350" y="44" width="260" height="56" fill="#FAF7F1" stroke="#4A453F"/>
+      <text x="480" y="70" text-anchor="middle" font-weight="650" fill="#14110E">handlers/index.ts</text>
+      <text x="480" y="89" text-anchor="middle" font-size="12" fill="#6A6259">65 blocchi identici, a mano</text>
+      <line x1="356" y1="72" x2="604" y2="72" stroke="#B84A1E" stroke-width="2.5"/>
+      <line x1="612" y1="72" x2="686" y2="72" stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)"/>
+      <rect x="690" y="44" width="250" height="56" fill="#FAF7F1" stroke="#4A453F"/>
+      <text x="815" y="77" text-anchor="middle" font-family="ui-monospace, monospace" font-size="13" fill="#14110E">"expenses.ApproveExpense"</text>
+    </g>
+
+    <text x="20" y="150" font-size="13" font-weight="650" fill="#A8481F">ora: un nome solo, dal client al binding</text>
+    <rect x="20" y="164" width="320" height="64" fill="#FAF7F1" stroke="#4A453F"/>
+    <text x="180" y="201" text-anchor="middle" font-family="ui-monospace, monospace" font-size="12.5" fill="#14110E">dispatch("expenses.ApproveExpense")</text>
+    <line x1="342" y1="196" x2="376" y2="196" stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)"/>
+    <rect x="380" y="164" width="250" height="64" fill="#FAF7F1" stroke="#B84A1E" stroke-width="3"/>
+    <text x="505" y="192" text-anchor="middle" font-weight="650" fill="#A8481F">registro</text>
+    <text x="505" y="213" text-anchor="middle" font-size="12" fill="#6A6259">contract</text>
+    <line x1="632" y1="196" x2="686" y2="196" stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)"/>
+    <rect x="690" y="164" width="250" height="64" fill="#14110E"/>
+    <text x="815" y="192" text-anchor="middle" font-weight="650" fill="#FAF7F1">ApproveExpense</text>
+    <text x="815" y="213" text-anchor="middle" font-size="12" fill="#8A8178">core</text>
+
+    <rect x="330" y="290" width="350" height="64" fill="#FAF7F1" stroke="#B84A1E" stroke-width="2"/>
+    <text x="505" y="318" text-anchor="middle" font-family="ui-monospace, monospace" font-size="13.5" fill="#14110E">ApproveExpenseInput</text>
+    <text x="505" y="339" text-anchor="middle" font-size="12" fill="#6A6259">lo schema dell'input, dichiarato una volta, nel contract</text>
+    <path d="M360 300 C 280 280, 200 270, 180 232" fill="none" stroke="#B84A1E" stroke-width="1.6" marker-end="url(#ahf)"/>
+    <text x="318" y="300" font-size="12.5" fill="#A8481F" text-anchor="end">il dispatcher valida</text>
+    <path d="M650 300 C 730 280, 800 270, 815 232" fill="none" stroke="#B84A1E" stroke-width="1.6" marker-end="url(#ahf)"/>
+    <text x="692" y="300" font-size="12.5" fill="#A8481F">lo use case ne prende il tipo</text>
+  </g>
+</svg>
+  </figure>
+  <p style="margin-top:1rem">Gli use case senza comando (<code>expenses.NotifyAuthor</code>) non sono esposti. Rinominare uno use case
+    esposto è un cambio incompatibile del contratto. Niente barrel: ogni pacchetto si importa per percorso, e il
+    registro si compone in un file, un tipo per modulo.</p>
+</div></section>
 
 <section class="s" id="quadro"><div class="wrap">
   <h2>Il quadro completo</h2>
@@ -264,6 +460,10 @@
         <li>Prima il progetto esempio, poi la skill con gli snippet presi da lì</li>
         <li>Nessuna guida di migrazione nella skill</li>
         <li>Policy per use case in una mappa nel core, <code>policies.ts</code> (§6)</li>
+        <li>Prototipo (usa e getta, in ordine), standard (spettro, porta sempre), estensioni bootstrap e API (<a href="#forma">La forma</a>)</li>
+        <li>Pacchetti <code>contract</code> e <code>core</code>: il contract è il bordo verso i driver, assorbe <code>commands</code>; le porte driven restano nel core</li>
+        <li>Un comando è uno use case esposto: stesso nome, niente handler; schema dell'input dichiarato una volta, nel contract</li>
+        <li>Niente barrel; registro composto in un file, un tipo per modulo</li>
         <li>L'api parla un canale interno; gateway (espongono l'API in un protocollo, MCP compreso) e client (la consumano); router opzionale (§5)</li>
       </ul>
     </div>
@@ -282,6 +482,8 @@
         <li>Nuove: <code>growth.md</code>, <code>command-bus.md</code>, <code>testing.md</code>, <code>stack/*</code></li>
         <li>Le altre references, riscritte</li>
         <li>Rimozione delle skill figlie</li>
+        <li>§1, §5 e «Il quadro completo» secondo il giro 17</li>
+        <li>Esempio a tre cartelle (standard, bootstrap, api) con contract, senza handler né barrel</li>
       </ul>
     </div>
   </div>
@@ -290,6 +492,7 @@
 <!-- 1 -->
 <section class="s" id="gradini"><div class="wrap">
   <h2><span class="num">1</span>Gradini</h2>
+  <p class="q"><b>Superato dal giro 17</b> (<a href="#forma">La forma</a>): lo 0 diventa il prototipo; 1 e 2·A diventano lo standard, uno spettro su dove stanno le implementazioni; 2·B e 2·C diventano estensioni. Le schede qui sotto restano come storia del ragionamento.</p>
   <p>Un progetto parte dal gradino più basso che basta e sale quando compare il segnale. Ogni gradino
     aggiunge pacchetti; la mossa per salire è un refactor, a patto che le regole del §3 valgano dal primo
     giorno. Nei diagrammi le frecce indicano «importa».</p>
@@ -792,6 +995,7 @@ adapters/ …</pre></div>
 <!-- 5 -->
 <section class="s" id="bus"><div class="wrap">
   <h2><span class="num">5</span>Command bus</h2>
+  <p class="q"><b>Superato dal giro 17</b> (<a href="#forma">La forma</a>): il nome del comando è la chiave dello use case e gli handler spariscono; schemi e metadati dei comandi stanno nel <code>contract</code>, che assorbe il pacchetto <code>commands</code>.</p>
   <p><b>Fuori è un'API, dentro è un bus.</b> Chi chiama vede il deployable <code>api</code>, il percorso
     <code>/api/&lt;comando&gt;</code> e <code>api.dispatch</code>: non ha bisogno di sapere cos'è un bus. Il
     bus è il pattern con cui l'API è fatta dentro (dispatcher, handler, middleware, canali), e
@@ -1227,6 +1431,13 @@ diff -r example/2b-bootstrap example/2c-bus</pre>
       l'API in un protocollo (HTTP/JSON, GraphQL, JSON-RPC, MCP), e client, che la consumano direttamente o da un gateway. Nessun gradino nuovo. Bordo separato: principio
       nel codice, deployable a sé come preferenza. Q11 chiusa: policy per use case nel core. Migrazione di
       <code>agent</code> da Effect a <code>better-result</code> dopo la prova. Unit of work su D1 parcheggiato.</td></tr>
+    <tr><td>08/11, giro 17</td><td>Forma riscritta in tre figure (<a href="#forma">La forma</a>). Il prototipo è una forma
+      leggera e usa e getta, ma in ordine. Lo standard fonde 1 e 2·A ed è uno spettro su dove stanno le implementazioni,
+      con la porta sempre presente. Bootstrap e API sono estensioni con il loro segnale, non gradini. Due pacchetti,
+      <code>contract</code> (bordo verso i driver: DTO, schemi degli input, errori, interfacce degli use case, registro,
+      metadati dei comandi, regole pure) e <code>core</code> (dominio, implementazioni, porte driven); <code>commands</code>
+      assorbito. Un comando è uno use case esposto, con lo stesso nome: gli handler spariscono. Niente barrel; registro
+      composto, senza <code>declare module</code>.</td></tr>
   </table>
 </div></section>
 
