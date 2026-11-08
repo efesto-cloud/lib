@@ -89,7 +89,23 @@ Registrato nel documento, sezione «La forma» con tre figure:
 - **Comando = use case esposto**, stesso nome: gli handler spariscono.
 - **Niente barrel**; registro composto, senza `declare module`.
 
-**Prossimo passo:** provare il giro 17 su `example/2c-bus` nel branch
+**Da discutere prima della prova** (emersi l'8 novembre sera):
+
+1. **Come si marca uno use case esposto**: mappa dei comandi nel `contract`,
+   chiave → `{ kind, description }`, tipata come sottoinsieme del registro?
+2. **`IExecutionContext`** si estende con `declare module` e regge sugli import
+   nudi come il registro: senza barrel serve una forma esplicita; l'attore
+   (`MemberDto`) sta nel contract.
+3. **Errori nel contract**: solo quelli che attraversano il confine o tutti
+   quelli del dominio (le entity li producono nel core)?
+4. **Dove vive `taggedError`**: contract del progetto, template in `stack/` o
+   pacchetto di `lib` (proposta dalla prova: pacchetto).
+5. **Prototipo e contract**: in un pacchetto solo il contract è una cartella e il
+   confine è una convenzione; va scritto.
+
+Il commit `ef4389e` (giro 17) è locale, da pushare.
+
+**Poi:** provare il giro 17 su `example/2c-bus` nel branch
 `spike/better-result` (contract, niente handler, niente barrel, registro
 composto); poi riscrivere §1, §5 e «Il quadro completo», e ridurre l'esempio a
 tre cartelle.
