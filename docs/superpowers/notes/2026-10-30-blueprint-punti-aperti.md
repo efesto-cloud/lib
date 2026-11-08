@@ -89,21 +89,23 @@ Registrato nel documento, sezione «La forma» con tre figure:
 - **Comando = use case esposto**, stesso nome: gli handler spariscono.
 - **Niente barrel**; registro composto, senza `declare module`.
 
-**Da discutere prima della prova** (emersi l'8 novembre sera):
+**Decisi la sera dell'8 novembre** (registrati nel documento, giro 17):
 
-1. **Come si marca uno use case esposto**: mappa dei comandi nel `contract`,
-   chiave → `{ kind, description }`, tipata come sottoinsieme del registro?
-2. **`IExecutionContext`** si estende con `declare module` e regge sugli import
-   nudi come il registro: senza barrel serve una forma esplicita; l'attore
-   (`MemberDto`) sta nel contract.
-3. **Errori nel contract**: solo quelli che attraversano il confine o tutti
-   quelli del dominio (le entity li producono nel core)?
-4. **Dove vive `taggedError`**: contract del progetto, template in `stack/` o
-   pacchetto di `lib` (proposta dalla prova: pacchetto).
-5. **Prototipo e contract**: in un pacchetto solo il contract è una cartella e il
-   confine è una convenzione; va scritto.
+1. **Esposizione**: nessun segno nel contract; cosa esporre lo decide ogni
+   gateway (MCP, API li scriviamo noi). La policy `internal` resta la guardia
+   nell'api.
+2. **Contesto d'esecuzione**: parametro generico di `IUseCase`
+   (`IUseCase<I, R, C>`), con `ExecutionContext` e l'alias `UseCase<I, R>` nel
+   contract. Niente `declare module`. `AsyncLocalStorage` per la transazione
+   dell'unit of work (per richiesta), non per l'attore.
+3. **Errori**: nel contract se compaiono nella `Error` di uno use case (lo
+   impone il compilatore, il contract non dipende dal core); gli errori di porta
+   gestiti dallo use case restano nel core; i guasti dell'infrastruttura sono
+   eccezioni e al bordo diventano `InternalError`. Sempre `TaggedError`.
+4. **`taggedError`**: nel contract del progetto; in `lib` solo se più progetti
+   lo copiano identico.
+5. **Prototipo**: un pacchetto solo, senza divisione in cartelle.
 
-Il commit `ef4389e` (giro 17) è locale, da pushare.
 
 **Poi:** provare il giro 17 su `example/2c-bus` nel branch
 `spike/better-result` (contract, niente handler, niente barrel, registro

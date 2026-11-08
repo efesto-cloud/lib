@@ -464,6 +464,11 @@
         <li>Pacchetti <code>contract</code> e <code>core</code>: il contract è il bordo verso i driver, assorbe <code>commands</code>; le porte driven restano nel core</li>
         <li>Un comando è uno use case esposto: stesso nome, niente handler; schema dell'input dichiarato una volta, nel contract</li>
         <li>Niente barrel; registro composto in un file, un tipo per modulo</li>
+        <li>Cosa esporre lo decide ogni gateway; la policy <code>internal</code> resta la guardia nell'api</li>
+        <li>Contesto d'esecuzione come parametro generico di <code>IUseCase</code>, dichiarato nel contract; niente <code>declare module</code>. <code>AsyncLocalStorage</code> sì per la transazione dell'unit of work, no per l'attore</li>
+        <li>Un errore sta nel contract se compare nella <code>Error</code> di uno use case (lo impone il compilatore); i guasti dell'infrastruttura sono eccezioni → <code>InternalError</code></li>
+        <li><code>taggedError</code> (codec zod sopra better-result) vive nel contract del progetto</li>
+        <li>Prototipo: un pacchetto solo, senza divisione in cartelle contract/core</li>
         <li>L'api parla un canale interno; gateway (espongono l'API in un protocollo, MCP compreso) e client (la consumano); router opzionale (§5)</li>
       </ul>
     </div>
@@ -1437,7 +1442,10 @@ diff -r example/2b-bootstrap example/2c-bus</pre>
       <code>contract</code> (bordo verso i driver: DTO, schemi degli input, errori, interfacce degli use case, registro,
       metadati dei comandi, regole pure) e <code>core</code> (dominio, implementazioni, porte driven); <code>commands</code>
       assorbito. Un comando è uno use case esposto, con lo stesso nome: gli handler spariscono. Niente barrel; registro
-      composto, senza <code>declare module</code>.</td></tr>
+      composto, senza <code>declare module</code>. Poi: cosa esporre lo decide ogni gateway (la policy
+      <code>internal</code> resta); contesto d'esecuzione come parametro generico, non augmentation; un errore sta nel
+      contract se attraversa il confine, i guasti dell'infrastruttura sono eccezioni; <code>taggedError</code> nel contract;
+      il prototipo è un pacchetto solo, senza cartelle contract/core.</td></tr>
   </table>
 </div></section>
 
