@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Preflight #88 e #89 · epic #41</title>
+<style>
+  :root { --ok:#1f7a3a; --warn:#a15c00; --no:#a12a2a; --mute:#666; --line:#e3e3e3; }
+  body { font: 15px/1.55 system-ui, sans-serif; max-width: 980px; margin: 2rem auto; padding: 0 1.2rem; color:#1b1b1b; }
+  h1 { margin-bottom: .2rem; } .sub { color: var(--mute); margin-top: 0; }
+  h2 { margin-top: 2.2rem; border-bottom: 2px solid var(--line); padding-bottom: .3rem; }
+  table { border-collapse: collapse; width: 100%; margin: .6rem 0; }
+  th, td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid var(--line); }
+  th { font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; color: var(--mute); }
+  code { background:#f3f3f3; padding: 0 .25rem; border-radius: 3px; font-size: .92em; }
+  .ok { color: var(--ok); font-weight: 600; } .warn { color: var(--warn); font-weight: 600; } .no { color: var(--no); font-weight: 600; }
+  .tag { display:inline-block; font-size:.78rem; padding:.05rem .45rem; border-radius: 999px; border:1px solid currentColor; }
+  .queue { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+  .queue span { padding:.25rem .6rem; border:1px solid var(--line); border-radius:6px; }
+  .queue .new { border-color: var(--ok); color: var(--ok); font-weight: 600; }
+  .queue i { color: var(--mute); font-style: normal; }
+  .box { border:1px solid var(--line); border-left: 4px solid var(--warn); padding: .6rem 1rem; border-radius: 4px; background:#fffaf2; }
+  ul.check { list-style: none; padding-left: 0; } ul.check li::before { content: "☐  "; }
+  a { color: #1a55a0; }
+</style>
+</head>
+<body>
+
+<h1>Preflight: #88 e #89 prima di #73</h1>
+<p class="sub">Epic #41 «Le prime pratiche» · 11/11/2026 · nessuna sessione lanciata finché non dai l'ok</p>
+
+<h2>1. Stato di partenza</h2>
+<table>
+  <tr><th>Cosa</th><th>Stato</th><th></th></tr>
+  <tr><td>Branch <code>epic/41-prime-pratiche</code></td><td><code>33e0659</code>, uguale a <code>origin</code></td><td class="ok">ok</td></tr>
+  <tr><td>Checkout principale</td><td>pulito (la tua prova su <code>SyncFailedError.ts</code> non c'è più)</td><td class="ok">ok</td></tr>
+  <tr><td>Worktree e sessioni</td><td>nessun worktree di ticket, nessuna sessione <code>claude -p</code> attiva</td><td class="ok">ok</td></tr>
+  <tr><td>Sessioni senza sorveglianza</td><td><code>defaultMode: auto</code>, già provato su #42–#78</td><td class="ok">ok</td></tr>
+  <tr><td>Blocchi</td><td>#88 ← #78 (chiusa) · #89 ← #88 · #73 ← #72 (chiusa), #78 (chiusa), #89</td><td class="ok">ok</td></tr>
+  <tr><td>Login di Claude</td><td>scade fra il 14 e il 17/11: #88 e #89 devono finire prima, o va rinnovato</td><td class="warn">attenzione</td></tr>
+</table>
+
+<h2>2. La coda</h2>
+<div class="queue">
+  <span class="new">#88 forma del contract</span><i>→</i>
+  <span class="new">#89 entity, save, Unit of Work</span><i>→</i>
+  <span>#73 matrice permessi</span><i>→</i>
+  <span>#60</span><i>→</i><span>#81 offerta</span><i>→</i><span>#82</span><i>→</i><span>#83</span><i>→</i><span>#84</span><i>→</i><span>#85</span><i>→</i><span>#87 migrazione unica</span><i>→</i><span>PR in dev</span>
+</div>
+<p>#88 e #89 una dopo l'altra, non in parallelo: #89 riscrive le repository e i tipi che #88 rinomina.</p>
+
+<h2>3. Le decisioni prese oggi</h2>
+<table>
+  <tr><th>#</th><th>Tema</th><th>Deciso</th><th>Dove</th></tr>
+  <tr><td>1</td><td>Input degli use case</td><td>Schema zod nel contract; il <code>parse</code> lo fa chi chiama, al bordo; lo use case riceve il tipo già pronto</td><td>#88</td></tr>
+  <tr><td>2</td><td>Dove vive l'input</td><td>Nello stesso file dell'interfaccia dello use case, senza suffisso <code>Dto</code></td><td>#88</td></tr>
+  <tr><td>3</td><td><code>type</code> / DTO</td><td><code>type/</code> per union e struct semplici; ciò che esce è <code>I&lt;Entità&gt;</code> in <code>interface/</code>; via <code>dto/</code></td><td>#88</td></tr>
+  <tr><td>4</td><td>Errori</td><td>Forma nativa di better-result, via l'helper e il codec; codificare un errore è compito di chi lo espone (API), non del contract</td><td>#88</td></tr>
+  <tr><td>5</td><td>Container</td><td>Lo crea la composition root; il core espone solo l'install</td><td>#88</td></tr>
+  <tr><td>6</td><td>Standard Schema</td><td>Non serve: è per chi <em>riceve</em> schemi, noi li scriviamo con zod</td><td>—</td></tr>
+  <tr><td>7</td><td>Save</td><td>Un solo <code>save</code>, insert/update scelti con <code>isNew()</code>, niente upsert</td><td>#89</td></tr>
+  <tr><td>8</td><td>Concorrenza</td><td>Versione <code>v</code> caricata dal mapper, controllata da un trigger; scritture in coda eseguite alla fine (Unit of Work), per tutti i database</td><td>#89</td></tr>
+  <tr><td>9</td><td>Conflitto</td><td><code>runWithTransaction</code> ripete da capo un numero fisso di volte, poi <code>ConflictError</code>; fra persone vince l'ultima scrittura</td><td>#89</td></tr>
+  <tr><td>10</td><td>Cosa è entity</td><td><code>Utente</code>, <code>Sessione</code>, <code>TentativiAccesso</code>, stato della sonda. Restano record: log, blocchi, specchio</td><td>#89</td></tr>
+  <tr><td>11</td><td>Campi di servizio</td><td><code>deleted_at</code>, <code>created_at</code>, <code>updated_at</code> solo se il dominio li vuole</td><td>#89</td></tr>
+  <tr><td>12</td><td>Base dell'entity</td><td>Scritta nel core, non <code>@efesto-cloud/entity</code> (0.0.4, luxon, soft delete per tutti)</td><td>#89</td></tr>
+</table>
+
+<h2>4. Cosa resta fuori, di proposito</h2>
+<ul>
+  <li><strong>Approvazioni (#83)</strong>: chi autorizza decide su ciò che ha visto → lì la <code>v</code> arriverà dall'input e la ripetizione si spegnerà. Scritto in #89, non si fa ora.</li>
+  <li><strong>Entity base per lo specchio di Arca</strong>: da valutare con #62, quando il CRM legge lo specchio.</li>
+  <li><strong>#87</strong>: la migrazione unica dovrà conservare i trigger di versione. Da aggiungere come commento su #87 quando #89 è unito.</li>
+  <li><strong>Il Blueprint</strong>: lo si corregge dopo, dal registro (<code>.claude/epic-41/registro-blueprint.md</code>), quando #88 e #89 hanno mostrato cosa funziona.</li>
+</ul>
+
+<h2>5. Rischi che vedo</h2>
+<div class="box">
+<ul>
+  <li><span class="warn">#89 è grosso</span>: base entity + Unit of Work + implementazione D1 + quattro entity + migrazione con trigger + test comune. Se la sessione si ferma a metà, l'alternativa è dividerlo in due (meccanismo con <code>Utente</code>; poi le altre tre entity).</li>
+  <li><span class="warn">Il trigger è nuovo per noi</span>: provato su <code>node:sqlite</code>, non ancora su D1 vero. Il test di #89 gira su miniflare, che è lo stesso motore; il D1 remoto lo vedrà la CI di staging.</li>
+  <li><span class="warn">#88 tocca tutte le route</span> che chiamano uno use case (il <code>parse</code> al bordo): diff largo ma meccanico.</li>
+</ul>
+</div>
+
+<h2>6. Le issue</h2>
+<ul>
+  <li><a href="https://github.com/thera-capital/crm-itec/issues/88">#88 La forma del contract</a></li>
+  <li><a href="https://github.com/thera-capital/crm-itec/issues/89">#89 Entity con versione, un solo save e scritture in coda</a></li>
+  <li><a href="https://github.com/thera-capital/crm-itec/issues/41">#41 la mappa</a>: il corpo va ancora aggiornato con i due passi nuovi (lo faccio al via)</li>
+</ul>
+
+<h2>7. Ci siamo se…</h2>
+<ul class="check">
+  <li>le dodici decisioni della sezione 3 sono le tue;</li>
+  <li>#88 e #89 vanno prima di #73, in sequenza;</li>
+  <li>#89 resta un ticket solo (oppure lo divido adesso);</li>
+  <li>al tuo ok aggiorno il corpo di #41 e lancio #88.</li>
+</ul>
+
+</body>
+</html>
