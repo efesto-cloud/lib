@@ -9,9 +9,9 @@
     },
     "plugins": [
         {
-            "name": "Core",
-            "description": "",
-            "source": "./plugins/core",
+            "name": "blueprint",
+            "description": "How Efesto builds an application: contract, hexagonal core, adapters, and the save contract",
+            "source": "./plugins/blueprint",
             "strict": false
         },
         {
