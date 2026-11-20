@@ -1,256 +1,70 @@
 # Errors
 
-Domain errors. One concrete class per condition. Live in
-`core/src/errors/`. Returned via `Result.err(...)`, never thrown
-inside the domain.
+```ts
+// contract/src/errors/ExpenseNotFoundError.ts
+import { TaggedError } from "better-result";
+export default class ExpenseNotFoundError extends TaggedError("ExpenseNotFoundError") {}
 
-## The base class
+// core/src/errors/ReceiptStorageError.ts
+export default class ReceiptStorageError extends TaggedError("ReceiptStorageError")<{
+    cause?: unknown;
+}> {}
+```
+
+## Form
+
+- Native better-result: `TaggedError("<Name>Error")<{ fields }>`, tag equal to
+  the class name. No helper, no schema, no codec.
+- Fields only when they make a message more precise; a cause goes in
+  `cause?: unknown`. An `<Entity>NotFoundError` has no fields.
+- One file per error, `export default`.
+
+## Where
+
+| Place | Which error |
+|---|---|
+| `contract/src/errors/` | it appears in some use case's `Error`. The compiler enforces it: the contract cannot import the core |
+| `core/src/errors/` | a port raises it and the use case handles it without letting it out |
+| exception | infrastructure failures and programming errors. At the edge they become a generic message, with the stack only in development |
+
+`ConflictError` lives in the contract and belongs to the `Error` of every use
+case that writes (see `persistence.md`).
+
+## Names
+
+English, from a small set of shapes: `<Entity>NotFoundError`,
+`Invalid<X>Error`, `<X>TakenError`, `Incomplete<X>Error`, `Locked<X>Error`,
+`<X>Without<Y>Error`, `Outdated<X>Error`.
+
+## Showing errors
+
+The caller tells errors apart by `_tag`. User-facing messages live in the app,
+in an object typed on the tags:
 
 ```ts
-// core/src/errors/DomainError.ts
-export default abstract class DomainError extends Error {
-    constructor(message?: string, options?: ErrorOptions) {
-        super(message, options);
-        this.name = new.target.name;
-    }
-}
+// apps/webapp/app/errors.ts
+type ErrorOf<U> = U extends { execute(...args: never[]): Promise<Result<unknown, infer E>> }
+    ? E
+    : never;
+
+/** Errors of the modules whose use cases the interface shows to the user. */
+export type ShownError = {
+    [K in keyof UseCaseRegistry]: K extends `${"expenses" | "members"}.${string}`
+        ? ErrorOf<UseCaseRegistry[K]>
+        : never;
+}[keyof UseCaseRegistry];
+
+// One message per error, and none more.
+const MESSAGES: Record<ShownError["_tag"], string> = {
+    ExpenseNotFoundError: "This expense does not exist.",
+    // …
+};
 ```
 
-Two things matter:
+An error without a message, or a message left without an error, does not
+compile. A new module whose errors reach the user joins `ShownError`.
 
-- **`abstract`** — you never `new DomainError()` directly. Every
-  concrete error subclasses this.
-- **`this.name = new.target.name`** — instances report their class
-  name (`"MemberNotFoundError"`, not `"Error"`). That makes
-  `error.name === "MemberNotFoundError"` a reliable discriminator
-  **within the same process** — a loader switching on the error right
-  after calling a use case, before anything is returned. It stops being
-  reliable the moment the error has to reach the client as data: a
-  serialized round trip drops the prototype chain (`instanceof` is gone),
-  and whether `.name` itself survives depends on incidental details of
-  how it was assigned, not on a declared contract. Never rely on `.name`
-  once an error crosses that boundary — see `references/tagged-error.md`
-  for `_tag`, which is declared as literal string data for exactly this
-  case.
+## On the wire
 
-## One class per condition
-
-```ts
-// core/src/errors/FooNotFoundError.ts
-import DomainError from "./DomainError.js";
-export default class FooNotFoundError extends DomainError {}
-```
-
-```ts
-// core/src/errors/InvalidFooNameError.ts
-import DomainError from "./DomainError.js";
-export default class InvalidFooNameError extends DomainError {}
-```
-
-That's it. Empty bodies. The class name **is** the error. Don't add
-codes, messages, or fields unless there's a concrete need.
-
-Why parameterless?
-
-- The class is the discriminator. No code is needed; the class
-  identity carries the meaning.
-- Messages add stress to translation (it-IT locale) — the UI is the
-  right place to translate, not the error.
-- A field like `cause: string` invites inconsistency. If you need to
-  pass extra context, declare a specific subclass with a typed field.
-
-When you genuinely need parameters:
-
-```ts
-export default class FooFieldTooLongError extends DomainError {
-    constructor(readonly field: string, readonly maxLength: number) {
-        super();
-    }
-}
-```
-
-Use sparingly. The default is parameterless.
-
-## Where to put errors
-
-Two valid organisations:
-
-### Per-entity grouping
-
-If the error is tied to one entity's invariants:
-
-```
-core/src/errors/
-├── DomainError.ts
-├── InvalidFooNameError.ts
-├── FooNotFoundError.ts
-├── FooAlreadyExistsError.ts
-└── index.ts
-```
-
-This is the default in `task-planning`. Browsing the errors folder
-gives a quick map of what can go wrong in the domain.
-
-### Per-use-case grouping (rare)
-
-If an error is only ever raised by one use case and never travels:
-
-```
-core/src/useCase/foos/errors/CannotPublishWithoutNameError.ts
-```
-
-Use case-local errors are exceptional. When in doubt, put them in
-`core/src/errors/` — promoting from local to shared is a rename;
-demoting is a refactor.
-
-## How errors flow through `Result`
-
-The whole pipeline carries `DomainError`:
-
-```ts
-// VO factory:
-static create(raw: string): Result<FooName, InvalidFooNameError> { ... }
-
-// Entity factory:
-static create(props): Result<Foo, DomainError> { ... }
-
-// Use case:
-async execute(input): Promise<Result<FooDto, DomainError>> { ... }
-
-// Route loader:
-const result = await useCase.execute(input);
-if (result.isFailure()) {
-    if (result.error.name === "FooNotFoundError") {
-        throw new Response(null, { status: 404 });
-    }
-    throw result.error;  // re-raise; framework error envelope handles it
-}
-return { foo: result.data };
-```
-
-The union widening from `InvalidFooNameError` → `DomainError` is
-deliberate: the use case's caller usually doesn't want to know every
-possible failure, just whether one happened.
-
-When the caller *does* want to know — e.g. an action returning a
-form-friendly response — switch on `error.name`:
-
-```ts
-if (result.isFailure()) {
-    switch (result.error.name) {
-        case "InvalidFooNameError":
-            return { ok: false, field: "name", message: "Nome non valido" };
-        case "FooNotFoundError":
-            throw new Response(null, { status: 404 });
-        default:
-            throw result.error;
-    }
-}
-```
-
-## Why this pattern over Zod / typed-errors libs
-
-Zod validates parsing — useful at the loader boundary for input
-shaping. It's not the right tool for domain rules ("a Member can't
-have a duplicate code"), which need entity- or repo-level state.
-
-Typed-errors libraries (`ts-results`, `effect-ts`) usually require
-heavy wrapping, and this org already publishes a lightweight one —
-`@efesto-cloud/tagged-error` — so "heavy wrapping" is no longer the
-argument against reaching for one. The real question is where the
-error's life ends:
-
-- **Never leaves the process** (a VO factory's error, an entity
-  mutator's invariant, a use case's error consumed by its own loader
-  before translating to a `Response`/HTTP shape) — the plain
-  `DomainError` base + class-per-condition pattern here is enough.
-  Nothing about `_tag`, `matchError`, or schema rehydration earns its
-  keep when `.name`/`instanceof` never has to survive a serialized
-  boundary.
-- **Has to cross a serialized boundary and be handled as data on the
-  other side** (a loader/action response reaching the client component,
-  a queue message, anything that needs the concrete error class back,
-  not just an HTTP status already decided server-side) — that's what
-  `.name`/`instanceof` cannot do reliably (see "The base class" above),
-  and exactly the case `@efesto-cloud/tagged-error` (`TaggedError`,
-  `matchError`, `taggedErrorSchema`) and `@efesto-cloud/result-codec`
-  exist for. See `references/tagged-error.md` and
-  `references/result-codec.md`.
-
-Both patterns build on the same `Result` monad already in use; picking
-one over the other is about whether the error's identity needs to
-survive past this process, not about parsing vs. domain rules.
-
-## Cross-layer: how to choose the right error
-
-- **Validation failed inside a VO factory** → custom error for that
-  VO. E.g. `InvalidEmailFormatError` from `EmailAddress.create`.
-- **Invariant failed inside an entity mutator** → entity-specific
-  error. E.g. `EmptyMemberNameError`.
-- **Concurrency / not-found in the use case** → use-case-or-entity-
-  specific error. `FooNotFoundError`, `FooAlreadyExistsError`.
-- **External system failure** (DB connection refused, network
-  error) — these are infrastructure errors, not domain errors. Let
-  them bubble as native exceptions and let the route's error handler
-  return a 500.
-
-## Errors and the route layer
-
-The route's job is to translate `DomainError` instances into HTTP
-shapes. A typical mapping:
-
-| Error class suffix | HTTP code |
-|--------------------|-----------|
-| `*NotFoundError` | 404 |
-| `Invalid*Error` / `*FormatError` | 400 |
-| `*AlreadyExistsError` | 409 |
-| `Weak*Error` / `*PolicyError` | 422 |
-| `Unauthorised*Error` / `NotLoggedError` | 401 |
-| `Forbidden*Error` | 403 |
-| anything else | 500 |
-
-This mapping isn't enforced by code — it lives in the route
-loaders/actions. Pick something consistent across the app and document
-it (e.g. in a `webapp/app/errors.server.ts` helper).
-
-## Authentication errors — special case
-
-The webapp's `requireMember` throws a 401 `Response` directly when
-the actor can't be resolved. Use cases that take an actor open with a
-null-guard:
-
-```ts
-async execute(input, context): Promise<Result<FooDto, DomainError>> {
-    if (context.actor === null) {
-        throw new Error("Actor required");  // programming bug, not domain
-    }
-    // ...
-}
-```
-
-The thrown `Error` here is fine because reaching the use case
-without an actor would be a wiring bug, not a user-facing failure.
-
-## Checklist — new error
-
-- [ ] File `core/src/errors/<Condition>Error.ts`.
-- [ ] Extends `DomainError`.
-- [ ] Class name ends with `Error`.
-- [ ] Parameterless constructor (unless an extra field is genuinely
-      needed).
-- [ ] Re-exported from `core/src/errors/index.ts`.
-- [ ] Returned via `Result.err(new <Condition>Error())` from the
-      VO / entity / use case.
-- [ ] Route loader / action mapped to an HTTP response if the error
-      is user-facing.
-
-## "Seen in the wild"
-
-- `packages/core/src/errors/DomainError.ts` — the abstract base.
-- `packages/core/src/errors/MemberNotFoundError.ts`,
-  `packages/core/src/errors/MemberEmailAlreadyExistsError.ts`,
-  `packages/core/src/errors/InvalidEmailFormatError.ts`,
-  `packages/core/src/errors/WeakPasswordError.ts`,
-  `packages/core/src/errors/EmptyMemberNameError.ts`,
-  `packages/core/src/errors/InvalidMemberCodeError.ts` — all
-  parameterless one-liners.
+How an error travels over a medium is decided by whoever exposes it, when
+needed, with its own encoding: not by the contract.
