@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blueprint: la forma definitiva</title>
+<link rel="stylesheet" href="efesto.css">
+<style>
+    body { font-size: 16px; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 1.5rem; }
+    header.top { padding: 2.5rem 0 1.5rem; border-bottom: 1px solid var(--warm); }
+    h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Helvetica Neue', Arial, sans-serif; color: var(--coal); }
+    h1 { font-weight: 500; font-size: 2rem; letter-spacing: -.02em; margin: 0 0 .5rem; }
+    h2 { font-weight: 500; font-size: 1.6rem; letter-spacing: -.015em; margin: 0 0 .75rem; }
+    h3 { font-weight: 600; font-size: 1.15rem; margin: 0 0 .5rem; }
+    .num { color: var(--forge-ink); font-weight: 650; margin-right: .5rem; }
+    p { max-width: 75ch; color: var(--stone); line-height: 1.6; margin: 0 0 .8rem; }
+    .meta { font-size: .8125rem; color: var(--dust-ink); display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .meta b { color: var(--coal); font-weight: 650; }
+    nav.toc { position: sticky; top: 0; z-index: 5; background: rgb(250 247 241 / .94); border-bottom: 1px solid var(--warm); }
+    nav.toc ol { display: flex; gap: 1.1rem; list-style: none; margin: 0 auto; padding: .6rem 1.5rem;
+        max-width: 1080px; overflow-x: auto; white-space: nowrap; }
+    nav.toc a { font-size: .75rem; font-weight: 650; color: var(--stone); text-decoration: none; }
+    nav.toc a:hover { color: var(--forge-ink); }
+    section.s { padding: 2.5rem 0 2rem; border-bottom: 1px solid var(--warm); }
+    svg { display: block; width: 100%; height: auto; }
+    figure { margin: 1.25rem 0 0; }
+    figcaption { font-size: .875rem; color: var(--dust-ink); margin-top: .5rem; max-width: 75ch; }
+    .chip { display: inline-block; font-size: .75rem; font-weight: 650; padding: .1rem .5rem; border: 1px solid currentColor; }
+    .chip.ok { color: var(--forge-ink); } .chip.open { color: var(--steel); border-style: dashed; } .chip.todo { color: var(--dust-ink); border-style: dotted; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--warm); border: 1px solid var(--warm); margin-top: 1rem; }
+    .grid3 > div { background: var(--paper); padding: 1rem 1.1rem 1.2rem; }
+    .grid3 ul, .col ul { margin: .6rem 0 0; padding-left: 1.1rem; font-size: .9375rem; line-height: 1.55; color: var(--stone); }
+    .grid3 li, .col li { margin-bottom: .25rem; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.25rem; }
+    .col { border-top: 2px solid var(--forge); padding-top: .75rem; }
+    .col.cold { border-top-color: var(--steel); }
+    .lbl { font-size: .8125rem; font-weight: 650; color: var(--forge-ink); }
+    .col.cold .lbl { color: var(--steel); }
+    .rung { display: grid; grid-template-columns: 480px 1fr; gap: 2rem; padding: 1.5rem 0; border-top: 1px solid var(--warm); align-items: start; }
+    .rung:first-of-type { border-top: 0; }
+    .rung svg { background: var(--light); }
+    .rung dl { margin: 0; display: grid; grid-template-columns: 6.5rem 1fr; gap: .45rem 1rem; font-size: .9375rem; }
+    .rung dt { font-weight: 650; color: var(--dust-ink); font-size: .8125rem; padding-top: .15rem; }
+    .rung dd { margin: 0; color: var(--stone); line-height: 1.5; }
+    pre { background: var(--coal); color: var(--paper); padding: .9rem 1.1rem; overflow-x: auto; font-size: .8125rem; line-height: 1.55; margin: 0; }
+    pre .c { color: var(--dust); } pre .k { color: var(--spark); } pre .s { color: var(--ember); }
+    .q { border-left: 3px solid var(--steel); padding: .2rem 0 .2rem 1rem; margin: 1.25rem 0 0; color: var(--stone); max-width: 75ch; }
+    .q b { color: var(--coal); }
+    table.t { border-collapse: collapse; width: 100%; font-size: .9375rem; margin-top: 1rem; }
+    table.t th { text-align: left; font-size: .8125rem; font-weight: 650; color: var(--dust-ink); padding: .4rem .8rem .4rem 0; border-bottom: 1px solid var(--stone); }
+    table.t td { border-top: 1px solid var(--warm); padding: .5rem .8rem .5rem 0; vertical-align: top; color: var(--stone); }
+    table.t td:first-child { color: var(--coal); }
+    .small { font-size: .875rem; color: var(--dust-ink); }
+    .slide { margin: 2rem 0 0; padding: 1.5rem; background: var(--light); border-top: 3px solid var(--forge); }
+    .slide-h { display: flex; gap: 1.25rem; align-items: baseline; margin-bottom: 1.25rem; }
+    .slide-n { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 2.4rem;
+        color: var(--forge-ink); min-width: 3.2rem; line-height: 1; }
+    .slide-h h3 { font-size: 1.4rem; margin: 0 0 .25rem; }
+    .slide-h p { margin: 0; }
+    .slide-g { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.25rem; align-items: start; }
+    .slide-fig svg { background: var(--paper); }
+    .slide pre.tree { background: var(--paper); color: var(--coal); border: 1px solid var(--warm); margin-top: .4rem; }
+    .slide pre.tree .c { color: var(--dust-ink); }
+    .slide pre { margin-top: .4rem; }
+    .slide dl { margin: 0; display: grid; grid-template-columns: 7.5rem 1fr; gap: .45rem 1rem; font-size: .9375rem; }
+    .slide dt { font-weight: 650; color: var(--dust-ink); font-size: .8125rem; padding-top: .15rem; }
+    .slide dd { margin: 0; color: var(--stone); line-height: 1.5; }
+    @media (max-width: 860px) { .slide-g { grid-template-columns: 1fr; } }
+    @media (max-width: 860px) { .grid3, .two, .rung { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="ef-grain">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4A453F"/></marker>
+    <marker id="ahf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B84A1E"/></marker>
+    <symbol id="db" viewBox="0 0 70 72">
+      <path d="M2 12 v46 a33 10 0 0 0 66 0 v-46" fill="#FAF7F1" stroke="#4A453F" stroke-width="1.5"/>
+      <ellipse cx="35" cy="12" rx="33" ry="10" fill="#EFE8DC" stroke="#4A453F" stroke-width="1.5"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="top"><div class="wrap">
+  <h1>Blueprint: la forma definitiva</h1>
+  <p>Come Efesto costruisce un'applicazione, nella versione da cui si scrive la skill <code>blueprint</code>.
+    Qui c'è solo l'esito: il percorso, i giri e le alternative scartate stanno nel
+    <a href="index.html">documento di lavoro</a>, che resta il registro delle decisioni. Il riferimento per ogni regola è il CRM ITEC
+    (<code>thera-capital/crm-itec</code>, <code>dev</code>), il primo progetto che l'ha applicata per intero. Dove i documenti dicono cose diverse, vale questo.</p>
+  <div class="meta">
+    <span>Versione <b>20/11/2026</b></span>
+    <span>Branch <b><code>docs/32-skill-blueprint</code></b></span>
+    <span>Fonti <b>giri 1–17</b>, <b>CRM ITEC</b> (ADR 0009–0011, <code>dev</code> a 90e4997), <b>agent</b> (ADR 0002)</span>
+  </div>
+  <p class="small" style="margin-top:.8rem">Archiviati, fuori da questa versione: <a href="autorizzazione.md">autorizzazione</a> ·
+    <a href="estensioni.md">estensioni (bus, bootstrap condiviso) e job</a>.</p>
+</div></header>
+
+<nav class="toc" aria-label="Indice"><ol>
+  <li><a href="#sintesi">In una pagina</a></li>
+  <li><a href="#forma">1 Forma</a></li>
+  <li><a href="#pacchetti">2 Pacchetti</a></li>
+  <li><a href="#contract">3 Contract</a></li>
+  <li><a href="#usecase">4 Use case</a></li>
+  <li><a href="#errori">5 Errori</a></li>
+  <li><a href="#persistenza">6 Persistenza</a></li>
+  <li><a href="#di">7 DI</a></li>
+  <li><a href="#input">8 Input</a></li>
+  <li><a href="#test">9 Test</a></li>
+  <li><a href="#stack">10 Stack</a></li>
+  <li><a href="#aperti">11 Da definire</a></li>
+  <li><a href="#skill">12 La skill</a></li>
+</ol></nav>
+
+<main>
+
+<section class="s" id="sintesi"><div class="wrap">
+  <h2>In una pagina</h2>
+  <div class="grid3">
+    <div><span class="lbl">Forma</span>
+      <ul>
+        <li><code>contract</code> + <code>core</code> + adapter, con la porta sempre presente</li>
+        <li>Cartelle <code>apps/</code>, <code>packages/</code>, <code>adapters/</code></li>
+        <li>Niente barrel: si importa per percorso</li>
+        <li>Il container lo crea la composition root</li>
+      </ul></div>
+    <div><span class="lbl">Use case</span>
+      <ul>
+        <li><code>I&lt;Nome&gt;</code> nel contract, <code>&lt;Nome&gt;</code> nel core, chiave <code>"&lt;modulo&gt;.&lt;Nome&gt;"</code></li>
+        <li><code>UseCase&lt;I, R&gt;</code>: input già tipizzato, ritorna sempre un <code>Result</code> di better-result</li>
+        <li>L'input è uno schema zod nel file dell'interfaccia, validato al bordo</li>
+        <li>Errori <code>TaggedError</code> nativi, distinti per <code>_tag</code></li>
+      </ul></div>
+    <div><span class="lbl">Dati</span>
+      <ul>
+        <li>L'entity porta la sua versione <code>v</code>; la repository di un'entity ha un solo <code>save</code></li>
+        <li>La Unit of Work accoda e scrive tutto o niente; sul conflitto ripete, poi dà <code>ConflictError</code></li>
+        <li>Soft delete e timestamp solo quando servono, con un motivo</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="s" id="forma"><div class="wrap">
+  <h2><span class="num">1</span>La forma</h2>
+  <p>Ogni progetto nasce così: un contract, un core e gli adapter. È uno spettro: le implementazioni delle porte possono stare nel core o in un adapter,
+    e spostarle è spostare una cartella. La porta c'è sempre.</p>
+  <figure>
+<svg viewBox="260 165 690 275" role="img" aria-label="Lo standard: uno spettro su dove stanno le implementazioni">
+  <defs>
+    <linearGradient id="spettro" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#FAC775"/><stop offset="1" stop-color="#B84A1E"/>
+    </linearGradient>
+  </defs>
+  <g font-family="Public Sans, sans-serif">
+    <rect x="270" y="30" width="325" height="100" fill="#A8481F"/>
+    <text x="290" y="64" font-size="20" font-weight="700" fill="#FAF7F1">+ API</text>
+    <text x="290" y="88" font-size="13" fill="#FAF7F1">bus dentro, gateway intorno</text>
+    <text x="290" y="112" font-size="12" fill="#FAC775">segnale: più client sugli stessi dati</text>
+    <rect x="615" y="30" width="325" height="100" fill="#F8F4ED" stroke="#4A453F"/>
+    <text x="635" y="64" font-size="20" font-weight="700" fill="#14110E">+ Bootstrap condiviso</text>
+    <text x="635" y="88" font-size="13" fill="#4A453F">un profilo per processo</text>
+    <text x="635" y="112" font-size="12" fill="#6A6259">segnale: il secondo processo</text>
+
+    <rect x="270" y="170" width="670" height="260" fill="#14110E"/>
+    <text x="290" y="206" font-size="22" font-weight="700" fill="#FAF7F1">Standard</text>
+    <text x="410" y="206" font-size="13" fill="#FAC775">porta sempre · è da qui che si parte</text>
+    <rect x="300" y="226" width="610" height="12" fill="url(#spettro)"/>
+    <text x="300" y="258" font-size="12.5" fill="#FAF7F1">tutto nel core</text>
+    <text x="910" y="258" font-size="12.5" fill="#FAF7F1" text-anchor="end">tutto in adapter</text>
+
+    <g font-size="11.5" text-anchor="middle">
+      <rect x="310" y="280" width="170" height="100" fill="none" stroke="#FAF7F1"/>
+      <text x="395" y="300" fill="#FAF7F1">core</text>
+      <rect x="326" y="312" width="64" height="24" fill="none" stroke="#FAC775"/><text x="358" y="328" fill="#FAC775">porta</text>
+      <rect x="400" y="312" width="64" height="24" fill="#4A453F"/><text x="432" y="328" fill="#FAF7F1">impl db</text>
+      <rect x="326" y="344" width="64" height="24" fill="none" stroke="#FAC775"/><text x="358" y="360" fill="#FAC775">porta</text>
+      <rect x="400" y="344" width="64" height="24" fill="#4A453F"/><text x="432" y="360" fill="#FAF7F1">impl mail</text>
+
+      <rect x="530" y="280" width="170" height="100" fill="none" stroke="#FAF7F1"/>
+      <text x="615" y="300" fill="#FAF7F1">core</text>
+      <rect x="620" y="344" width="64" height="24" fill="#4A453F"/><text x="652" y="360" fill="#FAF7F1">impl mail</text>
+      <rect x="546" y="312" width="64" height="24" fill="none" stroke="#FAC775"/><text x="578" y="328" fill="#FAC775">porta</text>
+      <rect x="546" y="344" width="64" height="24" fill="none" stroke="#FAC775"/><text x="578" y="360" fill="#FAC775">porta</text>
+      <rect x="616" y="344" width="0" height="0" fill="none"/>
+      <rect x="712" y="312" width="40" height="24" fill="#B84A1E"/><text x="732" y="328" fill="#FAF7F1">db</text>
+
+      <rect x="780" y="280" width="90" height="100" fill="none" stroke="#FAF7F1"/>
+      <text x="825" y="300" fill="#FAF7F1">core</text>
+      <rect x="793" y="312" width="64" height="24" fill="none" stroke="#FAC775"/><text x="825" y="328" fill="#FAC775">porta</text>
+      <rect x="793" y="344" width="64" height="24" fill="none" stroke="#FAC775"/><text x="825" y="360" fill="#FAC775">porta</text>
+      <rect x="878" y="312" width="44" height="24" fill="#B84A1E"/><text x="900" y="328" fill="#FAF7F1">db</text>
+      <rect x="878" y="344" width="44" height="24" fill="#B84A1E"/><text x="900" y="360" fill="#FAF7F1">mail</text>
+    </g>
+    <text x="605" y="412" font-size="13" fill="#8A8178" text-anchor="middle">dove stanno le implementazioni lo decide l'applicazione; portarle fuori è spostare una cartella</text>
+  </g>
+</svg>
+  </figure>
+  <p style="margin-top:1rem">Le estensioni (un bus fra componenti nostri con canali sostituibili, un bootstrap condiviso fra più processi) e i job
+    sono <span class="chip open">da definire</span>: il materiale è in <a href="estensioni.md"><code>estensioni.md</code></a>.</p>
+</div></section>
+
+<section class="s" id="pacchetti"><div class="wrap">
+  <h2><span class="num">2</span>Pacchetti e dipendenze</h2>
+  <figure>
+<svg viewBox="0 0 960 470" role="img" aria-label="Driver, contract, core e adapter driven">
+  <g font-family="Public Sans, sans-serif">
+    <text x="20" y="30" font-size="13" font-weight="650" fill="#6A6259">chi chiama</text>
+    <g font-size="15" font-weight="650" fill="#14110E" text-anchor="middle">
+      <rect x="20" y="60" width="170" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="105" y="91">webapp</text>
+      <rect x="20" y="130" width="170" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="105" y="161">processo Node</text>
+      <rect x="20" y="200" width="170" height="52" fill="#FAF7F1" stroke="#4A453F" /><text x="105" y="231">seed</text>
+      <rect x="20" y="270" width="170" height="52" fill="#FAF7F1" stroke="#4A453F" /><text x="105" y="301">test</text>
+    </g>
+    <g stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)">
+      <line x1="192" y1="86" x2="246" y2="86"/><line x1="192" y1="156" x2="246" y2="156"/>
+      <line x1="192" y1="226" x2="246" y2="226"/><line x1="192" y1="296" x2="246" y2="296"/>
+    </g>
+
+    <rect x="250" y="44" width="240" height="300" fill="#FAF7F1" stroke="#B84A1E" stroke-width="3"/>
+    <text x="270" y="80" font-size="24" font-weight="700" fill="#A8481F">contract</text>
+    <text x="270" y="102" font-size="12.5" fill="#6A6259">ciò che chi chiama vede o manda</text>
+    <g font-size="14" fill="#14110E">
+      <text x="270" y="140">interface/ · type/ · enum/ · dict/</text>
+      <text x="270" y="168">schemi degli input</text>
+      <text x="270" y="196">errori con nome</text>
+      <text x="270" y="224" font-weight="650">interfacce degli use case</text>
+      <text x="270" y="252" font-weight="650">registro: chiave → interfaccia</text>
+      <text x="270" y="280">UseCase · ExecutionContext</text>
+      <text x="270" y="308">schemi dei canali d'ingresso</text>
+    </g>
+    <text x="270" y="334" font-size="11.5" fill="#6A6259">dipende solo da zod e better-result</text>
+
+    <line x1="548" y1="194" x2="494" y2="194" stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)"/>
+
+    <rect x="550" y="44" width="250" height="300" fill="#14110E"/>
+    <text x="570" y="80" font-size="24" font-weight="700" fill="#FAF7F1">core</text>
+    <text x="570" y="102" font-size="12.5" fill="#8A8178">il dominio e ciò di cui ha bisogno</text>
+    <g font-size="14" fill="#FAF7F1">
+      <text x="570" y="140">entity · rule/ (regole pure)</text>
+      <text x="570" y="168">implementazioni degli use case</text>
+      <text x="570" y="196" fill="#FAC775" font-weight="650">porte driven</text>
+      <text x="570" y="214" font-size="12" fill="#FAC775">repository · servizi</text>
+      <text x="570" y="244">moduli DI</text>
+      <text x="570" y="272">src/_testing: i fake</text>
+    </g>
+    <rect x="566" y="290" width="218" height="40" fill="none" stroke="#8A8178" stroke-dasharray="4 4"/>
+    <text x="675" y="315" font-size="12" fill="#8A8178" text-anchor="middle">implementazioni, se «tutto dentro»</text>
+
+    <text x="820" y="30" font-size="13" font-weight="650" fill="#6A6259">driven: adapter</text>
+    <g font-size="15" font-weight="650" fill="#14110E" text-anchor="middle">
+      <rect x="850" y="60" width="100" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="900" y="91">db</text>
+      <rect x="850" y="130" width="100" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="900" y="161">servizi</text>
+      <rect x="850" y="200" width="100" height="52" fill="#FAF7F1" stroke="#4A453F"/><text x="900" y="231">http</text>
+      <rect x="850" y="270" width="100" height="52" fill="#FAF7F1" stroke="#4A453F" stroke-dasharray="5 4"/><text x="900" y="301">stub</text>
+    </g>
+    <g stroke="#B84A1E" stroke-width="1.8" marker-end="url(#ahf)">
+      <line x1="848" y1="86" x2="804" y2="86"/><line x1="848" y1="156" x2="804" y2="156"/>
+      <line x1="848" y1="226" x2="804" y2="226"/><line x1="848" y1="296" x2="804" y2="296"/>
+    </g>
+
+    <g font-size="13" fill="#4A453F">
+      <line x1="250" y1="400" x2="300" y2="400" stroke="#4A453F" stroke-width="1.6" marker-end="url(#ah)"/>
+      <text x="312" y="405">importa</text>
+      <line x1="420" y1="400" x2="470" y2="400" stroke="#B84A1E" stroke-width="1.8" marker-end="url(#ahf)"/>
+      <text x="482" y="405">implementa una porta del core</text>
+      <rect x="720" y="390" width="30" height="20" fill="none" stroke="#4A453F" stroke-dasharray="5 4"/>
+      <text x="760" y="405">quando serve</text>
+    </g>
+    <text x="250" y="444" font-size="14" fill="#14110E">Le parti client importano il <tspan font-weight="650">contract</tspan> e <tspan font-weight="650">core/rule</tspan>; il resto del core solo il codice lato server.</text>
+  </g>
+</svg>
+  </figure>
+  <div class="two">
+    <div class="col"><span class="lbl">Cartelle</span>
+<pre style="margin-top:.6rem">apps/        composition root: webapp, processi Node, seed
+packages/    contract, core, db (schema e migrazioni)
+adapters/    &lt;tecnologia&gt;-adapter: d1, sqlserver, http, stub
+</pre>
+      <ul>
+        <li><b>app → adapter → core e contract; core → contract</b></li>
+        <li>Nessuno importa un'app; un adapter non importa un altro adapter</li>
+        <li>Nome degli adapter: <code>@&lt;scope&gt;/&lt;tecnologia&gt;-adapter</code></li>
+        <li>Lo <code>stub-adapter</code> ha implementazioni sue e i dati finti (il seed locale); non lega i fake del core</li>
+      </ul></div>
+    <div class="col"><span class="lbl">Import e build</span>
+      <ul>
+        <li><b>Niente barrel</b>: ogni pacchetto esporta <code>"./*"</code> verso <code>./dist/*.js</code> e si importa per percorso</li>
+        <li>Contract, core e adapter si compilano in <code>dist/</code> (<code>tsc --build</code> + <code>tsc-alias</code>), con <code>"sideEffects": false</code></li>
+        <li>Dentro un pacchetto si importa con l'alias <code>~/</code> e l'estensione <code>.js</code>; fra pacchetti per percorso, senza estensione</li>
+        <li>Le parti client importano il contract e <code>core/rule/*</code>; il resto del core lo importano solo la composition root e il codice <code>.server.ts</code></li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="s" id="contract"><div class="wrap">
+  <h2><span class="num">3</span>Il contract</h2>
+  <p>Il contract è il bordo verso chi chiama: quello che chi chiama vede o manda. Dipende solo da zod e better-result, mai dal core.
+    Le porte non ci stanno, perché parlano di entity: restano nel core. Ogni file contiene un simbolo, con <code>export default</code>;
+    solo schema e tipo dell'input sono export con nome.</p>
+  <table class="t">
+    <tr><th>Cartella</th><th>Cosa contiene</th><th>Regola</th></tr>
+    <tr><td><code>useCase.ts</code></td><td><code>UseCase&lt;I, R&gt;</code> ed <code>ExecutionContext</code></td>
+      <td>L'interfaccia degli use case vive qui, non in un pacchetto esterno. Due soli parametri, l'input e il <code>Result</code>; il contesto non è un generico ma il tipo <code>ExecutionContext</code> del progetto, uno per tutta l'app, con i campi opzionali dove una chiamata può non averli</td></tr>
+    <tr><td><code>useCase/&lt;modulo&gt;/I&lt;Nome&gt;.ts</code></td><td>L'interfaccia dello use case e, <b>nello stesso file</b>, lo schema del suo input; se serve, <code>&lt;Nome&gt;Output</code></td>
+      <td>Schema e tipo hanno lo stesso nome, <code>&lt;Nome&gt;Input</code>. Uno use case può riusare l'input di un altro</td></tr>
+    <tr><td><code>useCase/&lt;modulo&gt;/Dati&lt;X&gt;.ts</code>, <code>useCase/Dati&lt;X&gt;.ts</code></td><td>Una parte d'input comune</td>
+      <td>Nel modulo se è del modulo, alla radice di <code>useCase/</code> se è fra moduli; si compone con <code>.extend</code>. Anche i tipi generici come <code>Pagina&lt;T&gt;</code> stanno qui</td></tr>
+    <tr><td><code>useCase/&lt;modulo&gt;/&lt;Modulo&gt;UseCases.ts</code></td><td>Il tipo del modulo: chiave → interfaccia</td><td>Una riga per use case</td></tr>
+    <tr><td><code>registry.ts</code></td><td><code>UseCaseRegistry</code>, che compone i tipi dei moduli, e <code>UseCaseResolver</code></td>
+      <td>Una riga per modulo; niente <code>declare module</code>. La chiave è anche l'identificativo nel container</td></tr>
+    <tr><td><code>interface/I&lt;Entità&gt;.ts</code></td><td>Ciò che esce: un'entità serializzata, o una riga (<code>ISyncLogEntry</code>)</td>
+      <td>Un'<code>interface</code>, senza suffisso <code>Dto</code> e senza schema: la produce il nostro codice</td></tr>
+    <tr><td><code>type/</code></td><td>Union di stringhe, struct semplici, strutture particolari (un <code>Record</code>)</td>
+      <td>Mai qualcosa che rappresenta un'entità: quello va in <code>interface/</code></td></tr>
+    <tr><td><code>enum/&lt;Tipo&gt;.ts</code>, <code>dict/&lt;Tipo&gt;Desc.ts</code></td><td>La versione a runtime di una union, e le sue etichette</td>
+      <td><code>{ [K in Tipo]: K }</code> e <code>{ [K in Tipo]: string }</code>; negli schemi <code>z.enum(&lt;Tipo&gt;Enum)</code></td></tr>
+    <tr><td><code>errors/</code></td><td>Gli errori che compaiono nella <code>Error</code> di uno use case</td><td>§5</td></tr>
+    <tr><td><code>&lt;canale&gt;/</code></td><td>Gli schemi di un canale d'ingresso che non è uno use case (i payload di un processo esterno, la firma)</td><td>Per chi li riceve sono un ingresso: restano schemi</td></tr>
+  </table>
+<pre style="margin-top:1.25rem"><span class="c">// contract/src/useCase.ts</span>
+<span class="k">export type</span> ExecutionContext = { member?: IMember };
+
+<span class="k">export interface</span> UseCase&lt;I, R <span class="k">extends</span> Result&lt;unknown, unknown&gt;&gt; {
+    execute(input: I, context: ExecutionContext): Promise&lt;R&gt;;
+}
+
+<span class="c">// contract/src/useCase/expenses/IApproveExpense.ts</span>
+<span class="k">export const</span> ApproveExpenseInput = z.object({ expense_id: z.string() });
+<span class="k">export type</span> ApproveExpenseInput = z.infer&lt;<span class="k">typeof</span> ApproveExpenseInput&gt;;
+
+<span class="k">export default interface</span> IApproveExpense
+    <span class="k">extends</span> UseCase&lt;
+        ApproveExpenseInput,
+        Result&lt;IExpense, ExpenseNotFoundError | InvalidTransitionError | ConflictError&gt;
+    &gt; {}
+
+<span class="c">// contract/src/useCase/expenses/ExpensesUseCases.ts</span>
+<span class="k">import type</span> IApproveExpense <span class="k">from</span> <span class="s">"./IApproveExpense.js"</span>;
+<span class="k">import type</span> ISubmitExpense <span class="k">from</span> <span class="s">"./ISubmitExpense.js"</span>;
+
+<span class="k">type</span> ExpensesUseCases = {
+    <span class="s">"expenses.ApproveExpense"</span>: IApproveExpense;
+    <span class="s">"expenses.SubmitExpense"</span>: ISubmitExpense;
+};
+<span class="k">export default</span> ExpensesUseCases;</pre>
+</div></section>
+
+<section class="s" id="usecase"><div class="wrap">
+  <h2><span class="num">4</span>Use case</h2>
+  <div class="two">
+    <div class="col"><span class="lbl">Fa</span>
+      <ul>
+        <li>Riceve un oggetto del tipo dichiarato, mai argomenti posizionali, e il contesto: <code>execute(input, ctx)</code>; <code>ctx</code> si omette quando non serve</li>
+        <li>Applica le regole di dominio attraverso le entity e le funzioni pure di <code>core/rule/</code></li>
+        <li>Ritorna sempre un <code>Result</code>: <code>Result&lt;void, …&gt;</code> per un successo senza valore, <code>Result&lt;T, never&gt;</code> se non può fallire</li>
+        <li>Scrive dentro <code>uow.runWithTransaction</code>, e allora la sua <code>Error</code> comprende <code>ConflictError</code></li>
+      </ul></div>
+    <div class="col cold"><span class="lbl">Non fa</span>
+      <ul>
+        <li>Rivalidare la forma dell'input: tiene solo le regole del dominio, con i loro errori</li>
+        <li>Leggere richiesta, cookie, variabili d'ambiente</li>
+        <li>Modificare la <code>v</code> delle entity</li>
+      </ul></div>
+  </div>
+  <table class="t" style="margin-top:1.5rem">
+    <tr><th>Tema</th><th>Regola</th></tr>
+    <tr><td>Nomi</td><td>Interfaccia <code>I&lt;Nome&gt;</code> nel contract, implementazione <code>&lt;Nome&gt;</code> in
+      <code>core/src/useCase/&lt;modulo&gt;/impl/</code>, chiave <code>"&lt;modulo&gt;.&lt;Nome&gt;"</code>. Nessun suffisso <code>UseCase</code>.</td></tr>
+    <tr><td>Implementazione</td><td><code>@injectable() export default class &lt;Nome&gt; implements I&lt;Nome&gt;</code>. Le dipendenze arrivano nel costruttore con
+      <code>@inject(InternalSymbols.Repo.&lt;X&gt;)</code>, <code>InternalSymbols.Service.&lt;X&gt;</code>, <code>InternalSymbols.UnitOfWork</code>. La firma di <code>execute</code> ripete il tipo del <code>Result</code>; l'input si destruttura.</td></tr>
+    <tr><td>Modulo</td><td><code>&lt;Modulo&gt;Module.ts</code> nel core: un oggetto chiave → classe, tipato <code>UseCaseImplementations&lt;&lt;Modulo&gt;UseCases&gt;</code>.
+      L'<code>install</code> del core li stende tutti in un solo <code>useCaseModule&lt;UseCaseRegistry&gt;</code>: una chiave che manca, un'implementazione che non rispetta l'interfaccia o un modulo dimenticato non compilano.</td></tr>
+    <tr><td>Logica comune</td><td>Una funzione, non uno use case: in <code>core/src/useCase/&lt;nome&gt;.ts</code> se è fra moduli, in <code>impl/&lt;nome&gt;.ts</code> se è del modulo.</td></tr>
+    <tr><td>Composizione</td><td>Uno use case può usarne un altro: lo riceve per chiave, tipato sull'interfaccia (<code>@inject("expenses.GetExpense") private readonly expense: IGetExpense</code>), gli passa lo stesso <code>ctx</code>, e condivide la Unit of Work perché sono nella stessa risoluzione. Nessun ciclo.</td></tr>
+    <tr><td>Contesto</td><td><code>execute(input, context: ExecutionContext)</code>: il tipo è quello del contract. Porta interfacce, non entity: un'entity fuori dalla Unit of Work scriverebbe fuori dal patto. Chi agisce su sé stesso viene dal contesto, chi agisce su un altro ha l'id nell'input.</td></tr>
+  </table>
+</div></section>
+
+<section class="s" id="errori"><div class="wrap">
+  <h2><span class="num">5</span>Errori</h2>
+<pre><span class="k">export default class</span> ExpenseNotFoundError <span class="k">extends</span> TaggedError(<span class="s">"ExpenseNotFoundError"</span>) {}
+<span class="k">export default class</span> ReceiptUploadError <span class="k">extends</span> TaggedError(<span class="s">"ReceiptUploadError"</span>)&lt;{ cause?: unknown }&gt; {}</pre>
+  <table class="t">
+    <tr><th>Dove</th><th>Quale errore</th></tr>
+    <tr><td><code>contract/src/errors/</code></td><td>Compare nella <code>Error</code> di uno use case. Lo impone il compilatore, perché il contract non dipende dal core.</td></tr>
+    <tr><td><code>core/src/errors/</code></td><td>L'errore di una porta che lo use case gestisce e non lascia uscire.</td></tr>
+    <tr><td>eccezione</td><td>I guasti dell'infrastruttura e gli errori di programmazione. Al bordo diventano un messaggio generico, con lo stack solo in sviluppo.</td></tr>
+  </table>
+  <ul style="margin-top:1rem;color:var(--stone);line-height:1.6">
+    <li>Forma nativa di better-result: <code>TaggedError("&lt;Nome&gt;Error")&lt;{ campi }&gt;</code>, con il tag uguale al nome della classe. Niente <code>taggedError</code>, niente schemi, niente codec. Un file per errore.</li>
+    <li>I campi solo quando servono a un messaggio più preciso; la causa si porta come <code>cause?: unknown</code>. Un <code>&lt;Entità&gt;NotFoundError</code> non ha campi.</li>
+    <li>Nomi in inglese: <code>&lt;Entità&gt;NotFoundError</code>, <code>Invalid&lt;X&gt;Error</code>, <code>&lt;X&gt;TakenError</code>, <code>Incomplete&lt;X&gt;Error</code>, <code>Locked&lt;X&gt;Error</code>, <code>&lt;X&gt;Without&lt;Y&gt;Error</code>, <code>Outdated&lt;X&gt;Error</code>.</li>
+    <li>Chi riceve distingue per <code>_tag</code>. I messaggi per l'utente stanno nell'app, in un <code>Record&lt;ErroreMostrato["_tag"], string&gt;</code>: un errore senza messaggio, o un messaggio senza errore, non compila. Un modulo nuovo i cui errori arrivano all'utente entra in <code>ErroreMostrato</code>.</li>
+    <li>Come un errore viaggia su un mezzo lo decide chi lo espone, quando serve: non il contract.</li>
+  </ul>
+</div></section>
+
+<section class="s" id="persistenza"><div class="wrap">
+  <h2><span class="num">6</span>Entity, repository e Unit of Work</h2>
+  <p>È la prassi dell'architettura esagonale con Unit of Work e optimistic locking, scritta a mano perché nessun ORM copre bene
+    insieme D1, Postgres, SQLite e MongoDB. Il patto è lo stesso su ogni database; lo snippet SQL è quello che funziona anche dove la transazione non è interattiva (D1).</p>
+  <table class="t">
+    <tr><th>Pezzo</th><th>Il patto</th></tr>
+    <tr><td>Entity</td><td>La base sta nel core del progetto: <code>Entity&lt;P, Id = string&gt;</code> con <code>id</code>, <code>v</code>, <code>isNew()</code> (<code>v === 0</code>), <code>isRemoved()</code> e il <code>remove()</code> protetto.
+      Costruttore <code>(id, props, v)</code> per il mapper; <code>static create(…)</code> con <code>v = 0</code>, che può ritornare un <code>Result</code>. I metodi cambiano <code>props</code>, che è <code>protected</code>.
+      La <code>v</code> la carica il mapper della repository.</td></tr>
+    <tr><td>Campi opzionali</td><td><code>deleted_at</code> porta il soft delete ed è una decisione di dominio, non un default. <code>created_at</code> e <code>updated_at</code> si mettono quando servono, con un motivo.
+      Chi si cancella davvero espone un metodo di dominio (<code>close()</code>, <code>reset()</code>) che chiama <code>remove()</code>.</td></tr>
+    <tr><td>Quando un'entity</td><td>Non serve un'entity per ogni tabella. I registri append-only (log, storico dei passaggi) non sono entity: la loro riga si accoda nella stessa Unit of Work (<code>append</code>) e si scrive insieme alle entity.</td></tr>
+    <tr><td>Repository di un'entity</td><td>Le letture che servono e <b>un solo <code>save(entity): void</code></b>, che non scrive: accoda. Nuova → <code>INSERT</code> con <code>v = 1</code>; rimossa → controllo della versione e <code>DELETE</code>; altrimenti <code>UPDATE</code> con il controllo della versione.
+      Niente upsert: un <code>INSERT</code> su un id che c'è già è un conflitto. Un'entity salvata due volte nella stessa esecuzione si scrive una volta, con l'ultimo stato.</td></tr>
+    <tr><td>Altre porte</td><td>Per ciò che non è un'entity la porta ha il metodo che serve (<code>add</code> per un registro, <code>replaceAll</code> per una tabella di configurazione), e accoda anch'esso nella Unit of Work. Una porta che scrive subito, fuori dalla Unit of Work, è un'eccezione da motivare.</td></tr>
+    <tr><td>Unit of Work</td><td>La porta è minima: <code>IUnitOfWork.runWithTransaction(work)</code>, che ritorna <code>R | Err&lt;never, ConflictError&gt;</code>. <code>save</code>, <code>append</code> e i controlli di versione sono dell'implementazione nell'adapter, che le repository ricevono come tipo concreto.
+      Esegue <code>work</code>, poi scrive la coda in una transazione breve, tutto o niente. Le letture dentro <code>work</code> non vedono la coda: si legge, si decide, poi si scrive.
+      La coda si scrive anche se <code>work</code> ritorna un errore (un <code>save</code> è la decisione di scrivere); si butta solo se <code>work</code> lancia.</td></tr>
+    <tr><td>Guardie</td><td>Un <code>save</code> fuori da <code>runWithTransaction</code> lancia; due <code>runWithTransaction</code> sovrapposti sulla stessa <code>uow</code> lanciano. Uno use case eseguito due volte in sequenza riusa la <code>uow</code>, che si svuota a ogni giro.</td></tr>
+    <tr><td>Conflitto</td><td>Una versione vecchia o un vincolo di unicità violato fanno fallire la transazione intera; li riconosce l'adapter, ogni altro guasto è un'eccezione. <code>work</code> si ripete da capo, tre volte in tutto, poi resta <code>ConflictError</code> (nel contract).
+      Se una riga è stata cancellata nel frattempo, l'<code>UPDATE</code> non tocca niente e si vede solo a transazione confermata: il resto è scritto, e torna <code>ConflictError</code> senza ripetere.</td></tr>
+    <tr><td>Chi vince</td><td>Di default, fra persone vince l'ultima scrittura e la <code>v</code> non passa nei form.
+      Quando una persona decide su ciò che ha visto (un passaggio di stato, un'approvazione), lo use case è <b>«o va o errore»</b>: la <code>v</code> arriva nell'input, lo use case la confronta con quella letta dentro <code>work</code> e risponde <code>Outdated&lt;X&gt;Error</code>. La ripetizione resta: rilegge e dà l'errore di dominio.</td></tr>
+    <tr><td>Nomi</td><td>Porta <code>IUnitOfWork</code>, simbolo <code>UnitOfWork</code>, variabile sempre <code>uow</code>. Mai «DatabaseContext».</td></tr>
+    <tr><td>Scope</td><td>Una Unit of Work per esecuzione di use case: <code>inRequestScope</code> di Inversify è una risoluzione, e ogni <code>resolveUseCase(key)</code> è una risoluzione nuova. Sono <code>inRequestScope</code> la Unit of Work, gli use case e le repository che ricevono la <code>uow</code>; il resto può essere costante.</td></tr>
+  </table>
+<pre style="margin-top:1.25rem"><span class="c">-- colonna: v INTEGER NOT NULL DEFAULT 1 (su una tabella esistente: ALTER TABLE … ADD COLUMN)</span>
+UPDATE expense SET …, v = CASE WHEN v = ?letta THEN v + 1 END WHERE id = ?</pre>
+  <p class="small" style="margin-top:.5rem">Con una versione vecchia il <code>CASE</code> dà <code>NULL</code>, il vincolo fa fallire l'<code>UPDATE</code>
+    e il database annulla tutto il batch. Contare le righe toccate basta solo dove la transazione è interattiva.</p>
+  <div class="two">
+    <div class="col"><span class="lbl">Vincoli</span>
+      <ul>
+        <li>Il vincolo di unicità va sulla cosa che deve essere unica, non su un valore che la contiene: un progressivo ha la sua colonna e il suo <code>UNIQUE</code></li>
+        <li>Con il soft delete il vincolo è parziale: <code>UNIQUE … WHERE deleted_at IS NULL</code></li>
+        <li>Un codice scelto dall'utente come chiave fa coincidere unicità e conflitto: la ripetizione rilegge e dà l'errore di dominio giusto</li>
+      </ul></div>
+    <div class="col cold"><span class="lbl">Regole fra più righe</span>
+      <ul>
+        <li>La versione protegge una riga, non una regola fra righe («resta almeno un amministratore»)</li>
+        <li>Una regola così si controlla dentro la transazione, nello stesso <code>CASE</code>: <code>CASE WHEN v = ? AND (sottoquery) THEN v + 1 END</code>; oppure con un'entity che la tenga</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="s" id="di"><div class="wrap">
+  <h2><span class="num">7</span>DI e composition root</h2>
+  <table class="t">
+    <tr><th>Chi</th><th>Cosa fa</th></tr>
+    <tr><td>composition root (<code>apps/*</code>, il seed, ogni test)</td><td>Crea il container, <code>new Container({ defaultScope: "Singleton" })</code>; chiama <code>install(container)</code> del core; carica gli install degli adapter che ha scelto, passando la loro configurazione; lega i servizi che il core implementa da sé. Un container per composition root: due processi che si parlano in un test restano due container.</td></tr>
+    <tr><td>core</td><td>Espone <code>install(container): void</code>, che carica i moduli degli use case, e <code>createUseCaseResolver(container): UseCaseResolver</code>. Non crea il container e non ha singleton.</td></tr>
+    <tr><td>adapter</td><td>Esporta <code>install&lt;Tecnologia&gt;(opts): ContainerModule</code> con i suoi binding (<code>installD1({ DB })</code>, <code>installSqlServer({ host, … })</code>). La configurazione entra da <code>opts</code>.</td></tr>
+    <tr><td>simboli</td><td>Porte e servizi con <code>InternalSymbols</code> (<code>Symbol.for</code>); gli use case con la chiave stringa del registro.</td></tr>
+  </table>
+<pre style="margin-top:1.25rem"><span class="c">// apps/webapp/workers/bootstrap.ts: env esiste solo nella richiesta, quindi si costruisce alla prima</span>
+<span class="k">let</span> resolveUseCase: UseCaseResolver | undefined;
+
+<span class="k">export function</span> getResolveUseCase(env: Env): UseCaseResolver {
+    <span class="k">if</span> (!resolveUseCase) {
+        <span class="k">const</span> container = <span class="k">new</span> Container({ defaultScope: <span class="s">"Singleton"</span> });
+        install(container);
+        container.load(installD1({ DB: env.DB }));
+        resolveUseCase = createUseCaseResolver(container);
+    }
+    <span class="k">return</span> resolveUseCase;
+}</pre>
+  <p style="margin-top:1rem">Inversify e i suoi decoratori restano. Una migrazione futura a un altro container resta possibile finché il core usa
+    solo l'iniezione nel costruttore e i binding stanno nei moduli e nelle composition root.</p>
+</div></section>
+
+<section class="s" id="input"><div class="wrap">
+  <h2><span class="num">8</span>L'input si valida al bordo</h2>
+  <p>Chi chiama passa il dato dallo schema del contract (<code>safeParse</code>) solo dove entra un dato grezzo: il <code>FormData</code> di un'action,
+    i parametri di una richiesta, il JSON di un canale. Un input che non lo rispetta è un 400 e lo use case non viene chiamato.
+    Dove il valore è già tipizzato (l'utente della sessione, una costante, il seed) non si rivalida.</p>
+  <p>Al bordo di una webapp c'è uno <b>schema del filo</b>: trasforma le stringhe del form (campi ripetuti come elenco, numeri con la virgola, sì/no, spunte, JSON)
+    e poi passa allo schema del contract con <code>.pipe</code>. Gli helper (<code>leggiForm</code>, <code>leggiQuery</code>, <code>leggiParams</code>) stanno nell'app, in un modulo <code>.server.ts</code>.</p>
+</div></section>
+
+<section class="s" id="test"><div class="wrap">
+  <h2><span class="num">9</span>Test</h2>
+  <table class="t">
+    <tr><th>Cosa</th><th>Come</th><th>Quanto</th></tr>
+    <tr><td>Dominio</td><td>entity e regole di <code>core/rule/</code>, pure, in <code>core/src/**/test/</code></td><td>ogni invariante e ogni transizione, meglio a tabella (<code>it.each</code>)</td></tr>
+    <tr><td>Use case</td><td>dalla composition root vera, sul database vero in locale (per D1: il runtime dei Worker con le migrazioni vere). I fake del core (<code>core/src/_testing</code>) servono dove la porta parla con un sistema esterno</td><td>il caso felice e gli errori della sua <code>Error</code></td></tr>
+    <tr><td>Il patto del save</td><td>una funzione condivisa (<code>pattoDelSave</code>) chiamata per ogni repository di entity, dove girano i test degli use case</td><td>per ogni entity: nuova → insert, id esistente → conflitto, versione vecchia → conflitto</td></tr>
+    <tr><td>Adapter da solo</td><td>nel suo pacchetto</td><td>per ciò che la composition root non copre</td></tr>
+    <tr><td>Tipi</td><td><code>@ts-expect-error</code> dentro i <code>.test.ts</code>, fatti valere da <code>tsc</code></td><td>ogni promessa del tipo «non compila»: chiave sbagliata, implementazione mancante, messaggio d'errore mancante</td></tr>
+    <tr><td>End-to-end</td><td>Playwright, in <code>apps/e2e</code>, fuori dai test unitari</td><td>uno per flusso utente, non per errore</td></tr>
+  </table>
+  <p style="margin-top:1rem">Il cancello di CI è Biome, knip, typecheck e test. Dopo <code>biome --write</code> si rilanciano i test, non solo il typecheck.
+    Una suite di contratto condivisa fra fake e adapter reale è <span class="chip open">da definire</span>.</p>
+</div></section>
+
+<section class="s" id="stack"><div class="wrap">
+  <h2><span class="num">10</span>Principi e stack</h2>
+  <p>La skill separa le regole che valgono a prescindere dagli strumenti da quelle legate a uno strumento. Le versioni le fissa il progetto.</p>
+  <table class="t">
+    <tr><th>Principio</th><th>Strumento oggi</th></tr>
+    <tr><td>Ogni use case ritorna un <code>Result</code> con errori con nome</td><td>better-result, con la versione esatta (un solo maintainer, tre major)</td></tr>
+    <tr><td>Input validato al bordo</td><td>zod 4, con la versione esatta</td></tr>
+    <tr><td>Porte risolte per iniezione nel costruttore</td><td>Inversify</td></tr>
+    <tr><td>Repository; implementazione in un adapter</td><td>Prisma per schema e migrazioni (<code>packages/db</code>); l'SQL delle repository scritto a mano</td></tr>
+    <tr><td>Il core non dipende dal runtime</td><td>Cloudflare Workers e D1; Node per i processi fuori dalla piattaforma</td></tr>
+    <tr><td>Interfaccia separata dalla logica</td><td>React Router (framework mode)</td></tr>
+    <tr><td>Test e qualità</td><td>vitest (con il plugin dei Worker per D1), Playwright, Biome, knip</td></tr>
+  </table>
+</div></section>
+
+<section class="s" id="aperti"><div class="wrap">
+  <h2><span class="num">11</span>Da definire, di proposito</h2>
+  <p>La skill li nomina come aperti, con la regola provvisoria dove c'è.</p>
+  <table class="t">
+    <tr><th>Tema</th><th>Cosa sappiamo</th></tr>
+    <tr><td><span class="chip open">autorizzazione</span></td><td>Le idee non sono chiare. Materiale e domande in <a href="autorizzazione.md"><code>autorizzazione.md</code></a>.</td></tr>
+    <tr><td><span class="chip open">estensioni e job</span></td><td>Bus con canali sostituibili, bootstrap condiviso, gateway, lavoro differito. Materiale e domande in <a href="estensioni.md"><code>estensioni.md</code></a>.</td></tr>
+    <tr><td><span class="chip open">suite di contratto</span></td><td>Oggi i fake non rispettano il patto del save e il patto gira solo sul database vero.</td></tr>
+    <tr><td><span class="chip open">Standard Schema</span></td><td>Il principio è indipendente da zod; i tipi del contract oggi sono legati a zod.</td></tr>
+    <tr><td><span class="chip open">il tempo</span></td><td>Spesso arriva nell'input (<code>now: z.date()</code>), a volte lo use case legge l'orologio. Nessuna regola.</td></tr>
+    <tr><td><span class="chip open">dirty tracking</span></td><td>Oggi un <code>save</code> senza modifiche fa l'<code>UPDATE</code> e alza <code>v</code>. Non serve finché gli use case salvano solo ciò che cambiano.</td></tr>
+    <tr><td><span class="chip open">value object</span></td><td>Il CRM non ne ha: le regole stanno nelle entity e in <code>core/rule/</code>. Quando servono e che forma hanno, da decidere sul primo caso vero.</td></tr>
+    <tr><td><span class="chip open">webapp e UI</span></td><td>I form copiati fra pagine sono un problema reale, ma fuori dal perimetro del core.</td></tr>
+    <tr><td><span class="chip open">librerie di lib</span></td><td>La skill non dipende da <code>@efesto-cloud/entity</code>, <code>usecase</code> e <code>unit-of-work</code>: base <code>Entity</code>, <code>UseCase</code> e Unit of Work vivono nel progetto. Il riallineamento delle librerie è un lavoro a parte.</td></tr>
+  </table>
+</div></section>
+
+<section class="s" id="skill"><div class="wrap">
+  <h2><span class="num">12</span>Cosa diventa la skill</h2>
+  <ul style="color:var(--stone);line-height:1.6">
+    <li>Una skill sola, <code>blueprint</code>, in inglese, con esempi su un dominio neutro (note spese). Le skill figlie e il plugin <code>Core</code> si tolgono.</li>
+    <li>Regole generali; i dettagli li decide la singola applicazione. Nessuna guida di migrazione.</li>
+    <li>Le ricette corte («come si aggiunge uno use case, un'entity, un errore, un modulo») sono il materiale che il progetto si copia nel suo <code>CLAUDE.md</code> e nei README.</li>
+  </ul>
+</div></section>
+
+</main>
+</body>
+</html>
